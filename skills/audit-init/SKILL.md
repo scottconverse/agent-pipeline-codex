@@ -5,7 +5,7 @@ description: Scaffold dual-AI audit-handoff infrastructure: out-of-repo audit ga
 
 # Audit Init
 
-Follow the canonical workflow in `../../commands/audit-init.md`, adapted for Codex Desktop App:
+Follow the canonical workflow in `references/audit-init.md`, adapted for Codex Desktop App:
 
 - Treat Codex as either implementer or auditor depending on the user's role assignment.
 - For Codex-side standing instructions, produce `AGENTS.md` or another user-approved Codex project-instructions file rather than Claude memory files.
@@ -14,6 +14,6 @@ Follow the canonical workflow in `../../commands/audit-init.md`, adapted for Cod
 
 Templates live at:
 
-- `../../pipelines/templates/audit-gate-template.md`
-- `../../pipelines/templates/audit-protocol-template.md`
-- `../../pipelines/templates/5-lens-self-audit-template.md`
+- `references/audit-gate-template.md`
+- `references/audit-protocol-template.md`
+- `references/5-lens-self-audit-template.md`

@@ -5,7 +5,7 @@ description: Initialize a project for Agent Pipeline for Codex from a PRD/spec, 
 
 # Pipeline Init
 
-Follow the canonical workflow in `../../commands/pipeline-init.md`, adapted for Codex Desktop App:
+Follow the canonical workflow in `references/pipeline-init.md`, adapted for Codex Desktop App:
 
 - Treat `$ARGUMENTS` as the user's message content or any explicit arguments they provided.
 - When the command says `AskUserQuestion`, ask the user directly or use Codex's available structured user-input tool if present.
@@ -20,8 +20,8 @@ Preserve the command's hard rules:
 - Do not modify files outside the user's project directory and this plugin's read-only templates.
 - Do not propose autonomous mode.
 
-Templates and source material are relative to this plugin root:
+Templates and source material are bundled inside this installed skill folder:
 
-- `../../pipelines/`
-- `../../scripts/`
-- `../../pipelines/templates/AGENTS.md`
+- `references/pipeline-payload/pipelines/`
+- `references/pipeline-payload/scripts/`
+- `references/AGENTS.md`

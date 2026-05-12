@@ -280,7 +280,7 @@
 <header class="masthead">
   <div class="mark">agent-pipeline-codex</div>
   <div class="meta">
-    <span>v0.5.2</span>
+    <span>v0.5.3</span>
     <span>Apache-2.0</span>
     <span>Codex Desktop App plugin</span>
   </div>
@@ -315,7 +315,7 @@
     </div>
 
     <aside class="hero-meta">
-      <div class="row"><span>Release</span><strong class="rust">0.5.2</strong></div>
+      <div class="row"><span>Release</span><strong class="rust">0.5.3</strong></div>
       <div class="row"><span>Stages</span><strong>11</strong></div>
       <div class="row"><span>Human gates</span><strong>3</strong></div>
       <div class="row"><span>Role files</span><strong>13</strong></div>
@@ -328,7 +328,7 @@
 
 <section class="diagram-wrap frame">
   <span class="frame-mark">Fig. 01 · Pipeline schematic</span>
-  <span class="frame-mark-right">v0.5.2 · feature.yaml</span>
+  <span class="frame-mark-right">v0.5.3 · feature.yaml</span>
 
   <div class="figcap">
     <span class="label">Eleven stages · four phases · three gates</span>
@@ -619,11 +619,11 @@
         </div>
 
         <div class="layer current">
-          <div class="v">v0.5.2<strong>Rename + scope</strong><span class="badge">Current</span></div>
+          <div class="v">v0.5.3<strong>Install packaging</strong><span class="badge">Current</span></div>
           <div>
-            <div class="l-title">Plugin renamed to <code>agent-pipeline-codex</code>. Codex Desktop App only.</div>
-            <p class="l-body">The plugin is now scoped specifically to Codex Desktop App. The structural surface — commands, role files, policy scripts, pipeline definitions, run-state convention — is unchanged from v0.5.1. The dual-AI audit-handoff discipline (v0.3) still pairs Codex with any second AI; the second AI now lives in its own downstream repo rather than entangled with this one.</p>
-            <div class="l-catches"><strong>Removes</strong> Cross-runtime entanglement. Each runtime can now ship on its own cadence.</div>
+            <div class="l-title">Installed Codex skills are self-contained.</div>
+            <p class="l-body">Each skill now carries its own command references, templates, pipeline definitions, and policy scripts under its installed folder. The structural surface remains aligned with the v0.5.2 Codex split; v0.5.3 closes the GitHub skill-installer packaging gap.</p>
+            <div class="l-catches"><strong>Fixes</strong> Skills installed into <code>$CODEX_HOME/skills</code> no longer depend on missing <code>../../commands</code> paths.</div>
           </div>
         </div>
       </div>
@@ -700,7 +700,7 @@
 <footer class="foot page">
   <span>© Scott Converse · Apache-2.0</span>
   <span><a href="https://github.com/scottconverse/agent-pipeline-codex">github</a> · <a href="https://github.com/scottconverse/agent-pipeline-codex/discussions">discussions</a></span>
-  <span>v0.5.2 · 2026</span>
+  <span>v0.5.3 · 2026</span>
 </footer>
 
 </body>

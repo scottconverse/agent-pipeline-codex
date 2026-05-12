@@ -5,7 +5,7 @@ description: Orchestrate or resume an Agent Pipeline run from `.agent-runs/<run-
 
 # Run Pipeline
 
-Follow the canonical workflow in `../../commands/run-pipeline.md`, adapted for Codex Desktop App:
+Follow the canonical workflow in `references/run-pipeline.md`, adapted for Codex Desktop App:
 
 - Treat `$ARGUMENTS` as the user's message content or explicit arguments.
 - Use Codex `spawn_agent` only when the user has authorized this pipeline run and the stage requires isolated subagent work.

@@ -5,7 +5,7 @@ description: Create a new `.agent-runs/<run-id>/manifest.yaml` from the installe
 
 # New Run
 
-Follow the canonical workflow in `../../commands/new-run.md`, adapted for Codex Desktop App:
+Follow the canonical workflow in `references/new-run.md`, adapted for Codex Desktop App:
 
 - Treat `$ARGUMENTS` as the user's message content or explicit arguments.
 - Use the shell tool for date and directory operations.
