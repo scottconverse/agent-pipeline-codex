@@ -75,7 +75,8 @@ Once the project's working directory is identified and the orientation is settle
    - `check_allowed_paths.py`
    - `check_no_todos.py`
    - `check_adr_gate.py`
-   - `run_all.py`
+- `run_all.py`
+- `check_pipeline_control_loop.py`
 
 3. **`.gitignore`** — append `.agent-runs/` (create file if it doesn't exist; check for existing entry before appending to avoid duplicates).
 

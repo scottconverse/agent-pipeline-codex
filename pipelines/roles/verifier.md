@@ -33,7 +33,7 @@ Write **`.agent-runs/<run-id>/verifier-report.md`** with these sections:
 4. **Policy gate** — run `python scripts/policy/run_all.py --run <run-id>`. Confirm `POLICY: ALL CHECKS PASSED`. If not, name the failing check and quote the violation lines.
 5. **AGENTS.md non-negotiables** — for each non-negotiable in the project's AGENTS.md that the manifest.goal touches: state explicitly whether this work honored it.
 6. **Cross-cutting checks** — items the auditor lens reviews: blast radius (what adjacent code could break and was checked); doc-currency (USER-MANUAL or equivalent updated where the change is operator-facing); CHANGELOG entry written; ADR written if a closed decision applied.
-7. **Open issues this work introduces** — anything that satisfies the exit criteria but adds debt. Each gets a severity and a disposition (`next-cleanup.md` vs. next-rung-as-P1).
+7. **Open Caveats / Release Risks** — anything that satisfies the exit criteria but adds debt. Every bullet is blocking unless it has already been fixed or starts with `INTENTIONAL DEFERRAL:` and cites the manifest or director decision authorizing the deferral. Do not use this section as a parking lot for work that belongs in the current slice.
 
 ## Hard rules
 
@@ -43,6 +43,8 @@ Write **`.agent-runs/<run-id>/verifier-report.md`** with these sections:
 - Do not soften a verdict. If something is NOT MET, say NOT MET — even if "the team tried hard." The manager decides PROMOTE / BLOCK / REPLAN; you give them the truth to decide on.
 - Do not invoke other agents.
 - If implementation-report.md is missing or claims tests pass that in fact fail, mark the run NOT MET and stop.
+- Do not call unresolved caveats non-blocking. If the work has a caveat, either verify the fix in this slice or cite the explicit `INTENTIONAL DEFERRAL:` authorization.
+- Do not treat green CI, successful push, draft PR status, or a recommended next action as evidence that the slice can stop.
 
 ## Output checklist
 
@@ -50,4 +52,5 @@ The stage is complete only when:
 - Every manifest exit criterion has a verdict and evidence.
 - The lint, format, type, and policy outputs are pasted (head/tail).
 - Every NOT MET / PARTIAL is justified with a file/test citation.
+- The `Open Caveats / Release Risks` section contains no unresolved caveat bullets.
 - The report is publishable as-is — the manager will quote it verbatim in their decision.

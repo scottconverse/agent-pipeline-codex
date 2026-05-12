@@ -8,6 +8,17 @@ leaves beta. While in `0.1.x-beta`, breaking changes to slash-command
 arguments, manifest fields, or role-file contracts may land in any
 release; the `CHANGELOG` will call them out.
 
+## [Unreleased]
+
+### Added
+
+- **Mechanical control-loop gate.** Added `scripts/check_pipeline_control_loop.py`, `.agent-runs/<run-id>/active-control-state.md`, and `docs/process/pipeline-control-loop.md` so authorized runs cannot end unless a valid stop condition is recorded and checked.
+
+### Changed
+
+- **Continuation is executable.** Updated `run-pipeline`, `feature.yaml`, `bugfix.yaml`, `manifest-template.yaml`, manager, verifier, and implementer-pre-push roles so successful push, green CI, draft PR status, recommended next action, and release/tag after all gates pass are not stop conditions.
+- **Caveats are blocking.** `Open Caveats / Release Risks` now blocks completion unless each item is fixed or marked `INTENTIONAL DEFERRAL:` with cited authorization.
+
 ## [0.5.3] - 2026-05-11
 
 Patch release. Fixes GitHub skill-install packaging so each installed Codex

@@ -219,6 +219,21 @@ orchestrator writes `BLOCKED` to `run.log` and stops. Re-invoking the
 same `run-pipeline` later resumes from the next non-`COMPLETE` stage.
 The log is the resume key.
 
+### Control-loop state
+
+During an authorized run, `run.log` is not the only control artifact. The
+orchestrator also writes `.agent-runs/<run-id>/active-control-state.md` before
+any final response. That file records the current stage, last completed gate,
+next required action, stop condition, whether a final response is allowed, and
+the action the runner is continuing to.
+
+`scripts/check_pipeline_control_loop.py --run <run-id>` is the mechanical gate.
+It fails when the runner tries to stop on successful push, green CI, draft PR
+status, a recommended next action, unresolved caveats, or release/tag after all
+required gates have passed. `Open Caveats / Release Risks` blocks completion
+unless each item is fixed or marked `INTENTIONAL DEFERRAL:` with cited
+authorization.
+
 ---
 
 ## 5. What an agent stage actually sees

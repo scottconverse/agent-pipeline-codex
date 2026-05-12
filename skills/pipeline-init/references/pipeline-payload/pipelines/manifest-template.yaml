@@ -80,3 +80,13 @@ pipeline_run:
   #   - "researcher: explicitly check tests/ for sync vs async assumptions"
   #   - "researcher: surface whether to extend Protocol X or create Y"
   director_notes: []
+
+  # Control-loop contract — enforced by run-pipeline before every final
+  # response during an authorized run.
+  control_loop:
+    active_control_state: ".agent-runs/<run-id>/active-control-state.md"
+    stop_condition_required_for_final_response: true
+    open_caveats_block_completion: true
+    post_push_ci_follow_through_required: true
+    execute_recommended_next_action_when_authorized: true
+    final_response_allowed_without_stop_condition: false

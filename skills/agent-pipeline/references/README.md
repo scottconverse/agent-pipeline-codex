@@ -22,6 +22,8 @@ This plugin enforces a structural pattern that catches every one of those:
 5. **Verifier stage** — independent fresh-context check against every manifest exit criterion.
 6. **Manager gate** — final PROMOTE/BLOCK/REPLAN decision, must cite verifier evidence verbatim.
 
+7. **Control-loop gate** — before any final response during an authorized run, `.agent-runs/<run-id>/active-control-state.md` must record a valid stop condition and `scripts/check_pipeline_control_loop.py --run <run-id>` must pass. Green CI, successful push, draft PR status, and a recommended next action are not stop conditions.
+
 ## Install
 
 Install through the Codex Desktop App plugin flow once the repository is published, or clone it locally and add the local path to your Codex plugin configuration:

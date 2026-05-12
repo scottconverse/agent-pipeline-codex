@@ -145,6 +145,14 @@ You have an idea — a paragraph or two describing what you want to build. The p
 
 Once onboarded, every piece of agent work follows the same shape: define what you're doing, let the pipeline orchestrate it, approve or reject at three checkpoints.
 
+### Control-loop gate
+
+During an authorized run, `run-pipeline` keeps working until a valid stop condition is recorded in `.agent-runs/<run-id>/active-control-state.md` and `scripts/check_pipeline_control_loop.py --run <run-id>` passes.
+
+Valid stop conditions are: `human_approval_gate`, `failed_gate_needs_user_direction`, `destructive_action`, `credential_or_secret_required`, `scope_conflict`, `external_system_unavailable_after_retry`, and `user_explicitly_paused_or_stopped`.
+
+Successful push, green CI, draft PR status, recommended next action, open caveats, and release/tag after all required gates pass are not stop conditions. `Open Caveats / Release Risks` blocks completion unless each item is fixed or marked `INTENTIONAL DEFERRAL:` with cited authorization.
+
 ### Step 1 — Initialize a run
 
 ```

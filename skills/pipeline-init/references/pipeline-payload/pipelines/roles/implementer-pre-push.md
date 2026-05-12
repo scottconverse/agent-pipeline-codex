@@ -94,6 +94,17 @@ Separate post-push pass, not optional. After `git push` succeeds:
 
 Your push report cannot honestly say "Artifact-state: pass" until this post-push pass completes.
 
+## Control-loop gate
+
+Before any final response during an authorized pipeline run:
+
+1. Write `.agent-runs/<run-id>/active-control-state.md`.
+2. Run `python scripts/policy/check_pipeline_control_loop.py --run <run-id>`.
+3. If `stop_condition: none`, continue to the recorded `continuing_to` action instead of ending the turn.
+4. If `Open Caveats / Release Risks` contains unresolved bullets, fix them before calling the slice complete. The only allowed exception is a bullet prefixed with `INTENTIONAL DEFERRAL:` and backed by explicit manifest or director-decision authorization.
+
+Successful push, green CI, PR draft status, and a recommended next action are not stop conditions. Merge, release, and tag are not stop conditions after the required review, test, judge, CI, and release gates have passed and the action is inside the authorized slice.
+
 ## The proof-anchor vs release-target distinction
 
 A tracked file cannot self-cite its own commit SHA: adding or amending the file changes the SHA. Verification logs, ledgers, and release notes must distinguish:
@@ -116,6 +127,7 @@ After every push, include this block in your user-facing report:
 - QA:          [pass | findings: ...]
 Artifact-state: [pass | findings: ...]
 Post-push propagation: [pass | findings: ...]
+Control-loop gate: [pass | continuing to ... | stopped because <valid stop condition>]
 ```
 
 If any lens has findings, fix before push. If after a push an adversarial audit (cross-agent auditor, independent review) still finds drift, that is direct evidence this rule isn't sticking; the verifier will add a new artifact-state check to the in-repo doc and you'll run it next cycle.
