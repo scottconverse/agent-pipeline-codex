@@ -1,6 +1,6 @@
 ---
 name: pipeline-init
-description: Initialize a project for Agent Pipeline for Codex from a PRD/spec, existing repo, or project description; scaffold `.pipelines/`, `scripts/policy/`, `.agent-runs/` gitignore support, and a starter `AGENTS.md` when missing.
+description: "Initialize a project for Agent Pipeline for Codex from a PRD/spec, existing repo, or project description; scaffold `.pipelines/`, `scripts/policy/`, `.agent-runs/` gitignore support, and a starter `AGENTS.md` when missing."
 ---
 
 # Pipeline Init

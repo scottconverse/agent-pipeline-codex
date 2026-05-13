@@ -30,18 +30,49 @@ def referenced_paths(text: str) -> list[str]:
     return refs
 
 
-def check_skill(skill_dir: Path) -> list[str]:
+def check_text_references(
+    source: Path,
+    text: str,
+    skill_dir: Path,
+    *,
+    reject_parent_traversal: bool,
+) -> list[str]:
     errors: list[str] = []
-    skill_md = skill_dir / "SKILL.md"
-    text = skill_md.read_text(encoding="utf-8")
 
-    if "../" in text or "..\\" in text:
-        errors.append(f"{skill_md}: contains parent-directory traversal")
+    if reject_parent_traversal and ("../" in text or "..\\" in text):
+        errors.append(f"{source}: contains parent-directory traversal")
 
     for ref in referenced_paths(text):
         target = skill_dir / Path(ref)
         if not target.exists():
-            errors.append(f"{skill_md}: missing bundled reference {ref}")
+            errors.append(f"{source}: missing bundled reference {ref}")
+
+    return errors
+
+
+def check_skill(skill_dir: Path) -> list[str]:
+    errors: list[str] = []
+    skill_md = skill_dir / "SKILL.md"
+    errors.extend(
+        check_text_references(
+            skill_md,
+            skill_md.read_text(encoding="utf-8"),
+            skill_dir,
+            reject_parent_traversal=True,
+        )
+    )
+
+    references_dir = skill_dir / "references"
+    if references_dir.exists():
+        for reference in sorted(references_dir.rglob("*.md")):
+            errors.extend(
+                check_text_references(
+                    reference,
+                    reference.read_text(encoding="utf-8"),
+                    skill_dir,
+                    reject_parent_traversal=False,
+                )
+            )
 
     return errors
 

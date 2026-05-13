@@ -1,6 +1,6 @@
 ---
 name: run-pipeline
-description: Orchestrate or resume an Agent Pipeline run from `.agent-runs/<run-id>/`, executing stages in order, stopping at human gates or failures, and using Codex subagents for isolated agent stages.
+description: "Orchestrate or resume an Agent Pipeline run from `.agent-runs/<run-id>/`, executing stages in order, stopping at human gates or failures, and using Codex subagents for isolated agent stages."
 ---
 
 # Run Pipeline

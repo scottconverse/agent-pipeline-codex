@@ -1,6 +1,6 @@
 ---
 name: new-run
-description: Create a new `.agent-runs/<run-id>/manifest.yaml` from the installed pipeline manifest template without starting the pipeline.
+description: "Create a new `.agent-runs/<run-id>/manifest.yaml` from the installed pipeline manifest template without starting the pipeline."
 ---
 
 # New Run

@@ -115,7 +115,7 @@ def evaluate_final_response_gate(run_dir: Path, require_active_run: bool = False
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.3")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.4")
     parser.add_argument(
         "--run-dir",
         default=str(_find_repo_root() / ".agent-runs"),

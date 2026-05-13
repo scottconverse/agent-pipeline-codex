@@ -282,7 +282,7 @@
 <header class="masthead">
   <div class="mark">agent-pipeline-codex</div>
   <div class="meta">
-    <span>v0.5.3+control-loop</span>
+    <span>v0.5.4+install-gate</span>
     <span>Apache-2.0</span>
     <span>Codex Desktop App plugin</span>
   </div>
@@ -317,7 +317,7 @@
     </div>
 
     <aside class="hero-meta">
-      <div class="row"><span>Release</span><strong class="rust">0.5.3+</strong></div>
+      <div class="row"><span>Release</span><strong class="rust">0.5.4</strong></div>
       <div class="row"><span>Stages</span><strong>11</strong></div>
       <div class="row"><span>Human gates</span><strong>3</strong></div>
       <div class="row"><span>Role files</span><strong>13</strong></div>
@@ -331,7 +331,7 @@
 
 <section class="diagram-wrap frame">
   <span class="frame-mark">Fig. 01 · Pipeline schematic</span>
-  <span class="frame-mark-right">v0.5.3+ · feature.yaml</span>
+  <span class="frame-mark-right">v0.5.4 · feature.yaml</span>
 
   <div class="figcap">
     <span class="label">Eleven stages · four phases · three human gates · three control gates</span>
@@ -557,6 +557,7 @@
 
       <div class="install"><pre><span class="comment"># Install once, across all Codex Desktop App projects</span>
 <span class="prompt">›</span> git clone https://github.com/scottconverse/agent-pipeline-codex.git ~/agent-pipeline-codex-plugin
+<span class="prompt">›</span> python scripts/verify_plugin_release.py --live
 
 <span class="comment"># Then in any project root</span>
 <span class="prompt">›</span> Use pipeline-init for this project.
@@ -626,11 +627,11 @@
         </div>
 
         <div class="layer current">
-          <div class="v">v0.5.3+<strong>Control-loop enforcement</strong><span class="badge">Current</span></div>
+          <div class="v">v0.5.4<strong>Install acceptance</strong><span class="badge">Current</span></div>
           <div>
-            <div class="l-title">The agent must prove it can stop.</div>
-            <p class="l-body">Installed skills are self-contained, and continuation is now enforced by three scripts: <code>final_response_gate.py</code> discovers active runs, <code>agent_decision_gate.py</code> rejects unverified blockers and writes <code>decision-ledger.ndjson</code>, and <code>pipeline_continue.py</code> prints the next required action when stopping is not allowed.</p>
-            <div class="l-catches"><strong>Fixes</strong> Green CI, successful push, recommended next action, draft PR status, release/tag after gates pass, and unverified blocker risk are not stop conditions.</div>
+            <div class="l-title">The plugin must prove Codex can see it.</div>
+            <p class="l-body"><code>verify_plugin_release.py --live</code> runs pytest, skill packaging, static plugin install acceptance, and a fresh <code>codex exec</code> live check. A release cannot be called installed unless the runtime sees <code>agent-pipeline-codex</code>, exposes every expected namespaced skill, and emits no plugin-specific loader warning.</p>
+            <div class="l-catches"><strong>Fixes</strong> Repository tests, standalone skill copies, and docs deployment are not plugin-install proof.</div>
           </div>
         </div>
       </div>
@@ -677,7 +678,7 @@
         <div class="lesson"><div class="lh">Manager cites, never summarises</div><div class="lb">The final decision quotes the verifier verbatim. Summarisation and encouragement are how bad runs get promoted, and both are forbidden in the role file.</div></div>
         <div class="lesson"><div class="lh">Decisions are written</div><div class="lb">Director decisions belong in <code>director-decisions.md</code>, not in chat. The researcher surfaces them; the human picks in writing.</div></div>
         <div class="lesson"><div class="lh">Standing invariants beat memory</div><div class="lb">v0.5.1's doc-currency invariants enforce inventory accuracy on every run because cumulative drift was the failure mode v0.2 through v0.5 silently accumulated.</div></div>
-        <div class="lesson"><div class="lh">Stops need receipts</div><div class="lb">The agent's stop, defer, and skip decisions pass through <code>agent_decision_gate.py</code>. If the blocker is inferred instead of verified, the gate blocks and <code>pipeline_continue.py</code> prints the next action.</div></div>
+        <div class="lesson"><div class="lh">Installs need runtime proof</div><div class="lb">A plugin release is not installed until <code>verify_plugin_release.py --live</code> proves a fresh Codex process sees the plugin and all namespaced skills.</div></div>
       </div>
     </div>
   </div>
@@ -709,7 +710,7 @@
 <footer class="foot page">
   <span>© Scott Converse · Apache-2.0</span>
   <span><a href="https://github.com/scottconverse/agent-pipeline-codex">github</a> · <a href="https://github.com/scottconverse/agent-pipeline-codex/discussions">discussions</a></span>
-  <span>v0.5.3+control-loop · 2026</span>
+  <span>v0.5.4+install-gate · 2026</span>
 </footer>
 
 </body>

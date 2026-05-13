@@ -1,6 +1,6 @@
 ---
 name: audit-init
-description: Scaffold dual-AI audit-handoff infrastructure: out-of-repo audit gate/protocol plus in-repo 5-lens self-audit documentation and optional Codex/other-agent wiring notes.
+description: "Scaffold dual-AI audit-handoff infrastructure: out-of-repo audit gate/protocol plus in-repo 5-lens self-audit documentation and optional Codex/other-agent wiring notes."
 ---
 
 # Audit Init

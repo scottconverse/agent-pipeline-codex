@@ -2,7 +2,7 @@
 
 A Codex Desktop App plugin that orchestrates multi-stage agentic work: **manifest → research → plan → test-write → execute → policy → verify → drift-detect → critique → auto-promote → manager**, with human-approval gates at manifest, plan, and manager-decision (the last auto-fires on clean runs at v0.5+). Built from real lessons across CivicCast, CivicSuite, AgentSuiteLocal and other projects where autonomous agent runs go wrong silently and "manager-PROMOTE" failures slip past CI.
 
-**Current release: v0.5.3** (Codex skill-install packaging fix). [CHANGELOG](CHANGELOG.md) · [User Manual](USER-MANUAL.md) · [Architecture](ARCHITECTURE.md) · [Landing page](https://scottconverse.github.io/agent-pipeline-codex/) · [Discussions](https://github.com/scottconverse/agent-pipeline-codex/discussions)
+**Current release: v0.5.4** (Codex plugin install-acceptance gate). [CHANGELOG](CHANGELOG.md) · [User Manual](USER-MANUAL.md) · [Architecture](ARCHITECTURE.md) · [Landing page](https://scottconverse.github.io/agent-pipeline-codex/) · [Discussions](https://github.com/scottconverse/agent-pipeline-codex/discussions)
 
 ## Why this plugin exists
 
@@ -31,6 +31,17 @@ Install through the Codex Desktop App plugin flow once the repository is publish
 ```bash
 git clone https://github.com/scottconverse/agent-pipeline-codex.git ~/agent-pipeline-codex-plugin
 ```
+
+Before calling the plugin installed, run the release verifier and prove the
+Codex runtime can see it:
+
+```bash
+python scripts/verify_plugin_release.py --live
+```
+
+That gate must print `PLUGIN-RELEASE-VERIFY: PASSED`, including the nested
+`PLUGIN-INSTALL-ACCEPTANCE: PASSED` live check. Repository tests, standalone
+skill copies, and docs deployment are not install proof.
 
 ## First use in a new project
 

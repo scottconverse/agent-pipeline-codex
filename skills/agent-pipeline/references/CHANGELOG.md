@@ -25,6 +25,46 @@ release; the `CHANGELOG` will call them out.
 - **Caveats are blocking.** `Open Caveats / Release Risks` now blocks completion unless each item is fixed or marked `INTENTIONAL DEFERRAL:` with cited authorization.
 - **Workflow-cost discipline is slice completeness.** Updated runtime `run-pipeline`, scaffolded AGENTS.md, planner/executor/verifier/manager role guidance, and control-loop docs so workflow file changes must name touched workflows, apply the 10 directives, record evidence, and treat unresolved violations as release risks.
 
+## [0.5.4] - 2026-05-13
+
+Patch release. Adds a real Codex Desktop plugin install-acceptance gate so
+repository tests cannot be mistaken for slash/plugin registration proof.
+
+### Added
+
+- **Plugin install-acceptance gate.** Added `scripts/check_plugin_install_acceptance.py`.
+  Static mode verifies `.codex-plugin/plugin.json`, the expected skills,
+  Codex `config.toml`, the local marketplace manifest, and the installed
+  cache version. Live mode launches a fresh `codex exec` process and verifies
+  `agent-pipeline-codex` appears under Available plugins, exposes all expected
+  namespaced skills, and emits no plugin-specific loader warnings.
+- **Plugin release verifier.** Added `scripts/verify_plugin_release.py` so the
+  source tests, skill packaging check, static plugin install check, and live
+  Codex runtime check can be run as one release gate.
+- **Install-surface tests.** Added pytest coverage for the source skill layout,
+  a valid installed Codex-home layout, and the missing-plugin failure path.
+- **Nested skill-packaging scan.** `check_skill_packaging.py` now scans bundled
+  reference markdown as well as `SKILL.md` so installed procedure files cannot
+  keep stale repo-root references undetected.
+
+### Fixed
+
+- **Skill loader errors.** Removed a BOM from `skills/agent-pipeline/SKILL.md`
+  and quoted YAML descriptions in all skill frontmatter so every expected
+  namespaced plugin skill loads cleanly.
+
+### Required release proof
+
+Before claiming a plugin release is installed, run:
+
+```bash
+python scripts/verify_plugin_release.py --live
+```
+
+The release is not complete unless that command prints
+`PLUGIN-RELEASE-VERIFY: PASSED` and the nested
+`PLUGIN-INSTALL-ACCEPTANCE: PASSED`.
+
 ## [0.5.3] - 2026-05-11
 
 Patch release. Fixes GitHub skill-install packaging so each installed Codex

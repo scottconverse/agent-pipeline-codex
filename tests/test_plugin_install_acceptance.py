@@ -1,0 +1,70 @@
+# SPDX-License-Identifier: Apache-2.0
+
+import json
+from pathlib import Path
+
+from scripts.check_plugin_install_acceptance import (
+    EXPECTED_MARKETPLACE,
+    EXPECTED_PLUGIN,
+    check_installed_layout,
+    check_source_layout,
+    plugin_version,
+)
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_source_layout_has_all_expected_plugin_skills() -> None:
+    failures = [check for check in check_source_layout(ROOT) if not check.ok]
+
+    assert failures == []
+
+
+def test_installed_layout_static_check_accepts_valid_codex_home(tmp_path: Path) -> None:
+    version = plugin_version()
+    codex_home = tmp_path / ".codex"
+    marketplace = codex_home / "local-marketplaces" / EXPECTED_MARKETPLACE
+    marketplace_json = marketplace / ".agents" / "plugins" / "marketplace.json"
+    cache = codex_home / "plugins" / "cache" / EXPECTED_MARKETPLACE / EXPECTED_PLUGIN / version
+    marketplace_json.parent.mkdir(parents=True)
+    (cache / ".codex-plugin").mkdir(parents=True)
+
+    (codex_home / "config.toml").write_text(
+        f"""
+[plugins."{EXPECTED_PLUGIN}@{EXPECTED_MARKETPLACE}"]
+enabled = true
+
+[marketplaces.{EXPECTED_MARKETPLACE}]
+source_type = "local"
+source = 'C:\\Users\\scott\\.codex\\local-marketplaces\\agent-pipeline-local'
+""".strip(),
+        encoding="utf-8",
+    )
+    marketplace_json.write_text(
+        json.dumps(
+            {
+                "name": EXPECTED_MARKETPLACE,
+                "plugins": [{"name": EXPECTED_PLUGIN, "source": {"source": "local"}}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (cache / ".codex-plugin" / "plugin.json").write_text(
+        json.dumps({"name": EXPECTED_PLUGIN, "version": version}),
+        encoding="utf-8",
+    )
+
+    failures = [check for check in check_installed_layout(codex_home, ROOT, True) if not check.ok]
+
+    assert failures == []
+
+
+def test_installed_layout_static_check_fails_when_plugin_not_enabled(tmp_path: Path) -> None:
+    codex_home = tmp_path / ".codex"
+    codex_home.mkdir()
+    (codex_home / "config.toml").write_text("", encoding="utf-8")
+
+    failures = [check.name for check in check_installed_layout(codex_home, ROOT, True) if not check.ok]
+
+    assert "plugin enabled in config" in failures
