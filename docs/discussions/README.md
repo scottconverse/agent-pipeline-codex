@@ -17,7 +17,7 @@ These are source-controlled because:
 | [`q-and-a-seed.md`](q-and-a-seed.md) | Q&A | Seed FAQ thread |
 | [`show-and-tell-seed.md`](show-and-tell-seed.md) | Show and tell | Seed post inviting case studies |
 | [`ideas-seed.md`](ideas-seed.md) | Ideas | Seed post for v0.5+ proposals |
-| [`roadmap-v0.5.md`](roadmap-v0.5.md) | Roadmap | Pinned post describing the v0.5 shipped set and v0.6 carry-forward |
+| [`roadmap-v0.5.md`](roadmap-v0.5.md) | Ideas | Roadmap post describing the v0.5 shipped set and v0.6 carry-forward |
 
 ## When to update
 
