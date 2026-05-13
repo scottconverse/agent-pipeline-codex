@@ -1,4 +1,4 @@
-# Roadmap — v0.5 shipped set and v0.6 carry-forward
+# Roadmap - v0.5 shipped set and v0.6 carry-forward
 
 This is a living document. The v0.5 candidate set crystallized from project receipts and shipped as single-AI hardening plus the later control-loop enforcement patch. Remaining candidates carry forward to v0.6.
 
@@ -14,7 +14,7 @@ This is a living document. The v0.5 candidate set crystallized from project rece
 
 Roughly in order of how much evidence each has accumulated.
 
-### Candidate 1 — Project memory layer
+### Candidate 1 - Project memory layer
 
 **Status:** Sketch + early consensus.
 
@@ -25,16 +25,16 @@ A structured per-project memory file the manifest can reference. Lives at `.pipe
 **Open design questions:**
 
 - Schema. YAML keyed by path / module / category?
-- Update flow. Who writes — the auditor on every audit, the manager on every PROMOTE, both?
+- Update flow. Who writes - the auditor on every audit, the manager on every PROMOTE, both?
 - Read flow. Which roles consume it? Researcher and planner for sure; what about the judge?
 
-### Candidate 2 — Per-stage budgets and timeouts
+### Candidate 2 - Per-stage budgets and timeouts
 
 **Status:** Sketch.
 
 A `timeout_minutes` and optional `max_tokens` field on each stage entry in the pipeline YAML. Orchestrator enforces via subagent kill when exceeded. Logs a clear `BUDGET_EXCEEDED` outcome so resume picks up correctly.
 
-**Why now:** Multiple receipts of agent stages spinning indefinitely — researcher rabbit-holing on adjacent code, executor retry-looping on a flaky test, verifier scanning more than the run's diff range.
+**Why now:** Multiple receipts of agent stages spinning indefinitely - researcher rabbit-holing on adjacent code, executor retry-looping on a flaky test, verifier scanning more than the run's diff range.
 
 **Open design questions:**
 
@@ -42,7 +42,7 @@ A `timeout_minutes` and optional `max_tokens` field on each stage entry in the p
 - Wall-clock or token-spend or both?
 - What's the right killer-of-last-resort if subagent kill doesn't respond?
 
-### Candidate 3 — Better PRD-to-manifest auto-fill
+### Candidate 3 - Better PRD-to-manifest auto-fill
 
 **Status:** Sketch.
 
@@ -56,7 +56,7 @@ A `/manifest-from-prd` workflow skill that reads the PRD, the recently-touched c
 - Do we surface an "is this what you meant?" diff after fill?
 - What's the failure mode if the PRD is missing or ambiguous?
 
-### Candidate 4 — Auto-tuning the v0.4 classification rules
+### Candidate 4 - Auto-tuning the v0.4 classification rules
 
 **Status:** Concept.
 
@@ -77,7 +77,7 @@ Listed for transparency, not committed.
 - **Multi-repo orchestration** (`meta-release` pipeline type for projects like CivicSuite). Significant scope; needs at least one concrete cross-repo failure receipt before design.
 - **Streaming verifier output** for long-running verifications.
 - **Cross-run artifact diff** for stuck runs.
-- **Judge layer for non-executor stages** (researcher, planner) — likely overkill; only ship if a specific class of misuse emerges.
+- **Judge layer for non-executor stages** (researcher, planner) - likely overkill; only ship if a specific class of misuse emerges.
 
 ## What's been considered and rejected
 
@@ -92,7 +92,7 @@ For the record:
 
 The roadmap is a living artifact. When a candidate accumulates enough receipts (typically: three projects independently hitting the same gap), it moves to the next commitment list. When v0.6 planning starts in earnest, create `roadmap-v0.6.md` and leave this file as the shipped/carry-forward record.
 
-To push a candidate up, comment on this thread with a specific receipt: "On project X, task Y, the failure mode was Z, and the existing layers didn't catch it because…" Receipts move candidates; opinions don't.
+To push a candidate up, comment on this thread with a specific receipt: "On project X, task Y, the failure mode was Z, and the existing layers didn't catch it because..." Receipts move candidates; opinions don't.
 
 ## How to propose a new candidate
 

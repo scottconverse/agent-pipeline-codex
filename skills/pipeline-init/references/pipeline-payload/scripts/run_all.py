@@ -51,8 +51,8 @@ def main() -> int:
     args = parser.parse_args()
 
     extra_for_run_consumers = ["--run", args.run] if args.run else []
-    # Checks that consume the run id (read manifest at .agent-runs/<run>/manifest.yaml).
-    run_consumers = {"check_allowed_paths", "check_manifest_schema"}
+    # Checks that consume the run id or need pipeline-mode enforcement.
+    run_consumers = {"check_allowed_paths", "check_manifest_schema", "check_actions_budget"}
 
     results: list[tuple[str, bool, str]] = []
     for name, script_args in CHECKS:

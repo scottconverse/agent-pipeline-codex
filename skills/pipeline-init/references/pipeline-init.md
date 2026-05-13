@@ -1,28 +1,28 @@
 ---
 description: Initialize a project for the agentic pipeline. Onboards new projects from a PRD, an existing repo URL, or a description paragraph.
-argument-hint: (none — interactive)
+argument-hint: (none - interactive)
 ---
 
-# pipeline-init — onboard a project for agentic pipeline runs
+# pipeline-init - onboard a project for agentic pipeline runs
 
 You are onboarding a project for use with the agentic pipeline plugin. The user has one of three things and you need to figure out which, then act on it. **You do not skip the orientation step. You do not silently scaffold based on assumptions.**
 
 ## What to do
 
-### Step 1 — Detect the input shape
+### Step 1 - Detect the input shape
 
 If `$ARGUMENTS` is non-empty, parse it. The user may have passed a path, URL, or quoted description. Otherwise use `a structured user question` to ask:
 
 - **Question:** `What do you have? Drop one of: a PRD/spec document path, a repo URL or local path, or paste a project description.`
 - **Header:** `Project input`
 - **Options:**
-  - Label: `PRD or spec document` — Description: `I have a written specification document for this project. I'll paste the path or contents in the next message.`
-  - Label: `Existing repo (URL or local path)` — Description: `I have an existing project repo somewhere. I'll paste the URL or local path in the next message.`
-  - Label: `Description paragraph` — Description: `I have a paragraph or two describing what I want to build. I'll paste it in the next message.`
+  - Label: `PRD or spec document` - Description: `I have a written specification document for this project. I'll paste the path or contents in the next message.`
+  - Label: `Existing repo (URL or local path)` - Description: `I have an existing project repo somewhere. I'll paste the URL or local path in the next message.`
+  - Label: `Description paragraph` - Description: `I have a paragraph or two describing what I want to build. I'll paste it in the next message.`
 
 After the user picks an option, ask for the actual content if not already provided.
 
-### Step 2 — Branch by path
+### Step 2 - Branch by path
 
 #### Path 1: PRD or spec document
 
@@ -39,18 +39,18 @@ After the user picks an option, ask for the actual content if not already provid
 2. If remote and not already cloned: ask `a structured user question`: `Clone to current directory or specify a target?` then `git clone` it.
 3. If local: `cd` to it.
 4. Inspect the repo:
-   - `git log --oneline -5` — recent commits
+   - `git log --oneline -5` - recent commits
    - Read `README.md` (or `README` or `readme.md`) if present
    - Read `AGENTS.md` at root if present
-   - Read `pyproject.toml`, `package.json`, `Cargo.toml`, `go.mod`, `Gemfile`, etc. — whichever exist
+   - Read `pyproject.toml`, `package.json`, `Cargo.toml`, `go.mod`, `Gemfile`, etc. - whichever exist
    - List `.github/workflows/` if it exists
    - List `docs/adr/` if it exists
-   - Check for an existing `.pipelines/` directory (if present, the project is already initialized — ask if user wants to re-init or update)
+   - Check for an existing `.pipelines/` directory (if present, the project is already initialized - ask if user wants to re-init or update)
 5. Produce a **project-orientation summary** for the user (markdown, displayed inline, NOT written to a file at this stage):
    - Project name + one-sentence inferred purpose
    - Detected stack (language, framework, test runner, lint, type checker)
    - Detected conventions (commit format, branch naming, ADR presence, AGENTS.md presence)
-   - Missing pieces flagged (e.g., "no AGENTS.md found — I'll scaffold a minimal one", "no docs/adr/ — ADR gate will be disabled until you add one")
+   - Missing pieces flagged (e.g., "no AGENTS.md found - I'll scaffold a minimal one", "no docs/adr/ - ADR gate will be disabled until you add one")
 6. Ask user via `a structured user question`: `Project orientation looks correct? Type APPROVE to scaffold the pipeline, or describe what's wrong.` If APPROVE, run **Step 3 (scaffold)**. Otherwise, take their feedback and adjust.
 
 #### Path 3: Description paragraph
@@ -60,17 +60,17 @@ After the user picks an option, ask for the actual content if not already provid
 3. If **new project**: prompt for a project name (kebab-case), then synthesize a minimal PRD from the description and treat as Path 1.
 4. If **existing repo**: prompt for repo URL or local path and treat as Path 2 (the description goes into the orientation summary as user-provided context).
 
-### Step 3 — Scaffold (shared across all paths)
+### Step 3 - Scaffold (shared across all paths)
 
 Once the project's working directory is identified and the orientation is settled, scaffold:
 
-1. **`.pipelines/` directory** — copy from the installed skill's `references/pipeline-payload/pipelines/` directory:
+1. **`.pipelines/` directory** - copy from the installed skill's `references/pipeline-payload/pipelines/` directory:
    - `feature.yaml`
    - `bugfix.yaml`
    - `manifest-template.yaml`
    - `roles/` (all role files)
 
-2. **`scripts/policy/` directory** — copy from the installed skill's `references/pipeline-payload/scripts/` directory:
+2. **`scripts/policy/` directory** - copy from the installed skill's `references/pipeline-payload/scripts/` directory:
    - `__init__.py`
    - `check_allowed_paths.py`
    - `check_actions_budget.py`
@@ -82,9 +82,9 @@ Once the project's working directory is identified and the orientation is settle
    - `agent_decision_gate.py`
    - `pipeline_continue.py`
 
-3. **`.gitignore`** — append `.agent-runs/` (create file if it doesn't exist; check for existing entry before appending to avoid duplicates).
+3. **`.gitignore`** - append `.agent-runs/` (create file if it doesn't exist; check for existing entry before appending to avoid duplicates).
 
-4. **`AGENTS.md`** — only if the project doesn't have one:
+4. **`AGENTS.md`** - only if the project doesn't have one:
    - Scaffold a minimal `AGENTS.md` populated from the orientation summary (project purpose, stack, conventions). Include sections for: order of operations, layered audit pattern (4 altitudes), closed architectural decisions (empty until first ADR), open decisions (empty), tooling, non-negotiables (empty placeholder), git workflow, role posture, and "What you never do" list.
    - The user is expected to edit this. The plugin gives them a starting structure, not the final word.
 
@@ -94,16 +94,16 @@ Once the project's working directory is identified and the orientation is settle
    - What's missing (no `docs/adr/`? no CI? no tests directory?) and what each gap means for downstream pipeline behavior
    - Next step: `new-run feature <slug>` to start the first pipeline run
 
-### Step 4 — Hand off via a structured user question
+### Step 4 - Hand off via a structured user question
 
 Use `a structured user question` (load via ToolSearch if not available):
 
 - **Question:** `Project initialized. Ready to start your first pipeline run?`
 - **Header:** `Next step`
 - **Options:**
-  - Label: `Yes — start a feature run` — Description: `I'll suggest new-run feature <slug> with a slug derived from the project context.`
-  - Label: `Yes — start a bugfix run` — Description: `I'll suggest new-run bugfix <slug>.`
-  - Label: `Not yet — let me edit AGENTS.md and the manifest template first` — Description: `Recommended if you want to customize the project conventions before the first run.`
+  - Label: `Yes - start a feature run` - Description: `I'll suggest new-run feature <slug> with a slug derived from the project context.`
+  - Label: `Yes - start a bugfix run` - Description: `I'll suggest new-run bugfix <slug>.`
+  - Label: `Not yet - let me edit AGENTS.md and the manifest template first` - Description: `Recommended if you want to customize the project conventions before the first run.`
 
 ## Hard rules
 
@@ -111,7 +111,7 @@ Use `a structured user question` (load via ToolSearch if not available):
 - Do not silently overwrite existing `AGENTS.md`, `.pipelines/`, or `scripts/policy/` if they already exist. Ask first.
 - Do not skip the orientation summary even if "it seems obvious from the inputs." Show your work.
 - Do not propose autonomous mode at any point. The plugin's defaults are explicit-gate-only.
-- If the user provides input that's malformed or contradicts itself (e.g., "PRD" but the file is empty), STOP and ask for clarification — do not improvise from defaults.
+- If the user provides input that's malformed or contradicts itself (e.g., "PRD" but the file is empty), STOP and ask for clarification - do not improvise from defaults.
 - If the user is in a directory that already has a `.pipelines/` directory, treat as a re-init: ask whether to update the role/policy files (and which) rather than overwrite blindly.
 
 ## Output checklist

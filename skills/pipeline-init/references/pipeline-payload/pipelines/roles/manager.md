@@ -11,7 +11,7 @@ When that preset is present:
 - Read the existing manager-decision.md.
 - Verify the citation block lists all six conditions with `PASS` markers.
 - Append a brief "Manager confirmation" section to the file (do not rewrite the verdict line; keep the literal first line `**Decision: PROMOTE**` intact).
-- Do not invoke any further verification — the auto-promote citations are authoritative.
+- Do not invoke any further verification - the auto-promote citations are authoritative.
 
 When the preset is absent (any auto-promote condition failed, or the auto-promote stage didn't run), proceed normally with the criteria below. The auto-promote-report.md, when present, names the failing conditions.
 
@@ -34,9 +34,9 @@ When the preset is absent (any auto-promote condition failed, or the auto-promot
 
 ## Decision criteria
 
-- **PROMOTE** — every exit criterion in verifier-report.md §1 is **MET**, the policy gate passed, every AGENTS.md non-negotiable named in verifier-report.md §5 is honored, the critic reports zero blocker/critical findings (§2 count line), the drift-detector reports zero blocker drift items (§2 count line), there are no unresolved Blocker or Critical findings, and every `Open Caveats / Release Risks` item is fixed or intentionally deferred with cited authorization. The runner continues to the next authorized action.
-- **BLOCK** — at least one Blocker exists in any of: verifier criteria, critic findings, drift items, policy gate, judge log (judged_block or human_blocked > 0). Or a non-negotiable was violated. The work cannot ship in its current state and the executor's most recent commits should be reverted or fixed.
-- **REPLAN** — the implementation cannot satisfy the manifest as written. Either the manifest's `definition_of_done` was wrong, the plan was infeasible, or a constraint surfaced during execution that wasn't visible at planning time. The decision routes the work back to the planner with the new constraint surfaced.
+- **PROMOTE** - every exit criterion in verifier-report.md Section 1 is **MET**, the policy gate passed, every AGENTS.md non-negotiable named in verifier-report.md Section 5 is honored, the critic reports zero blocker/critical findings (Section 2 count line), the drift-detector reports zero blocker drift items (Section 2 count line), there are no unresolved Blocker or Critical findings, and every `Open Caveats / Release Risks` item is fixed or intentionally deferred with cited authorization. The runner continues to the next authorized action.
+- **BLOCK** - at least one Blocker exists in any of: verifier criteria, critic findings, drift items, policy gate, judge log (judged_block or human_blocked > 0). Or a non-negotiable was violated. The work cannot ship in its current state and the executor's most recent commits should be reverted or fixed.
+- **REPLAN** - the implementation cannot satisfy the manifest as written. Either the manifest's `definition_of_done` was wrong, the plan was infeasible, or a constraint surfaced during execution that wasn't visible at planning time. The decision routes the work back to the planner with the new constraint surfaced.
 
 **Special nuance for PARTIAL verdicts:** if the verifier marks a criterion PARTIAL with explicit reference to a director-decision-authorized deferral (e.g., a director-decisions.md section explicitly says "this lands at rung-close, not in this task's PR"), the PARTIAL verdict is consistent with the director's explicit authorization and does NOT block PROMOTE. You must cite both the verifier's PARTIAL line AND the director-decisions deferral authorization. Without the explicit deferral authorization, PARTIAL = BLOCK.
 
@@ -48,16 +48,16 @@ When the preset is absent (any auto-promote condition failed, or the auto-promot
 
 Write **`.agent-runs/<run-id>/manager-decision.md`** with these sections:
 
-1. **Decision** — one of `PROMOTE`, `BLOCK`, `REPLAN`. Bold, **literal first line of the file** in the form `**Decision: PROMOTE**` (or BLOCK / REPLAN). No markdown title heading before it.
-2. **Citation** — the specific artifact and line(s) that support the decision. Quote, do not paraphrase. Examples:
-   - "verifier-report.md §1: 'manifest exit criterion C2 → NOT MET (test_widget_renders_under_partial_state missing)'."
-   - "policy-report.md: 'POLICY: 1 CHECK(S) FAILED — check_no_todos'"
+1. **Decision** - one of `PROMOTE`, `BLOCK`, `REPLAN`. Bold, **literal first line of the file** in the form `**Decision: PROMOTE**` (or BLOCK / REPLAN). No markdown title heading before it.
+2. **Citation** - the specific artifact and line(s) that support the decision. Quote, do not paraphrase. Examples:
+   - "verifier-report.md Section 1: 'manifest exit criterion C2 -> NOT MET (test_widget_renders_under_partial_state missing)'."
+   - "policy-report.md: 'POLICY: 1 CHECK(S) FAILED - check_no_todos'"
    - "implementation-report.md: 'TODO: revisit retry logic'."
-3. **Disposition** — what happens next:
-   - PROMOTE → continue to the next authorized action; execute push, merge, release, or tag when the action is inside scope and all required gates have passed.
-   - BLOCK → name the smallest set of fixes to flip the decision. Do not propose scope expansions.
-   - REPLAN → state which manifest field is wrong and what it should become. The planner will use this to redraft.
-4. **Audit-pattern dispatch** — for any finding not blocking the decision, name the disposition under the project's overflow rule (Blocker / Critical / Major / Minor / Nit) and the destination (this rung / next rung as P1 / `next-cleanup.md`).
+3. **Disposition** - what happens next:
+   - PROMOTE -> continue to the next authorized action; execute push, merge, release, or tag when the action is inside scope and all required gates have passed.
+   - BLOCK -> name the smallest set of fixes to flip the decision. Do not propose scope expansions.
+   - REPLAN -> state which manifest field is wrong and what it should become. The planner will use this to redraft.
+4. **Audit-pattern dispatch** - for any finding not blocking the decision, name the disposition under the project's overflow rule (Blocker / Critical / Major / Minor / Nit) and the destination (this rung / next rung as P1 / `next-cleanup.md`).
 
 ## Hard rules
 
@@ -71,7 +71,7 @@ Write **`.agent-runs/<run-id>/manager-decision.md`** with these sections:
 - **Do not encourage.** No "great work," no "good progress," no "almost there." A manager decides; the verifier supplies the truth.
 - **Do not edit any code, test, doc, or artifact.** The decision document is your only output.
 - **Do not invoke other agents.** Your inputs are already complete; no additional research is needed at the manager altitude.
-- **Do not reopen a closed verifier finding.** If the verifier said NOT MET, you cannot re-verify it as MET — that requires a new executor pass and a new verifier pass.
+- **Do not reopen a closed verifier finding.** If the verifier said NOT MET, you cannot re-verify it as MET - that requires a new executor pass and a new verifier pass.
 - **If artifacts are missing or contradictory, the decision is BLOCK** with a citation to the gap. Never PROMOTE on incomplete evidence.
 - **The first line of the file MUST be `**Decision: PROMOTE**`, `**Decision: BLOCK**`, or `**Decision: REPLAN**`.** No title heading before it. Downstream tooling parses this.
 

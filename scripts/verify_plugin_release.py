@@ -43,7 +43,15 @@ def main() -> int:
         action="store_true",
         help="Skip pytest; intended only for narrow packaging debug loops.",
     )
+    parser.add_argument(
+        "--source-only",
+        action="store_true",
+        help="Run checks that do not require a local Codex Desktop plugin install.",
+    )
     args = parser.parse_args()
+    if args.live and args.source_only:
+        print("--live cannot be combined with --source-only", file=sys.stderr)
+        return 2
 
     steps: list[Step] = []
     if not args.skip_pytest:
@@ -56,7 +64,7 @@ def main() -> int:
                 [
                     sys.executable,
                     "scripts/check_plugin_install_acceptance.py",
-                    "--require-installed",
+                    *(["--source-only"] if args.source_only else ["--require-installed"]),
                 ],
             ),
         ]

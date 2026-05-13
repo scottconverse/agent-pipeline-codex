@@ -1,23 +1,23 @@
-# Module Release Handbook — agent-pipeline-codex v0.2
+# Module Release Handbook - agent-pipeline-codex v0.2
 
-This is the operator's reference for running a single-module release sprint end-to-end in one continuous run. It exists because the CivicSuite recovery sweep of 2026-05-10 took ~8 hours on a single module migration when the work itself was ~1 hour of product code — the rest was cascading discovery of pre-existing infrastructure bugs.
+This is the operator's reference for running a single-module release sprint end-to-end in one continuous run. It exists because the CivicSuite recovery sweep of 2026-05-10 took ~8 hours on a single module migration when the work itself was ~1 hour of product code - the rest was cascading discovery of pre-existing infrastructure bugs.
 
 ## What this handbook covers
 
 The `module-release` pipeline:
-- Phase 0 — Infrastructure preflight (NEW)
-- Phase 1 — Scoped product work
-- Phase 2 — Local release rehearsal (NEW)
-- Phase 3 — Remote release + umbrella reconciliation
-- Phase 4 — Verifier
-- Phase 5 — Manager (completion handoff)
+- Phase 0 - Infrastructure preflight (NEW)
+- Phase 1 - Scoped product work
+- Phase 2 - Local release rehearsal (NEW)
+- Phase 3 - Remote release + umbrella reconciliation
+- Phase 4 - Verifier
+- Phase 5 - Manager (completion handoff)
 
 ## Why each phase exists
 
 ### Phase 0 prevents the cascade
 
 The civicrecords-ai v1.5.0 sprint surfaced THREE latent bugs in `release.yml`:
-1. YAML parse error in release-notes HEREDOC (audit TEST-022 — known broken for weeks)
+1. YAML parse error in release-notes HEREDOC (audit TEST-022 - known broken for weeks)
 2. Windows runner attempting Linux Docker Compose
 3. Hermetic `.env` using reserved-domain email
 
@@ -26,7 +26,7 @@ Each surfaced sequentially during Phase 3 (remote release). Each required a PR +
 Phase 0 inverts this. Before product work starts, audit the release infrastructure. Find bugs by reading the workflow, running it locally on fresh state, and cross-referencing the audit punchlist. Fix all of them in ONE bundled PR. Then product work begins.
 
 **Cost of Phase 0**: 15-30 minutes per sprint when run.
-**Cost of skipping Phase 0**: every latent bug becomes a Phase 3 cycle. CivicSuite v1.5.0's actual receipts: 4 PRs × ~90 minutes per cycle.
+**Cost of skipping Phase 0**: every latent bug becomes a Phase 3 cycle. CivicSuite v1.5.0's actual receipts: 4 PRs x ~90 minutes per cycle.
 
 ### Phase 1's self-classification rules prevent halt-and-ask cycles
 
@@ -38,7 +38,7 @@ See `pipelines/self-classification-rules.md`.
 
 ### Phase 2 prevents the tag-move dance
 
-The civicrecords-ai v1.5.0 tag moved FOUR times during recovery (a0b1c467 → 31ffd87 → fc93ab03 → 917e4d5a → f18922dc). Each move was authorized — each fixed a real bug — but each cost ~30 minutes of plumbing.
+The civicrecords-ai v1.5.0 tag moved FOUR times during recovery (a0b1c467 -> 31ffd87 -> fc93ab03 -> 917e4d5a -> f18922dc). Each move was authorized - each fixed a real bug - but each cost ~30 minutes of plumbing.
 
 Phase 2 forces the agent to run the release sequence locally before pushing the tag. The release workflow becomes the EXECUTION mechanism, not the DISCOVERY mechanism. Target: zero tag moves per sprint. Acceptable: one move for genuine environmental surprise.
 
@@ -60,17 +60,17 @@ See `pipelines/roles/local-rehearsal.md`.
 2. Run `pipeline-init` to scaffold:
    ```
    .pipelines/
-   ├── module-release.yaml
-   ├── manifest-module-release-template.yaml
-   ├── roles/
-   │   ├── preflight-auditor.md
-   │   ├── executor.md (existing)
-   │   ├── local-rehearsal.md
-   │   ├── verifier.md (existing)
-   │   └── manager.md (existing)
+   |-- module-release.yaml
+   |-- manifest-module-release-template.yaml
+   |-- roles/
+   |   |-- preflight-auditor.md
+   |   |-- executor.md (existing)
+   |   |-- local-rehearsal.md
+   |   |-- verifier.md (existing)
+   |   `-- manager.md (existing)
    scripts/
-   ├── preflight_infrastructure.py
-   └── policy/ (existing)
+   |-- preflight_infrastructure.py
+   `-- policy/ (existing)
    ```
 
 ### Running a module release sprint
@@ -165,7 +165,7 @@ The pipeline orchestrates the 4 phases with human gates at:
 
 | Module type | Old timing | New timing |
 |---|---|---|
-| Simple module pin bump (audit-team finding, similar shape) | ~30 min (low-debt module) | ~30 min (unchanged — low-debt modules don't benefit much) |
+| Simple module pin bump (audit-team finding, similar shape) | ~30 min (low-debt module) | ~30 min (unchanged - low-debt modules don't benefit much) |
 | Migration involving real source changes | ~2-4 hours | ~1.5-2 hours |
 | Module with broken release infrastructure | ~8 hours (CivicSuite v1.5.0 receipt) | ~2-3 hours |
 | Module needing both source + infrastructure fixes | ~10+ hours | ~3-4 hours |
@@ -176,23 +176,23 @@ The biggest wins are on modules with infrastructure debt, which is most modules 
 
 Three failure classes are intrinsic and the pipeline doesn't claim to eliminate them:
 
-1. **Unknown unknowns** — GitHub Actions runner outages, third-party service deprecations, dependency security advisories landing mid-sprint. Phase 2 catches some; some only surface in CI.
+1. **Unknown unknowns** - GitHub Actions runner outages, third-party service deprecations, dependency security advisories landing mid-sprint. Phase 2 catches some; some only surface in CI.
 
-2. **Inter-module integration surprises** — module A's change breaks module B's tests when they share a dependency. Phase 4 verifier catches most; Phase 0 catches the rest.
+2. **Inter-module integration surprises** - module A's change breaks module B's tests when they share a dependency. Phase 4 verifier catches most; Phase 0 catches the rest.
 
-3. **Agent judgment errors** — rare, but happens. The human gates after Phase 0/2/5 exist for this.
+3. **Agent judgment errors** - rare, but happens. The human gates after Phase 0/2/5 exist for this.
 
 ## The honest summary
 
 The pipeline reduces routine failure cascades. It doesn't make a complex project simple. A small human team would still beat the agent on raw clock-time for a multi-module sweep. The agent advantage is when the human team doesn't exist; the cost is the directive overhead.
 
-If a project's owner is exhausted by the friction, the structural answer isn't "make the pipeline better" — it's "reduce the project scope until each sprint fits in one human-attention-window with this overhead."
+If a project's owner is exhausted by the friction, the structural answer isn't "make the pipeline better" - it's "reduce the project scope until each sprint fits in one human-attention-window with this overhead."
 
 The pipeline ships as v0.2 today. Future versions will add: pre-built rehearsal harnesses for common stack shapes (Python + Docker, Node + Vite, Rust), `act` integration as a first-class step, and a per-project debt-burndown report so sprint #N shows how much faster it is than sprint #1.
 
 See also:
-- `pipelines/module-release.yaml` — pipeline definition
-- `pipelines/roles/preflight-auditor.md` — Phase 0 role
-- `pipelines/roles/local-rehearsal.md` — Phase 2 role
-- `pipelines/self-classification-rules.md` — Phase 1's pre-authorized classifications
-- `scripts/preflight_infrastructure.py` — Phase 0 runner
+- `pipelines/module-release.yaml` - pipeline definition
+- `pipelines/roles/preflight-auditor.md` - Phase 0 role
+- `pipelines/roles/local-rehearsal.md` - Phase 2 role
+- `pipelines/self-classification-rules.md` - Phase 1's pre-authorized classifications
+- `scripts/preflight_infrastructure.py` - Phase 0 runner

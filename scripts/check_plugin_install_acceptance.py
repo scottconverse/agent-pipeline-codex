@@ -37,6 +37,7 @@ EXPECTED_SKILLS = [
     "new-run",
     "pipeline-init",
     "run-pipeline",
+    "validate-manifest",
 ]
 
 
@@ -287,6 +288,7 @@ def main() -> int:
     parser.add_argument("--repo-root", type=Path, default=ROOT)
     parser.add_argument("--codex-home", type=Path, default=_codex_home())
     parser.add_argument("--require-installed", action="store_true")
+    parser.add_argument("--source-only", action="store_true")
     parser.add_argument("--live", action="store_true", help="Launch a fresh codex exec process.")
     parser.add_argument("--model", default="gpt-5.4-mini")
     parser.add_argument("--timeout", type=int, default=180)
@@ -294,7 +296,8 @@ def main() -> int:
 
     checks: list[Check] = []
     checks.extend(check_source_layout(args.repo_root))
-    checks.extend(check_installed_layout(args.codex_home, args.repo_root, args.require_installed))
+    if not args.source_only:
+        checks.extend(check_installed_layout(args.codex_home, args.repo_root, args.require_installed))
     if args.live:
         live_checks, live_output = run_live_check(args.repo_root, args.model, args.timeout)
         checks.extend(live_checks)

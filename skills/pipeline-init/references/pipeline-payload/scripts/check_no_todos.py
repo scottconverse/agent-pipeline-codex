@@ -3,11 +3,11 @@
 """Policy: source files in the project must not contain TODO/FIXME/HACK markers.
 
 Treats unfinished work-in-progress markers as a Blocker for release tagging
-— they accumulate across rungs and the "later" usually doesn't happen.
+- they accumulate across rungs and the "later" usually doesn't happen.
 Audit findings get queued in `next-cleanup.md` instead.
 
 This check enforces the rule for the project's source directory only.
-`tests/` and `docs/` are explicitly excluded — tests legitimately mark
+`tests/` and `docs/` are explicitly excluded - tests legitimately mark
 expected TODO regression cases (xfail rationale strings) and docs reference
 the markers descriptively.
 
@@ -28,10 +28,10 @@ def _find_repo_root() -> Path:
 
     Two supported layouts:
 
-      * **Plugin source** — ``<repo>/scripts/check_no_todos.py``.
+      * **Plugin source** - ``<repo>/scripts/check_no_todos.py``.
         The repo root is the immediate parent of the ``scripts/`` dir.
 
-      * **Installed project** — ``<repo>/scripts/policy/check_no_todos.py``.
+      * **Installed project** - ``<repo>/scripts/policy/check_no_todos.py``.
         After ``/pipeline-init`` copies the script under
         ``scripts/policy/``, the repo root is two directories up.
 
@@ -134,7 +134,7 @@ def main() -> int:
         return 1
 
     scanned = ", ".join(r.name + "/" for r in scan_roots)
-    print(f"check_no_todos: PASS — no TODO/FIXME/HACK markers in {scanned}")
+    print(f"check_no_todos: PASS - no TODO/FIXME/HACK markers in {scanned}")
     return 0
 
 

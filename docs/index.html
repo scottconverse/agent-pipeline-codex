@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>agent-pipeline-codex — structural discipline for agentic development</title>
+<title>agent-pipeline-codex - structural discipline for agentic development</title>
 <meta name="description" content="A Codex Desktop App plugin that orchestrates multi-stage agentic work through a manifest-driven pipeline. Human-approval gates where decisions actually live. Instrumented audit stages that catch the drift class which silently ships the wrong product.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -68,7 +68,7 @@
   }
   .masthead .mark { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink); }
   .masthead .meta { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; color: var(--mid); text-transform: uppercase; }
-  .masthead .meta span + span::before { content: "·"; margin: 0 10px; color: var(--hair); }
+  .masthead .meta span + span::before { content: "|"; margin: 0 10px; color: var(--hair); }
 
   .hero { padding: 88px 0 100px; position: relative; }
   .hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 280px); gap: 64px; align-items: end; min-width: 0; }
@@ -106,7 +106,7 @@
     border: 1px solid var(--ink);
     transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
   }
-  .btn::after { content: "→"; font-family: var(--mono); font-weight: 400; transition: transform 200ms ease; }
+  .btn::after { content: "->"; font-family: var(--mono); font-weight: 400; transition: transform 200ms ease; }
   .btn:hover::after { transform: translateX(4px); }
   .btn.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
   .btn.primary:hover { background: var(--accent-deep); border-color: var(--accent-deep); text-decoration: none; color: var(--paper); }
@@ -219,7 +219,7 @@
     border-top: 1px solid var(--hair);
     display: grid; grid-template-columns: 32px 1fr; gap: 16px; align-items: baseline;
   }
-  .not-list li::before { content: "—"; font-family: var(--mono); color: var(--mid); font-size: 14px; }
+  .not-list li::before { content: "-"; font-family: var(--mono); color: var(--mid); font-size: 14px; }
   .not-list li:last-child { border-bottom: 1px solid var(--hair); }
 
   .lessons { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 28px; margin-top: 28px; }
@@ -282,7 +282,7 @@
 <header class="masthead">
   <div class="mark">agent-pipeline-codex</div>
   <div class="meta">
-    <span>v0.5.4+install-gate</span>
+    <span>v0.5.5+policy-hardening</span>
     <span>Apache-2.0</span>
     <span>Codex Desktop App plugin</span>
   </div>
@@ -317,7 +317,7 @@
     </div>
 
     <aside class="hero-meta">
-      <div class="row"><span>Release</span><strong class="rust">0.5.4</strong></div>
+      <div class="row"><span>Release</span><strong class="rust">0.5.5</strong></div>
       <div class="row"><span>Stages</span><strong>11</strong></div>
       <div class="row"><span>Human gates</span><strong>3</strong></div>
       <div class="row"><span>Role files</span><strong>13</strong></div>
@@ -330,11 +330,11 @@
 </section>
 
 <section class="diagram-wrap frame">
-  <span class="frame-mark">Fig. 01 · Pipeline schematic</span>
-  <span class="frame-mark-right">v0.5.4 · feature.yaml</span>
+  <span class="frame-mark">Fig. 01 | Pipeline schematic</span>
+  <span class="frame-mark-right">v0.5.5 | feature.yaml</span>
 
   <div class="figcap">
-    <span class="label">Eleven stages · four phases · three human gates · three control gates</span>
+    <span class="label">Eleven stages | four phases | three human gates | three control gates</span>
     <span class="title">A run, plus the stop-decision control plane.</span>
   </div>
 
@@ -512,7 +512,7 @@
 
 <section class="editorial">
   <div class="editorial-grid">
-    <div class="section-num"><strong>§ 01</strong>Why this<br>exists</div>
+    <div class="section-num"><strong>Section  01</strong>Why this<br>exists</div>
     <div class="section-body">
       <h2>Agentic work fails in predictable ways.</h2>
       <p>
@@ -523,7 +523,7 @@
       </p>
       <p>
         agent-pipeline-codex enforces a structural pattern that catches every
-        one of those — not by hoping the agent is well-behaved, but by
+        one of those - not by hoping the agent is well-behaved, but by
         making the well-behaved path the only path. Every stage produces
         a durable artifact under <code>.agent-runs/&lt;run-id&gt;/</code>;
         every gate produces a one-question prompt that cannot be bypassed.
@@ -531,9 +531,9 @@
 
       <div class="receipts">
         <ul>
-          <li><span class="n">i</span><span class="t">Manifest gate — every run begins with a human-approved contract naming goal, allowed paths, forbidden paths, non-goals, expected outputs, and definition-of-done. Fuzzy manifests fail strict schema validation at the gate, before they cascade.</span></li>
-          <li><span class="n">ii</span><span class="t">Director-decisions — the researcher surfaces open questions; the human picks; choices are recorded as binding constraints before the planner runs. Architectural decisions never happen in chat.</span></li>
-          <li><span class="n">iii</span><span class="t">Standing invariants — the cumulative-drift gap that lets feature-scoped manifests silently ship stale top-of-file content is closed by doc-currency invariants the drift-detector checks on every run.</span></li>
+          <li><span class="n">i</span><span class="t">Manifest gate - every run begins with a human-approved contract naming goal, allowed paths, forbidden paths, non-goals, expected outputs, and definition-of-done. Fuzzy manifests fail strict schema validation at the gate, before they cascade.</span></li>
+          <li><span class="n">ii</span><span class="t">Director-decisions - the researcher surfaces open questions; the human picks; choices are recorded as binding constraints before the planner runs. Architectural decisions never happen in chat.</span></li>
+          <li><span class="n">iii</span><span class="t">Standing invariants - the cumulative-drift gap that lets feature-scoped manifests silently ship stale top-of-file content is closed by doc-currency invariants the drift-detector checks on every run.</span></li>
         </ul>
       </div>
     </div>
@@ -542,12 +542,12 @@
 
 <section class="editorial">
   <div class="editorial-grid">
-    <div class="section-num"><strong>§ 02</strong>Install in<br>thirty seconds</div>
+    <div class="section-num"><strong>Section  02</strong>Install in<br>thirty seconds</div>
     <div class="section-body">
       <h2>One command. Then orient. Then run.</h2>
       <p class="sans">
-        Install once across all projects. From any project root — empty
-        directory, fresh clone, or a working repo — run
+        Install once across all projects. From any project root - empty
+        directory, fresh clone, or a working repo - run
         the <code>pipeline-init</code> skill. It asks one question (PRD path, repo
         URL, or description paragraph), produces a project-orientation
         summary, and scaffolds <code>.pipelines/</code>,
@@ -556,19 +556,19 @@
       </p>
 
       <div class="install"><pre><span class="comment"># Install once, across all Codex Desktop App projects</span>
-<span class="prompt">›</span> git clone https://github.com/scottconverse/agent-pipeline-codex.git ~/agent-pipeline-codex-plugin
-<span class="prompt">›</span> python scripts/verify_plugin_release.py --live
+<span class="prompt">></span> git clone https://github.com/scottconverse/agent-pipeline-codex.git ~/agent-pipeline-codex-plugin
+<span class="prompt">></span> python scripts/verify_plugin_release.py --live
 
 <span class="comment"># Then in any project root</span>
-<span class="prompt">›</span> Use pipeline-init for this project.
-<span class="prompt">›</span> Use new-run for feature <span style="color:#8e8a80;">&lt;task-slug&gt;</span>.
-<span class="comment">›  ... fill in the manifest the plugin scaffolds ...</span>
-<span class="prompt">›</span> Use run-pipeline for feature <span style="color:#8e8a80;">&lt;run-id&gt;</span>.</pre></div>
+<span class="prompt">></span> Use pipeline-init for this project.
+<span class="prompt">></span> Use new-run for feature <span style="color:#8e8a80;">&lt;task-slug&gt;</span>.
+<span class="comment">>  ... fill in the manifest the plugin scaffolds ...</span>
+<span class="prompt">></span> Use run-pipeline for feature <span style="color:#8e8a80;">&lt;run-id&gt;</span>.</pre></div>
 
       <div class="runtimes">
         <div>
           <h4>Codex skills</h4>
-          <p>Five Codex skills cover the full surface: <code>agent-pipeline</code> orients and routes; <code>pipeline-init</code> onboards a project, <code>new-run</code> initializes a run manifest, <code>run-pipeline</code> orchestrates the eleven stages with resume-from-log, and <code>audit-init</code> scaffolds the v0.3 dual-AI audit-handoff discipline.</p>
+          <p>Six Codex skills cover the full surface: <code>agent-pipeline</code> orients and routes; <code>pipeline-init</code> onboards a project, <code>new-run</code> initializes a run manifest, <code>validate-manifest</code> preflights the manifest schema, <code>run-pipeline</code> orchestrates the eleven stages with resume-from-log, and <code>audit-init</code> scaffolds the v0.3 dual-AI audit-handoff discipline.</p>
         </div>
         <div>
           <h4>Subagent isolation</h4>
@@ -581,7 +581,7 @@
 
 <section class="editorial">
   <div class="editorial-grid">
-    <div class="section-num"><strong>§ 03</strong>Release<br>history</div>
+    <div class="section-num"><strong>Section  03</strong>Release<br>history</div>
     <div class="section-body">
       <h2>Each minor release adds a layer the previous version did not catch.</h2>
       <p class="sans" style="margin-bottom: 8px;">
@@ -595,7 +595,7 @@
           <div>
             <div class="l-title">Six-phase release pipeline.</div>
             <p class="l-body">Phase 0 audits the release workflow before any product code is touched. Phase 2 rehearses the release sequence locally on fresh state. The CI workflow becomes the execution mechanism, not the discovery mechanism.</p>
-            <div class="l-catches"><strong>Catches</strong> Execution-cascade failures — pre-existing CI bugs, tag-move dances, halt-and-ask loops.</div>
+            <div class="l-catches"><strong>Catches</strong> Execution-cascade failures - pre-existing CI bugs, tag-move dances, halt-and-ask loops.</div>
           </div>
         </div>
 
@@ -604,7 +604,7 @@
           <div>
             <div class="l-title">Dual-AI discipline.</div>
             <p class="l-body"><code>audit-init</code> scaffolds the three-artifact discipline for projects where one AI implements and another audits. Implementer runs a hostile 5-lens self-audit before push; auditor runs a 10-section verification protocol; both share an in-repo drift-patterns catalog that grows over time.</p>
-            <div class="l-catches"><strong>Catches</strong> Drift failures — wrong endpoint, stale CHANGELOG, "Closed" without evidence, status-word abuse.</div>
+            <div class="l-catches"><strong>Catches</strong> Drift failures - wrong endpoint, stale CHANGELOG, "Closed" without evidence, status-word abuse.</div>
           </div>
         </div>
 
@@ -612,8 +612,8 @@
           <div class="v">v0.4<strong>Judge layer</strong></div>
           <div>
             <div class="l-title">Real-time action supervision.</div>
-            <p class="l-body">Opt-in. Every executor tool call is classified by risk (<code>read_only</code> / <code>reversible_write</code> / <code>external_facing</code> / <code>high_risk</code>). Dangerous actions route to a context-isolated judge subagent with four verdicts — <em>allow, block, revise, escalate</em>.</p>
-            <div class="l-catches"><strong>Catches</strong> Unauthorized actions in real time — destructive commands, external writes, force pushes, credential-touching operations.</div>
+            <p class="l-body">Opt-in. Every executor tool call is classified by risk (<code>read_only</code> / <code>reversible_write</code> / <code>external_facing</code> / <code>high_risk</code>). Dangerous actions route to a context-isolated judge subagent with four verdicts - <em>allow, block, revise, escalate</em>.</p>
+            <div class="l-catches"><strong>Catches</strong> Unauthorized actions in real time - destructive commands, external writes, force pushes, credential-touching operations.</div>
           </div>
         </div>
 
@@ -622,16 +622,16 @@
           <div>
             <div class="l-title">Three new stages, one structural backstop.</div>
             <p class="l-body">Critic reads every artifact adversarially in fresh context. Drift-detector compares manifest contract to assembled state and, at v0.5.1, enforces standing doc-currency invariants regardless of manifest scope. Auto-promote scores six structural conditions and collapses the manager gate when clean. Pre-edit fact-forcing in the executor catches blast-radius surprises before they hit the verifier.</p>
-            <div class="l-catches"><strong>Catches</strong> The drift class without needing a second AI — durable doc drift, cross-file inconsistency, version strings out of sync, status-word abuse.</div>
+            <div class="l-catches"><strong>Catches</strong> The drift class without needing a second AI - durable doc drift, cross-file inconsistency, version strings out of sync, status-word abuse.</div>
           </div>
         </div>
 
         <div class="layer current">
-          <div class="v">v0.5.4<strong>Install acceptance</strong><span class="badge">Current</span></div>
+          <div class="v">v0.5.5<strong>Policy hardening</strong><span class="badge">Current</span></div>
           <div>
-            <div class="l-title">The plugin must prove Codex can see it.</div>
-            <p class="l-body"><code>verify_plugin_release.py --live</code> runs pytest, skill packaging, static plugin install acceptance, and a fresh <code>codex exec</code> live check. A release cannot be called installed unless the runtime sees <code>agent-pipeline-codex</code>, exposes every expected namespaced skill, and emits no plugin-specific loader warning.</p>
-            <div class="l-catches"><strong>Fixes</strong> Repository tests, standalone skill copies, and docs deployment are not plugin-install proof.</div>
+            <div class="l-title">The policy layer closes review-found bypasses.</div>
+            <p class="l-body">Manifest parsing now preserves quoted hash characters, allowed-path checks include untracked files, workflow-cost checks inspect committed diffs in pipeline mode, and <code>validate-manifest</code> gives operators a fast preflight before a run starts.</p>
+            <div class="l-catches"><strong>Fixes</strong> Parser truncation, untracked scope drift, vacuous workflow-cost passes, missing policy-script regression coverage.</div>
           </div>
         </div>
       </div>
@@ -641,9 +641,9 @@
 
 <section class="editorial">
   <div class="editorial-grid">
-    <div class="section-num"><strong>§ 04</strong>Negative<br>space</div>
+    <div class="section-num"><strong>Section  04</strong>Negative<br>space</div>
     <div class="section-body">
-      <h2>What the plugin will not do — by construction.</h2>
+      <h2>What the plugin will not do - by construction.</h2>
       <p class="sans">
         The contract is enforced as much by what is forbidden as by what
         is required. The hard rules below are baked into the role files,
@@ -654,7 +654,7 @@
         <li>Silently expand scope. The policy stage blocks every change outside <code>allowed_paths</code>.</li>
         <li>Skip tests. <em>Never skip tests</em> is enforced as a project-level hard rule.</li>
         <li>Promote a run when the verifier marked any criterion as not met.</li>
-        <li>Merge in-flight work while a halt is active — including cleanup PRs that "seem obviously safe."</li>
+        <li>Merge in-flight work while a halt is active - including cleanup PRs that "seem obviously safe."</li>
         <li>Stop, defer, skip push, skip CI, or write a stopping handoff because of an unverified risk.</li>
       </ul>
     </div>
@@ -663,7 +663,7 @@
 
 <section class="editorial">
   <div class="editorial-grid">
-    <div class="section-num"><strong>§ 05</strong>Lessons<br>baked in</div>
+    <div class="section-num"><strong>Section  05</strong>Lessons<br>baked in</div>
     <div class="section-body">
       <h2>Defaults reflect failures, not preferences.</h2>
       <p class="sans">
@@ -672,7 +672,7 @@
         are notable enough to call out.
       </p>
       <div class="lessons">
-        <div class="lesson"><div class="lh">Halts apply to everything</div><div class="lb">When the orchestrator stops, no other repo state changes happen — including in-flight cleanup PRs. Auto mode never overrides explicit stops.</div></div>
+        <div class="lesson"><div class="lh">Halts apply to everything</div><div class="lb">When the orchestrator stops, no other repo state changes happen - including in-flight cleanup PRs. Auto mode never overrides explicit stops.</div></div>
         <div class="lesson"><div class="lh">Local pass is not evidence</div><div class="lb">Tests passing on the developer's machine are not proof. CI on a fresh dependency set, in a clean container, is.</div></div>
         <div class="lesson"><div class="lh">Amendments are corrections</div><div class="lb">A manifest amendment fixes a wording defect. It does not expand scope. If the scope grew, that is a new run, not a manifest edit.</div></div>
         <div class="lesson"><div class="lh">Manager cites, never summarises</div><div class="lb">The final decision quotes the verifier verbatim. Summarisation and encouragement are how bad runs get promoted, and both are forbidden in the role file.</div></div>
@@ -701,16 +701,16 @@
   <div class="col">
     <h4>Stability</h4>
     <p>Beta. The structural pattern has shipped across multiple projects and absorbed real failure receipts into its defaults. Semver applies once <code>0.1.x-beta</code> drops.</p>
-    <p style="margin-top: 14px;"><a href="https://github.com/scottconverse/agent-pipeline-codex/blob/main/CHANGELOG.md">Read the changelog →</a></p>
+    <p style="margin-top: 14px;"><a href="https://github.com/scottconverse/agent-pipeline-codex/blob/main/CHANGELOG.md">Read the changelog -></a></p>
   </div>
 </section>
 
 </main>
 
 <footer class="foot page">
-  <span>© Scott Converse · Apache-2.0</span>
-  <span><a href="https://github.com/scottconverse/agent-pipeline-codex">github</a> · <a href="https://github.com/scottconverse/agent-pipeline-codex/discussions">discussions</a></span>
-  <span>v0.5.4+install-gate · 2026</span>
+  <span>(c) Scott Converse | Apache-2.0</span>
+  <span><a href="https://github.com/scottconverse/agent-pipeline-codex">github</a> | <a href="https://github.com/scottconverse/agent-pipeline-codex/discussions">discussions</a></span>
+  <span>v0.5.5+policy-hardening | 2026</span>
 </footer>
 
 </body>

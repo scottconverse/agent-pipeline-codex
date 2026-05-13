@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 """Validate GitHub Actions workflow-cost discipline.
 
-By default this check inspects only workflow files changed in the current
-working tree. That keeps existing legacy workflows from blocking unrelated
-slices while making every workflow edit pass the cost gate before a slice can
-complete. Use ``--all`` for template/release audits.
+By default this check inspects workflow files changed in the current working
+tree. In pipeline mode (``--run``), it also compares the current HEAD against
+the branch upstream or an explicit base ref so committed workflow changes
+cannot silently bypass the budget gate.
 """
 
 from __future__ import annotations
@@ -72,6 +72,61 @@ def _git_status_paths() -> list[Path]:
         if WORKFLOW_RE.match(normalized):
             paths.append(REPO_ROOT / raw)
     return paths
+
+
+def _git_diff_paths(base_ref: str) -> list[Path]:
+    proc = subprocess.run(
+        ["git", "diff", "--name-only", f"{base_ref}...HEAD"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if proc.returncode != 0:
+        proc = subprocess.run(
+            ["git", "diff", "--name-only", base_ref, "HEAD"],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    if proc.returncode != 0:
+        return []
+
+    paths: list[Path] = []
+    for raw in proc.stdout.splitlines():
+        normalized = raw.strip().replace("\\", "/")
+        if WORKFLOW_RE.match(normalized):
+            paths.append(REPO_ROOT / normalized)
+    return paths
+
+
+def _discover_base_ref(explicit_base: str | None) -> str | None:
+    if explicit_base:
+        return explicit_base
+
+    for args in (
+        ["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"],
+        ["rev-parse", "--verify", "origin/main"],
+    ):
+        proc = subprocess.run(
+            ["git", *args],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if proc.returncode == 0 and proc.stdout.strip():
+            return proc.stdout.strip()
+    return None
+
+
+def _changed_workflows_for_run(base_ref: str | None) -> tuple[list[Path], str | None]:
+    discovered = _discover_base_ref(base_ref)
+    paths = _git_status_paths()
+    if discovered:
+        paths.extend(_git_diff_paths(discovered))
+    return sorted(set(paths)), discovered
 
 
 def _all_workflows() -> list[Path]:
@@ -210,11 +265,26 @@ def validate_workflow(path: Path, text: str) -> list[str]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--all", action="store_true", help="Check every workflow file, not only changed workflows.")
+    parser.add_argument("--run", help="Pipeline run id. Enables committed diff detection for workflow edits.")
+    parser.add_argument("--base-ref", help="Base ref or SHA for committed workflow diff detection.")
     args = parser.parse_args()
 
-    paths = _all_workflows() if args.all else _git_status_paths()
+    base_ref: str | None = None
+    if args.all:
+        paths = _all_workflows()
+    elif args.run:
+        paths, base_ref = _changed_workflows_for_run(args.base_ref)
+        if not base_ref and not paths:
+            print(
+                "check_actions_budget: FAIL (pipeline mode cannot prove whether committed workflow files changed; "
+                "pass --base-ref or configure an upstream branch)"
+            )
+            return 1
+    else:
+        paths = _git_status_paths()
     if not paths:
-        print("check_actions_budget: PASS (no changed workflow files)")
+        suffix = f" against {base_ref}" if base_ref else ""
+        print(f"check_actions_budget: PASS (no changed workflow files{suffix})")
         return 0
 
     failures: list[tuple[Path, list[str]]] = []
@@ -234,7 +304,8 @@ def main() -> int:
                 print(f"    - {violation}")
         return 1
 
-    print(f"check_actions_budget: PASS ({len(paths)} workflow file(s) checked)")
+    suffix = f" against {base_ref}" if base_ref else ""
+    print(f"check_actions_budget: PASS ({len(paths)} workflow file(s) checked{suffix})")
     return 0
 
 

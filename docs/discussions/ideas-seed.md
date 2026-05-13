@@ -1,4 +1,4 @@
-# Ideas — what should v0.6 (and beyond) look like?
+# Ideas - what should v0.6 (and beyond) look like?
 
 This thread collects proposals for future versions. Anything from a single new policy check to a whole new layer is fair game. The bar for "this should ship" is: a specific failure mode the existing layers don't catch, plus a sketch of what catches it.
 
@@ -6,9 +6,9 @@ This thread collects proposals for future versions. Anything from a single new p
 
 Three things:
 
-1. **The failure mode.** Concretely — what went wrong, in what project, on what kind of task. Receipts beat hypotheticals.
+1. **The failure mode.** Concretely - what went wrong, in what project, on what kind of task. Receipts beat hypotheticals.
 2. **Why the existing layers don't catch it.** Manifest? Policy? Verifier? Manager? Judge (v0.4)? If your failure mode is "the verifier missed X," the proposal might be a verifier improvement, not a new layer.
-3. **The sketch.** What would catch it — new role file, new policy check, new pipeline type, new manifest field, new layer entirely?
+3. **The sketch.** What would catch it - new role file, new policy check, new pipeline type, new manifest field, new layer entirely?
 
 You don't need a full design. "A `data-migration` pipeline type with a dry-run rehearsal stage that operates against a copy of production data" is enough to start the conversation.
 
@@ -36,7 +36,7 @@ When the same run-id is re-invoked after a halt, the only history is `run.log` l
 
 ### Per-stage timeouts and cost caps
 
-Some agent stages can spin indefinitely (researcher rabbit-holing, executor retry-looping). A configurable per-stage timeout — wall-clock or token-spend — would halt with a clear "stage exceeded budget" log entry. Sketch: `timeout_minutes` or `max_tokens` field on the stage in the pipeline YAML; orchestrator enforces via subagent kill.
+Some agent stages can spin indefinitely (researcher rabbit-holing, executor retry-looping). A configurable per-stage timeout - wall-clock or token-spend - would halt with a clear "stage exceeded budget" log entry. Sketch: `timeout_minutes` or `max_tokens` field on the stage in the pipeline YAML; orchestrator enforces via subagent kill.
 
 ### Judge layer for sub-agents
 
@@ -44,15 +44,15 @@ The v0.4 judge intercepts the executor's tool calls. What about the researcher's
 
 ### Auto-tuning classification rules
 
-After N runs, the `judge-metrics.yaml` aggregate has enough data to suggest rule changes. Sketch: a `/judge-tune` workflow skill that reads the metrics across runs, identifies patterns (e.g. "every `gh issue create` was auto-allowed → reasonable; every `curl example.com/v1/customers` was human-blocked → promote to high_risk"), and proposes specific edits to `action-classification.yaml`.
+After N runs, the `judge-metrics.yaml` aggregate has enough data to suggest rule changes. Sketch: a `/judge-tune` workflow skill that reads the metrics across runs, identifies patterns (e.g. "every `gh issue create` was auto-allowed -> reasonable; every `curl example.com/v1/customers` was human-blocked -> promote to high_risk"), and proposes specific edits to `action-classification.yaml`.
 
 ### Multi-repo orchestration
 
-The pipeline today operates on one repo. Multi-module projects (CivicSuite has ~30 repos with cross-module dependencies) need cross-repo coordination — a tag-bump in one repo cascades to consumer repos in a specific order. Sketch: a `meta-release` pipeline type that takes a list of repos and a dependency graph, runs the per-module pipelines in order, and aggregates artifacts.
+The pipeline today operates on one repo. Multi-module projects (CivicSuite has ~30 repos with cross-module dependencies) need cross-repo coordination - a tag-bump in one repo cascades to consumer repos in a specific order. Sketch: a `meta-release` pipeline type that takes a list of repos and a dependency graph, runs the per-module pipelines in order, and aggregates artifacts.
 
 ### Better PRD-to-manifest auto-fill
 
-`pipeline-init` today asks for a PRD and scaffolds AGENTS.md. The next step is the manifest — currently the operator fills it by hand. Sketch: a `/manifest-from-prd` command that reads the PRD, the recently-touched code, and proposes a draft manifest for the operator to edit. Reduces the manifest authoring time from 10 minutes to 2.
+`pipeline-init` today asks for a PRD and scaffolds AGENTS.md. The next step is the manifest - currently the operator fills it by hand. Sketch: a `/manifest-from-prd` command that reads the PRD, the recently-touched code, and proposes a draft manifest for the operator to edit. Reduces the manifest authoring time from 10 minutes to 2.
 
 ## How to propose a new idea
 
@@ -62,12 +62,12 @@ Reply to this thread or start a new Ideas discussion. Use the three-point shape 
 2. Why existing layers don't catch it.
 3. Sketch of what catches it.
 
-Ideas that get traction either become explicit candidates here or move to GitHub Issues with a feature label. Ideas that don't get traction stay in the thread as searchable record — sometimes the third person to think of the same thing is when the idea gets built.
+Ideas that get traction either become explicit candidates here or move to GitHub Issues with a feature label. Ideas that don't get traction stay in the thread as searchable record - sometimes the third person to think of the same thing is when the idea gets built.
 
 ## What I'm explicitly NOT looking for
 
 - "Use a different LLM." Out of scope; the plugin is Codex Desktop App-shaped.
-- "Add autonomous mode." Explicitly forbidden by the plugin's hard rules — every gate is explicit by design.
+- "Add autonomous mode." Explicitly forbidden by the plugin's hard rules - every gate is explicit by design.
 - "Make the gates optional." Same reason.
 - "Replace the policy stage with hooks." Hooks intercept per-tool-call; policy intercepts per-stage. v0.4 added the per-tool-call intercept (judge); the per-stage check is still the right grain for path-scope and TODO checks.
 - "Generate the manifest automatically." Some auto-fill is fine (see "Better PRD-to-manifest" above); full auto-generate defeats the gate.

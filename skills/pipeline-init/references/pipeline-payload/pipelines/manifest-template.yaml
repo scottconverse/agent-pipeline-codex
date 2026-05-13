@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# Pipeline run manifest — copy to .agent-runs/<run-id>/manifest.yaml
+# Pipeline run manifest - copy to .agent-runs/<run-id>/manifest.yaml
 # and fill in every field. Empty strings and empty lists are NOT defaults;
 # they cause the run to refuse to start.
 #
@@ -22,7 +22,7 @@ pipeline_run:
   branch: ""
 
   # One sentence, user-facing. The thing a release-notes reader will see.
-  # Not "implement Foo" — say what Foo does for the user.
+  # Not "implement Foo" - say what Foo does for the user.
   goal: ""
 
   # Path prefixes this run is allowed to touch. Anything outside is
@@ -45,7 +45,7 @@ pipeline_run:
   # endpoint that returns 200, an axe rule that passes.
   expected_outputs: []
 
-  # Required gates — flipped to satisfied as the pipeline advances.
+  # Required gates - flipped to satisfied as the pipeline advances.
   # Do not remove any of these from a real run; if a gate is genuinely
   # not applicable, write the reason in non_goals and let the verifier
   # mark it NOT APPLICABLE.
@@ -63,11 +63,11 @@ pipeline_run:
   # If this work is reverted, what's the procedure? Concrete commands
   # if possible (e.g., "git revert <merge-commit>; redeploy"). For
   # database migrations: name the down-migration. For ADRs: name the
-  # superseding ADR or "no rollback needed — additive only."
+  # superseding ADR or "no rollback needed - additive only."
   rollback_plan: ""
 
   # One paragraph naming the precise bar the work clears. Cited by
-  # verifier-report.md §1 line by line. If you can't write this in
+  # verifier-report.md Section 1 line by line. If you can't write this in
   # one paragraph, the manifest is too large; split the work.
   definition_of_done: ""
 
@@ -81,7 +81,7 @@ pipeline_run:
   #   - "researcher: surface whether to extend Protocol X or create Y"
   director_notes: []
 
-  # Control-loop contract — enforced by run-pipeline before every final
+  # Control-loop contract - enforced by run-pipeline before every final
   # response during an authorized run.
   control_loop:
     active_control_state: ".agent-runs/<run-id>/active-control-state.md"

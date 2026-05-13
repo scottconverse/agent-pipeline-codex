@@ -155,7 +155,7 @@ def _print_policy() -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.4")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.5")
     parser.add_argument("--run", help="Pipeline run id under .agent-runs/.")
     parser.add_argument(
         "--state-file",

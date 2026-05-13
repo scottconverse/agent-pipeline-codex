@@ -1,4 +1,4 @@
-# Self-classification rules — pre-authorized for agents
+# Self-classification rules - pre-authorized for agents
 
 These are the rules the executor role applies to every grep hit, every test failure, every workflow alert, and every "should I halt or fix forward?" judgment call. They're pre-authorized so the agent doesn't halt-and-ask on routine cases. The civicrecords-ai sweep wasted ~25% of its time on halt-and-ask cycles that should have been mechanical decisions.
 
@@ -6,7 +6,7 @@ These are the rules the executor role applies to every grep hit, every test fail
 
 Every line returned by a release-sweep grep gets exactly ONE classification:
 
-### LIVE-STATE — UPDATE without asking
+### LIVE-STATE - UPDATE without asking
 
 - `pyproject.toml` dependency pin lines
 - `.github/workflows/*.yml` lines that pip-install a versioned URL
@@ -16,17 +16,17 @@ Every line returned by a release-sweep grep gets exactly ONE classification:
 - Compatibility matrix entries describing current pin
 - Source files with `EXPECTED_<DEP>_VERSION = "X.Y.Z"` constants
 
-### FROZEN-EVIDENCE — DO NOT UPDATE
+### FROZEN-EVIDENCE - DO NOT UPDATE
 
-- `docs/audits/*-YYYY-MM-DD.md` — historical audit records
-- `docs/qa/*` — past release-gate evidence
-- `docs/evidence/*` — past release artifacts
+- `docs/audits/*-YYYY-MM-DD.md` - historical audit records
+- `docs/qa/*` - past release-gate evidence
+- `docs/evidence/*` - past release artifacts
 - `docs/browser-qa-*-summary.md` and the `.png` screenshots they reference
 - `docs/release-recovery-status.md` historical statements (e.g., "the existing 1.0.0 package version")
 - CHANGELOG.md prior version entries (only ADD new entry; never edit historical entries)
 - `.agent-workflows/HANDOFF_*.md` from prior dates
 
-### SHAPE-GUARD — DO NOT UPDATE (negative assertions)
+### SHAPE-GUARD - DO NOT UPDATE (negative assertions)
 
 A grep hit is SHAPE-GUARD when ALL of these hold:
 - The line is a NEGATIVE assertion: `assert "X" not in <thing>`
@@ -34,10 +34,10 @@ A grep hit is SHAPE-GUARD when ALL of these hold:
 - Updating X to the new version would pass trivially with no real coverage
 
 Examples:
-- `assert "civiccore==1.0.0" not in dependencies` — asserts no `==` pinning, version-independent
-- `assert "1.0.0.dev0" not in text` — asserts no stale dev marker, version-unrelated
+- `assert "civiccore==1.0.0" not in dependencies` - asserts no `==` pinning, version-independent
+- `assert "1.0.0.dev0" not in text` - asserts no stale dev marker, version-unrelated
 
-### OWN-MODULE-VERSION — SKIP (do not edit during a dependency-bump sweep)
+### OWN-MODULE-VERSION - SKIP (do not edit during a dependency-bump sweep)
 
 A hardcoded version literal in production source that is the MODULE's OWN package version, not a dependency reference. Identified by ALL:
 - Line is `__version__ = "X.Y.Z"` or `VERSION = "X.Y.Z"`
@@ -45,9 +45,9 @@ A hardcoded version literal in production source that is the MODULE's OWN packag
 - The string is the module's own published version
 - Surrounding context does NOT mention the dependency being swept
 
-The module's own version moves in the same PR as the dependency sweep, but it's a separate edit governed by the release sequence — not part of the dependency-string grep classification.
+The module's own version moves in the same PR as the dependency sweep, but it's a separate edit governed by the release sequence - not part of the dependency-string grep classification.
 
-### AMBIGUOUS — halt and ask
+### AMBIGUOUS - halt and ask
 
 If a line genuinely doesn't fit any of the above categories after applying all rules, mark it AMBIGUOUS and halt. Genuine ambiguity is rare.
 
@@ -55,7 +55,7 @@ If a line genuinely doesn't fit any of the above categories after applying all r
 
 When a test or CI step fails, classify before reacting:
 
-### MECHANICAL-CI-BUG — FIX FORWARD (do not halt)
+### MECHANICAL-CI-BUG - FIX FORWARD (do not halt)
 
 Pre-authorized fix-forward categories. These are bounded, low-risk, no-product-impact fixes that historically caused halt-and-ask cycles in our sweeps:
 
@@ -69,20 +69,20 @@ Pre-authorized fix-forward categories. These are bounded, low-risk, no-product-i
 
 The fix-forward bound is: changes must touch only `.github/workflows/`, `scripts/`, `Dockerfile*`, `docker-compose*.yml`, or test fixtures that exist purely for the CI flow. **Production source code changes ALWAYS halt-and-ask** regardless of how obvious the fix looks.
 
-### CONTRACT-CHANGE — HALT AND REPORT
+### CONTRACT-CHANGE - HALT AND REPORT
 
 - Any source code change required
-- Any test asserting on dependency-removed behavior (e.g., civicclerk tests asserting on civiccore-removed `token_roles` field) — the auditor must approve the test update before the agent applies it
+- Any test asserting on dependency-removed behavior (e.g., civicclerk tests asserting on civiccore-removed `token_roles` field) - the auditor must approve the test update before the agent applies it
 - Any cross-module dependency conflict
 - Any failure whose root cause requires a design decision
 
-### ENVIRONMENTAL — DOCUMENT AND CONTINUE
+### ENVIRONMENTAL - DOCUMENT AND CONTINUE
 
-- macOS-only step on Linux runner with no available macOS host — document the trust gap and continue
-- Paid-service signing step with no credentials provisioned — document and continue
-- Third-party service outage (GitHub Actions, package registry, Sigstore) — wait + retry, document
+- macOS-only step on Linux runner with no available macOS host - document the trust gap and continue
+- Paid-service signing step with no credentials provisioned - document and continue
+- Third-party service outage (GitHub Actions, package registry, Sigstore) - wait + retry, document
 
-### NOVEL — HALT AND REPORT
+### NOVEL - HALT AND REPORT
 
 A failure that doesn't fit any category above. Genuine novelty is the trigger for halt. Pattern-matching against prior halts in the same project should rule out most "novel" cases.
 

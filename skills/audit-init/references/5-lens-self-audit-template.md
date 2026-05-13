@@ -10,19 +10,19 @@ Both <IMPLEMENTER_AGENT> and <AUDITOR_AGENT> read this file. The rule body, the 
 
 ## Why this rule exists
 
-The failure mode it prevents: an implementation commit lands, CI is green, the implementing agent declares "done," and then the auditor finds a list of real drift items the implementing agent should have caught — wrong endpoint paths, stale totals, contradictory sign-off blocks, overclaims, "zero skips" without qualification, "Closed" without cited evidence, and durable docs (README, CHANGELOG, HANDOFF, PR body, verification log) drifting in parallel because they're treated as artifacts to update sometimes rather than as state to maintain.
+The failure mode it prevents: an implementation commit lands, CI is green, the implementing agent declares "done," and then the auditor finds a list of real drift items the implementing agent should have caught - wrong endpoint paths, stale totals, contradictory sign-off blocks, overclaims, "zero skips" without qualification, "Closed" without cited evidence, and durable docs (README, CHANGELOG, HANDOFF, PR body, verification log) drifting in parallel because they're treated as artifacts to update sometimes rather than as state to maintain.
 
 The drift isn't in features. It's in the surrounding durable artifacts that should move with every code commit but don't because the implementing agent treats them as artifacts instead of state.
 
 ## The five lenses
 
-Each lens is *hostile* — assume the diff lies until evidence proves otherwise.
+Each lens is *hostile* - assume the diff lies until evidence proves otherwise.
 
 1. **Engineering.** Read the diff. For every claim, name, path, version, or API in the changes: grep the actual code/config to verify it matches reality. If the diff names `/api/staff/uploads`, grep the router. If it names a SHA or run ID, verify it against `gh run view`. If it names a file, verify the file exists. If it names a function or symbol, verify it's exported. Hostile means: assume the diff lies until grep proves otherwise.
 
 2. **UX.** For any user-visible string, message, label, or workflow change: read it cold as if you'd never seen the feature. Does it make sense to a first-time operator? Does it match the copy in adjacent screens (terminology, voice, formality)? Does an error path have a "Next step" line? Does a success path actually surface to the user before the dialog unmounts? Hostile means: assume the user is confused until the copy proves it doesn't confuse them.
 
-3. **Tests.** For any logic / data-flow / public-interface change: is there a test? Does it run? Does it lock the behavior, or does it merely *exercise* the code path? Does it actually execute in CI, or does it skip? Hostile means: a green check is not a real assertion; "passes" is not "covers." Skip predicates lie by default — verify they don't apply.
+3. **Tests.** For any logic / data-flow / public-interface change: is there a test? Does it run? Does it lock the behavior, or does it merely *exercise* the code path? Does it actually execute in CI, or does it skip? Hostile means: a green check is not a real assertion; "passes" is not "covers." Skip predicates lie by default - verify they don't apply.
 
 4. **Docs.** For every code change: did the README move with it? The CHANGELOG? The HANDOFF (if applicable)? The PR body? The verification log? The finding ledger if there is one? The ADRs if an architectural decision changed? Hostile means: a doc that's silent about a change you just made is wrong, not "OK because the code is right."
 
@@ -34,9 +34,9 @@ This is the specific drift that has bitten this project most. Run every item bef
 
 - [ ] Finding ledger top-totals row matches the actual row count by severity.
 - [ ] Every `Closed` row cites: implementing SHA + verification (CI run ID or grep/pytest command) + docs touched.
-- [ ] No row says `(this commit)` — replace with the actual SHA before pushing.
+- [ ] No row says `(this commit)` - replace with the actual SHA before pushing.
 - [ ] PR body matches branch state: no stale `N of M` counts, no checkbox left unchecked for an item now Closed, no missing run IDs.
-- [ ] CHANGELOG `[Unreleased]` or version block matches what shipped — no "All exit criteria met" if there was a carve-out, no stale test counts.
+- [ ] CHANGELOG `[Unreleased]` or version block matches what shipped - no "All exit criteria met" if there was a carve-out, no stale test counts.
 - [ ] HANDOFF.md (or equivalent live state doc) names the current branch, current HEAD, current tag, current PR. Read it like a new agent walking in.
 - [ ] Verification log on tag candidates: no "Ready to tag" claim without the tag-blocking gates Closed with proof.
 - [ ] Status words: no `done`, `green`, `ready`, `taggable`, `shippable`, `complete` unless the release gate actually supports them.
@@ -78,8 +78,8 @@ The previous push's report cannot honestly say "Artifact-state: pass" until this
 
 A tracked file cannot self-cite its own commit SHA: adding or amending the file changes the SHA. Verification logs, ledgers, and release notes must therefore distinguish:
 
-- **Proof-anchor SHA** — the SHA whose tree contains the first green-CI-and-cleanroom evidence. Row-level proof citations pin here.
-- **Release/tag target** — the final branch or merge commit after the director confirms release. Tags go here, not at the proof anchor.
+- **Proof-anchor SHA** - the SHA whose tree contains the first green-CI-and-cleanroom evidence. Row-level proof citations pin here.
+- **Release/tag target** - the final branch or merge commit after the director confirms release. Tags go here, not at the proof anchor.
 
 The proof anchor and the tag SHA are distinct concepts. Collapsing them produces an infinite-regress loop because every amend-to-cite-the-new-SHA commit moves the SHA.
 
@@ -102,6 +102,6 @@ If any lens has findings, fix before push. If after a push an adversarial audit 
 
 ## Cross-references
 
-- `<AUDIT_PROTOCOL_PATH>` — the verification-side audit protocol. The mandatory 10-section output shape and the verifier's evidence-pass rules live there. Section 21 ("Implementation-side rule pointer") and section 22 ("Known drift patterns") in that file pair with this document.
-- `<AUDIT_GATE_PATH>` — the short mandatory gate auditors read every turn.
-- Project `AGENTS.md` (or the second AI's standing-instructions surface) — names this file as the before-every-push discipline.
+- `<AUDIT_PROTOCOL_PATH>` - the verification-side audit protocol. The mandatory 10-section output shape and the verifier's evidence-pass rules live there. Section 21 ("Implementation-side rule pointer") and section 22 ("Known drift patterns") in that file pair with this document.
+- `<AUDIT_GATE_PATH>` - the short mandatory gate auditors read every turn.
+- Project `AGENTS.md` (or the second AI's standing-instructions surface) - names this file as the before-every-push discipline.

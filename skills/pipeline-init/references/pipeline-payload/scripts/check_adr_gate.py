@@ -3,7 +3,7 @@
 """Policy: ADR files under ``docs/adr/`` are append-only.
 
 ADRs are immutable once Accepted. An autonomous run may ADD a new ADR
-file but must NOT modify any existing one — those edits require a human
+file but must NOT modify any existing one - those edits require a human
 approval gate per the layered audit pattern's overflow rule.
 
 This check inspects the working-tree diff against HEAD:
@@ -29,9 +29,9 @@ def _find_repo_root() -> Path:
     script is running from. Same logic as check_no_todos.py (PR #7).
 
     Two supported layouts:
-      * **Plugin source** — ``<repo>/scripts/check_adr_gate.py``.
+      * **Plugin source** - ``<repo>/scripts/check_adr_gate.py``.
         The repo root is the immediate parent of the ``scripts/`` dir.
-      * **Installed project** — ``<repo>/scripts/policy/check_adr_gate.py``.
+      * **Installed project** - ``<repo>/scripts/policy/check_adr_gate.py``.
         After ``/pipeline-init`` copies the script under
         ``scripts/policy/``, the repo root is two directories up.
 
@@ -73,7 +73,7 @@ def _diff_with_status() -> list[tuple[str, str]]:
         if len(parts) < 2:
             continue
         status = parts[0].strip()
-        # Renames look like `R100\told\tnew` — the new path is the relevant one.
+        # Renames look like `R100\told\tnew` - the new path is the relevant one.
         path = parts[-1].strip()
         pairs.append((status, path))
     return pairs
@@ -82,7 +82,7 @@ def _diff_with_status() -> list[tuple[str, str]]:
 def main() -> int:
     # If the project has no docs/adr/ directory, this check is vacuous.
     if not (REPO_ROOT / ADR_PREFIX).exists():
-        print(f"check_adr_gate: PASS — no {ADR_PREFIX} directory in this project (check is vacuous).")
+        print(f"check_adr_gate: PASS - no {ADR_PREFIX} directory in this project (check is vacuous).")
         return 0
 
     pairs = _diff_with_status()
@@ -110,12 +110,12 @@ def main() -> int:
         return 1
 
     if new_adrs:
-        print(f"check_adr_gate: PASS — {len(new_adrs)} new ADR(s), no modifications:")
+        print(f"check_adr_gate: PASS - {len(new_adrs)} new ADR(s), no modifications:")
         for path in new_adrs:
             print(f"    [+] {path}")
         return 0
 
-    print("check_adr_gate: PASS — no ADR changes in working tree.")
+    print("check_adr_gate: PASS - no ADR changes in working tree.")
     return 0
 
 

@@ -4,7 +4,7 @@ This directory holds the seed content for the project's GitHub Discussions board
 
 These are source-controlled because:
 
-- The categories below are the project's stable Discussions shape — not a one-off announcement.
+- The categories below are the project's stable Discussions shape - not a one-off announcement.
 - Future maintainers (or future you, in another session) need to be able to re-seed the board if a category is archived or the org is moved.
 - The text in each file is the canonical announcement text; the GitHub Discussions copy is a deploy artifact, not the source of truth.
 
@@ -21,11 +21,11 @@ These are source-controlled because:
 
 ## When to update
 
-Add a new `announcements-v0.X.md` file for every minor release that meaningfully changes the plugin's user-facing shape (a new layer, a new pipeline type, a new workflow skill, or a deprecation). Leave older announcements in place — they're the public history.
+Add a new `announcements-v0.X.md` file for every minor release that meaningfully changes the plugin's user-facing shape (a new layer, a new pipeline type, a new workflow skill, or a deprecation). Leave older announcements in place - they're the public history.
 
 Update the roadmap file when the next-minor candidate set changes. Leave older roadmap files in place as `roadmap-v0.X-historical.md` so future readers can see what shipped vs. what slipped.
 
-The Q&A, show-and-tell, and ideas seeds are evergreen — update them when the question shape changes (e.g., when a recurring v0.4 question deserves a permanent FAQ entry), not on every release.
+The Q&A, show-and-tell, and ideas seeds are evergreen - update them when the question shape changes (e.g., when a recurring v0.4 question deserves a permanent FAQ entry), not on every release.
 
 ## How to use
 
@@ -33,7 +33,7 @@ When announcing a release:
 
 1. Confirm Discussions are enabled, then open https://github.com/scottconverse/agent-pipeline-codex/discussions
 2. For each file above whose category exists on the board, create a new discussion in that category and paste the file's body. Pin the announcement and the roadmap.
-3. If a category doesn't exist yet, create it under Discussions → Manage categories first.
+3. If a category doesn't exist yet, create it under Discussions -> Manage categories first.
 4. Link back to this directory in each seeded post so future contributors can find the source.
 
-The seed-post text is intentionally written to read well both in the repo (as documentation of what the project is) and on github.com (as actual Discussion content). Edit either, but keep them in sync — the repo file is the source of truth.
+The seed-post text is intentionally written to read well both in the repo (as documentation of what the project is) and on github.com (as actual Discussion content). Edit either, but keep them in sync - the repo file is the source of truth.

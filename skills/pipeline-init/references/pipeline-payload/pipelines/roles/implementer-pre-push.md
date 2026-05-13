@@ -6,13 +6,13 @@ You read this file at the start of every implementing session, alongside the in-
 
 ## Why this rule exists
 
-The failure mode it prevents: a commit lands, CI is green, you declare "done," and then the verifying agent finds drift you should have caught — wrong endpoint paths, stale totals, contradictory sign-off blocks, overclaims, "zero skips" without qualification, "Closed" without cited evidence, and durable docs (README, CHANGELOG, HANDOFF, PR body, verification log) drifting in parallel because they're treated as artifacts to update sometimes rather than as state to maintain.
+The failure mode it prevents: a commit lands, CI is green, you declare "done," and then the verifying agent finds drift you should have caught - wrong endpoint paths, stale totals, contradictory sign-off blocks, overclaims, "zero skips" without qualification, "Closed" without cited evidence, and durable docs (README, CHANGELOG, HANDOFF, PR body, verification log) drifting in parallel because they're treated as artifacts to update sometimes rather than as state to maintain.
 
 The drift isn't in features. It's in the surrounding durable artifacts that should move with every code commit but don't because the implementing agent treats them as artifacts instead of state.
 
 ## The five lenses
 
-Each lens is *hostile* — assume the diff lies until evidence proves otherwise.
+Each lens is *hostile* - assume the diff lies until evidence proves otherwise.
 
 ### 1. Engineering
 
@@ -40,7 +40,7 @@ Hostile means: assume the user is confused until the copy proves it doesn't conf
 
 For any logic / data-flow / public-interface change: is there a test? Does it run? Does it lock the behavior, or does it merely *exercise* the code path? Does it actually execute in CI, or does it skip?
 
-Hostile means: a green check is not a real assertion; "passes" is not "covers." Skip predicates lie by default — verify they don't apply.
+Hostile means: a green check is not a real assertion; "passes" is not "covers." Skip predicates lie by default - verify they don't apply.
 
 ### 4. Docs
 
@@ -65,9 +65,9 @@ The project's in-repo `docs/process/5-lens-self-audit.md` extends this with proj
 
 - [ ] Finding/issue ledger (if any) top-totals row matches the actual row count.
 - [ ] Every `Closed` row cites: implementing SHA + verification (CI run ID or test command) + docs touched.
-- [ ] No row says `(this commit)` — replace with the actual SHA before pushing.
+- [ ] No row says `(this commit)` - replace with the actual SHA before pushing.
 - [ ] PR body matches branch state: no stale `N of M` counts, no checkbox left unchecked for an item now Closed, no missing run IDs.
-- [ ] CHANGELOG `[Unreleased]` or version block matches what shipped — no "All criteria met" if there was a carve-out, no stale test counts.
+- [ ] CHANGELOG `[Unreleased]` or version block matches what shipped - no "All criteria met" if there was a carve-out, no stale test counts.
 - [ ] HANDOFF.md (or equivalent) names the current branch, current HEAD, current tag, current PR. Read it like a new agent walking in.
 - [ ] Verification log on tag candidates: no "Ready to tag" claim without the tag-blocking gates Closed with proof.
 - [ ] Status words: no `done`, `green`, `ready`, `taggable`, `shippable`, `complete` unless the release gate actually supports them.
@@ -110,8 +110,8 @@ Successful push, green CI, PR draft status, and a recommended next action are no
 
 A tracked file cannot self-cite its own commit SHA: adding or amending the file changes the SHA. Verification logs, ledgers, and release notes must distinguish:
 
-- **Proof-anchor SHA** — the SHA whose tree contains the first green-CI-and-cleanroom evidence. Row-level proof citations pin here.
-- **Release/tag target** — the final branch or merge commit after the human confirms release. Tags go here, not at the proof anchor.
+- **Proof-anchor SHA** - the SHA whose tree contains the first green-CI-and-cleanroom evidence. Row-level proof citations pin here.
+- **Release/tag target** - the final branch or merge commit after the human confirms release. Tags go here, not at the proof anchor.
 
 Collapsing them produces an infinite-regress loop: every amend-to-cite-the-new-SHA commit moves the SHA.
 
@@ -139,7 +139,7 @@ A chat-side promise ("I will keep this in mind") is not a behavior change. The b
 
 ## Cross-references
 
-- `<PROJECT>_AUDIT_PROTOCOL.md` (desktop level) — the verifying agent's protocol. Mandatory 10-section output, status-word rules, known drift patterns.
-- `<PROJECT>_AUDIT_GATE.md` (desktop level) — the short gate the verifier reads every turn.
-- `<project-repo>/docs/process/5-lens-self-audit.md` — the in-repo shared doc with project-specific artifact-state checklist items.
-- Project `AGENTS.md` (or the second AI's standing-instructions surface) — names this discipline as the before-every-push rule.
+- `<PROJECT>_AUDIT_PROTOCOL.md` (desktop level) - the verifying agent's protocol. Mandatory 10-section output, status-word rules, known drift patterns.
+- `<PROJECT>_AUDIT_GATE.md` (desktop level) - the short gate the verifier reads every turn.
+- `<project-repo>/docs/process/5-lens-self-audit.md` - the in-repo shared doc with project-specific artifact-state checklist items.
+- Project `AGENTS.md` (or the second AI's standing-instructions surface) - names this discipline as the before-every-push rule.

@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
-# Action classification — maps every executor tool call to one of four
+# Action classification - maps every executor tool call to one of four
 # risk classes. The judge layer (v0.4) routes each action by class:
 #
-#   read_only         → execute immediately, log to judge-log.yaml
-#   reversible_write  → execute immediately, log to judge-log.yaml
-#   external_facing   → STOP, spawn judge subagent, wait for verdict
-#   high_risk         → STOP, spawn judge subagent, wait for verdict,
+#   read_only         -> execute immediately, log to judge-log.yaml
+#   reversible_write  -> execute immediately, log to judge-log.yaml
+#   external_facing   -> STOP, spawn judge subagent, wait for verdict
+#   high_risk         -> STOP, spawn judge subagent, wait for verdict,
 #                       if judge ALLOWs also require human confirmation
 #
 # Rules are evaluated top-to-bottom within each class. First match wins.
@@ -24,7 +24,7 @@
 classification:
 
   # ------------------------------------------------------------------
-  # high_risk — irreversible, externally visible, or affects shared
+  # high_risk - irreversible, externally visible, or affects shared
   # state. Always judged. If judge ALLOWs, ALSO requires human confirm.
   # ------------------------------------------------------------------
   high_risk:
@@ -134,7 +134,7 @@ classification:
       note: "Commit with BREAKING in message. Conventional-commits semver-major signal; judge to confirm the scope is authorized."
 
   # ------------------------------------------------------------------
-  # external_facing — leaves the local machine, affects external
+  # external_facing - leaves the local machine, affects external
   # systems (issue trackers, container registries, message endpoints).
   # Always judged. Human confirm not required after ALLOW.
   # ------------------------------------------------------------------
@@ -201,7 +201,7 @@ classification:
       note: "Delete Kubernetes resource. Changes cluster state."
 
   # ------------------------------------------------------------------
-  # reversible_write — local-only writes that are recoverable via
+  # reversible_write - local-only writes that are recoverable via
   # git, undo, or re-download. Execute immediately; log only.
   # ------------------------------------------------------------------
   reversible_write:
@@ -269,7 +269,7 @@ classification:
       note: "Install node packages locally. Reversible via rm node_modules + reinstall."
 
   # ------------------------------------------------------------------
-  # read_only — observation only. No state change. Execute immediately;
+  # read_only - observation only. No state change. Execute immediately;
   # log only.
   # ------------------------------------------------------------------
   read_only:

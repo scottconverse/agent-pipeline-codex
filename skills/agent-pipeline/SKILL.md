@@ -5,7 +5,7 @@ description: "Use when the user asks to understand, install, initialize, run, or
 
 # Agent Pipeline for Codex
 
-This plugin is the Codex Desktop App variant of `agent-pipeline-claude` v0.5.2 with a v0.5.4 Codex packaging fix. It keeps the same pipeline definitions, policy scripts, role files, run-state convention, landing page structure, and release history, but exposes the workflow through Codex skills instead of Claude Code commands.
+This plugin is the Codex Desktop App variant of `agent-pipeline-claude` v0.5.2 with v0.5.5 policy hardening, manifest preflight, and Codex packaging checks. It keeps the same pipeline definitions, policy scripts, role files, run-state convention, landing page structure, and release history, but exposes the workflow through Codex skills instead of Claude Code commands.
 
 Use this skill to orient the user and route to a specific workflow:
 

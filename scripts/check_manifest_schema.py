@@ -39,27 +39,18 @@ import re
 import sys
 from pathlib import Path
 
+try:
+    from policy_utils import find_repo_root, strip_yaml_comment
+except ModuleNotFoundError:  # pragma: no cover - source-tree test import
+    from scripts.policy_utils import find_repo_root, strip_yaml_comment
+
 FORBIDDEN_STATUS_WORDS = {"done", "complete", "ready", "shippable", "taggable"}
 MIN_GOAL_CHARS = 30
 MIN_DOD_CHARS = 80
 BROAD_PREFIX_PATTERN = re.compile(r"^[A-Za-z][A-Za-z0-9_-]*/$")
 
 
-def _find_repo_root() -> Path:
-    """Resolve the repo root regardless of which supported layout the
-    script is running from. Same logic as check_no_todos.py.
-
-    Two supported layouts:
-      * Plugin source: ``<repo>/scripts/check_manifest_schema.py``.
-      * Installed:    ``<repo>/scripts/policy/check_manifest_schema.py``.
-    """
-    script_dir = Path(__file__).resolve().parent
-    if script_dir.name == "policy" and script_dir.parent.name == "scripts":
-        return script_dir.parents[1]
-    return script_dir.parent
-
-
-REPO_ROOT = _find_repo_root()
+REPO_ROOT = find_repo_root(__file__)
 RUN_DIR = REPO_ROOT / ".agent-runs"
 
 
@@ -78,7 +69,7 @@ def _read_manifest(manifest_path: Path) -> dict[str, object]:
     Scalar values are str.
     """
     if not manifest_path.exists():
-        print(f"check_manifest_schema: FAIL ? manifest not found at {manifest_path}", file=sys.stderr)
+        print(f"check_manifest_schema: FAIL - manifest not found at {manifest_path}", file=sys.stderr)
         sys.exit(1)
 
     text = manifest_path.read_text(encoding="utf-8")
@@ -86,11 +77,7 @@ def _read_manifest(manifest_path: Path) -> dict[str, object]:
     current_list_key: str | None = None
 
     for raw in text.splitlines():
-        line = raw.rstrip()
-        if "#" in line:
-            hash_idx = line.find("#")
-            if hash_idx == 0 or line[hash_idx - 1].isspace():
-                line = line[:hash_idx].rstrip()
+        line = strip_yaml_comment(raw.rstrip())
         if not line:
             continue
         stripped = line.strip()
@@ -99,7 +86,9 @@ def _read_manifest(manifest_path: Path) -> dict[str, object]:
         if stripped.startswith("- ") and current_list_key is not None:
             value = stripped[2:].strip().strip("\"'")
             existing = fields.setdefault(current_list_key, [])
-            assert isinstance(existing, list)
+            if not isinstance(existing, list):
+                fields[current_list_key] = []
+                existing = fields[current_list_key]
             existing.append(value)
             continue
 
@@ -156,31 +145,31 @@ def _check(fields: dict[str, object]) -> list[str]:
     goal = fields.get("goal")
     if not isinstance(goal, str) or len(goal.strip()) < MIN_GOAL_CHARS:
         violations.append(
-            f"`goal` is missing, empty, or under {MIN_GOAL_CHARS} characters ? fuzzy goal produces fuzzy downstream work."
+            f"`goal` is missing, empty, or under {MIN_GOAL_CHARS} characters - fuzzy goal produces fuzzy downstream work."
         )
     else:
         for word in FORBIDDEN_STATUS_WORDS:
             if re.search(rf"\b{re.escape(word)}\b", goal, re.IGNORECASE):
                 violations.append(
-                    f"`goal` contains forbidden status word `{word}` ? manifests must not import release-gate semantics into a non-release run."
+                    f"`goal` contains forbidden status word `{word}` - manifests must not import release-gate semantics into a non-release run."
                 )
 
     dod = fields.get("definition_of_done")
     if not isinstance(dod, str) or len(dod.strip()) < MIN_DOD_CHARS:
         violations.append(
-            f"`definition_of_done` is missing, empty, or under {MIN_DOD_CHARS} characters ? the verifier and critic need a paragraph to evaluate against."
+            f"`definition_of_done` is missing, empty, or under {MIN_DOD_CHARS} characters - the verifier and critic need a paragraph to evaluate against."
         )
     else:
         for word in FORBIDDEN_STATUS_WORDS:
             if re.search(rf"\b{re.escape(word)}\b", dod, re.IGNORECASE):
                 violations.append(
-                    f"`definition_of_done` contains forbidden status word `{word}` ? see goal rule."
+                    f"`definition_of_done` contains forbidden status word `{word}` - see goal rule."
                 )
 
     expected_outputs = fields.get("expected_outputs")
     if not isinstance(expected_outputs, list) or len(expected_outputs) < 1:
         violations.append(
-            "`expected_outputs` is empty ? the verifier has no objective check without at least one testable output."
+            "`expected_outputs` is empty - the verifier has no objective check without at least one testable output."
         )
     elif any(not (isinstance(item, str) and item.strip()) for item in expected_outputs):
         violations.append("`expected_outputs` contains an empty entry.")
@@ -188,13 +177,13 @@ def _check(fields: dict[str, object]) -> list[str]:
     non_goals = fields.get("non_goals")
     if not isinstance(non_goals, list) or len(non_goals) < 1:
         violations.append(
-            "`non_goals` is empty ? explicit out-of-scope items keep the executor honest. Add at least one."
+            "`non_goals` is empty - explicit out-of-scope items keep the executor honest. Add at least one."
         )
 
     rollback_plan = fields.get("rollback_plan")
     if not isinstance(rollback_plan, str) or not rollback_plan.strip():
         violations.append(
-            "`rollback_plan` is empty ? every run must name how a revert would happen, even if it is `git revert <merge-commit>`."
+            "`rollback_plan` is empty - every run must name how a revert would happen, even if it is `git revert <merge-commit>`."
         )
 
     allowed_paths = fields.get("allowed_paths")
@@ -215,7 +204,7 @@ def _check(fields: dict[str, object]) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.4")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.5")
     parser.add_argument(
         "--run",
         help="Pipeline run id (directory under .agent-runs/). Without this, the check is a no-op.",
@@ -241,7 +230,7 @@ def main() -> int:
         return 1
 
     print(
-        f"check_manifest_schema: PASS ? manifest at {manifest_path.relative_to(REPO_ROOT)} satisfies the v0.5 schema."
+        f"check_manifest_schema: PASS - manifest at {manifest_path.relative_to(REPO_ROOT)} satisfies the v0.5 schema."
     )
     return 0
 

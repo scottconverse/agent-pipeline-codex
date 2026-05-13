@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# Feature pipeline — full sequence for new functionality.
+# Feature pipeline - full sequence for new functionality.
 #
 # Each stage runs in a fresh Codex Desktop App session given:
 #   - the role file at .pipelines/roles/<role>.md

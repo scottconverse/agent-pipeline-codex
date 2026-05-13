@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# Bugfix pipeline — shorter sequence for bug fixes.
+# Bugfix pipeline - shorter sequence for bug fixes.
 #
 # Differs from feature.yaml in two ways:
 #   1. No separate test-write stage; reproduction in the executor's
@@ -7,7 +7,7 @@
 #      pass. (Bugfixes that don't have a reproducing test should be
 #      promoted to the feature pipeline so a test-writer designs the
 #      coverage.)
-#   2. No separate planner gate before reproduction — the bug is
+#   2. No separate planner gate before reproduction - the bug is
 #      either reproducible or it isn't, and the manifest already
 #      captures the symptom.
 

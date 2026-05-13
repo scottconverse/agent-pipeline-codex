@@ -33,20 +33,20 @@ class CheckResult:
 
 
 def check_workflow_yaml_parse(root: Path) -> CheckResult:
-    """Check 1 — every workflow YAML-parses cleanly."""
+    """Check 1 - every workflow YAML-parses cleanly."""
     result = CheckResult(name="workflow YAML parse")
     workflows = list((root / ".github" / "workflows").glob("*.yml")) + list(
         (root / ".github" / "workflows").glob("*.yaml")
     )
     if not workflows:
-        result.details.append("no workflow files found — skipping")
+        result.details.append("no workflow files found - skipping")
         result.passed = True
         return result
 
     try:
         import yaml  # type: ignore
     except ImportError:
-        result.details.append("PyYAML not installed — cannot validate; assume PASS")
+        result.details.append("PyYAML not installed - cannot validate; assume PASS")
         result.passed = True
         return result
 
@@ -63,10 +63,10 @@ def check_workflow_yaml_parse(root: Path) -> CheckResult:
 
 
 def check_workflow_run_health(repo: str | None) -> CheckResult:
-    """Check 2 — recent run failure rate per workflow."""
+    """Check 2 - recent run failure rate per workflow."""
     result = CheckResult(name="workflow recent run health")
     if not repo:
-        result.details.append("--repo not provided — skipping")
+        result.details.append("--repo not provided - skipping")
         result.passed = True
         return result
 
@@ -100,7 +100,7 @@ def check_workflow_run_health(repo: str | None) -> CheckResult:
 
     if failing:
         result.details.append(
-            "FAIL — workflows with >=60% failure rate: " + ", ".join(failing)
+            "FAIL - workflows with >=60% failure rate: " + ", ".join(failing)
         )
         result.passed = False
     else:
@@ -109,11 +109,11 @@ def check_workflow_run_health(repo: str | None) -> CheckResult:
 
 
 def check_scripts_referenced_exist(root: Path) -> CheckResult:
-    """Check 3 — every script referenced by workflows actually exists."""
+    """Check 3 - every script referenced by workflows actually exists."""
     result = CheckResult(name="referenced scripts exist")
     workflows_dir = root / ".github" / "workflows"
     if not workflows_dir.is_dir():
-        result.details.append("no workflows directory — skipping")
+        result.details.append("no workflows directory - skipping")
         result.passed = True
         return result
 
@@ -132,20 +132,20 @@ def check_scripts_referenced_exist(root: Path) -> CheckResult:
             missing.append(f"{script} (0 bytes)")
 
     if missing:
-        result.details.append("FAIL — missing or empty: " + ", ".join(missing))
+        result.details.append("FAIL - missing or empty: " + ", ".join(missing))
         result.passed = False
     else:
-        result.details.append(f"PASS — {len(referenced)} scripts all present")
+        result.details.append(f"PASS - {len(referenced)} scripts all present")
         result.passed = True
     return result
 
 
 def check_verify_release_local(root: Path, run_local: bool) -> CheckResult:
-    """Check 4 — run verify-release.sh locally on fresh state."""
+    """Check 4 - run verify-release.sh locally on fresh state."""
     result = CheckResult(name="local verify-release.sh on fresh state")
     script = root / "scripts" / "verify-release.sh"
     if not script.exists():
-        result.details.append("no scripts/verify-release.sh — skipping")
+        result.details.append("no scripts/verify-release.sh - skipping")
         result.passed = True
         return result
 
@@ -179,11 +179,11 @@ def check_verify_release_local(root: Path, run_local: bool) -> CheckResult:
 
 
 def check_cross_platform_mismatch(root: Path) -> CheckResult:
-    """Check 5 — flag Windows jobs doing Linux Docker compose and vice versa."""
+    """Check 5 - flag Windows jobs doing Linux Docker compose and vice versa."""
     result = CheckResult(name="cross-platform reality check")
     workflows_dir = root / ".github" / "workflows"
     if not workflows_dir.is_dir():
-        result.details.append("no workflows directory — skipping")
+        result.details.append("no workflows directory - skipping")
         result.passed = True
         return result
 
@@ -211,28 +211,28 @@ def check_cross_platform_mismatch(root: Path) -> CheckResult:
         result.details.extend(["FAIL"] + issues)
         result.passed = False
     else:
-        result.details.append("PASS — no cross-platform mismatches detected")
+        result.details.append("PASS - no cross-platform mismatches detected")
         result.passed = True
     return result
 
 
 def check_diagnostic_instrumentation(root: Path) -> CheckResult:
-    """Check 6 — verify-release.sh dumps container logs on failure."""
+    """Check 6 - verify-release.sh dumps container logs on failure."""
     result = CheckResult(name="diagnostic instrumentation on failure")
     script = root / "scripts" / "verify-release.sh"
     if not script.exists():
-        result.details.append("no scripts/verify-release.sh — skipping")
+        result.details.append("no scripts/verify-release.sh - skipping")
         result.passed = True
         return result
 
     text = script.read_text(encoding="utf-8", errors="replace")
     has_log_dump = "docker compose logs" in text or "docker logs" in text
     if has_log_dump:
-        result.details.append("PASS — script dumps container logs somewhere")
+        result.details.append("PASS - script dumps container logs somewhere")
         result.passed = True
     else:
         result.details.append(
-            "FAIL — verify-release.sh does not dump container logs. "
+            "FAIL - verify-release.sh does not dump container logs. "
             "When compose health fails, the failure cause is hidden. "
             "Add `docker compose logs --no-color --tail 100 <service>` "
             "to the failure path. Template: civicrecords-ai PR #72."
@@ -242,12 +242,12 @@ def check_diagnostic_instrumentation(root: Path) -> CheckResult:
 
 
 def render_report(checks: list[CheckResult], module: str | None) -> str:
-    lines = [f"# Phase 0 Preflight Audit — {module or '<module>'}\n"]
+    lines = [f"# Phase 0 Preflight Audit - {module or '<module>'}\n"]
     pass_count = sum(1 for c in checks if c.passed)
     lines.append(f"Result: {pass_count}/{len(checks)} checks passed\n")
     for c in checks:
         status = "PASS" if c.passed else "FAIL"
-        lines.append(f"## {c.name} — {status}")
+        lines.append(f"## {c.name} - {status}")
         for d in c.details:
             lines.append(f"  {d}")
         lines.append("")

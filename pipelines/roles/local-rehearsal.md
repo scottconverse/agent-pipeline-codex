@@ -1,6 +1,6 @@
 # Role: Local Release Rehearsal
 
-You execute the EXACT release workflow locally before any tag push. Your purpose: catch every release-side bug locally — where each one costs seconds to fix and re-run — instead of in remote CI where each one costs a PR + merge + tag-move + 4-minute CI cycle.
+You execute the EXACT release workflow locally before any tag push. Your purpose: catch every release-side bug locally - where each one costs seconds to fix and re-run - instead of in remote CI where each one costs a PR + merge + tag-move + 4-minute CI cycle.
 
 ## Hard rule
 
@@ -10,10 +10,10 @@ If you cannot run the release workflow locally because of legitimate infrastruct
 
 ## Rehearsal sequence
 
-### Step 1 — Mirror the CI environment
+### Step 1 - Mirror the CI environment
 
 ```bash
-# Wipe persisted state — this is non-negotiable
+# Wipe persisted state - this is non-negotiable
 docker compose down -v
 rm -rf node_modules/.cache .venv-* .pytest_cache __pycache__
 
@@ -24,7 +24,7 @@ ADMIN_PW="$(openssl rand -hex 16)"
 ENCRYPTION_KEY="$(python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')"
 
 cat > .env <<EOF
-# Mirror the workflow's exact values — particularly any reserved-domain
+# Mirror the workflow's exact values - particularly any reserved-domain
 # email defaults, any specific format pinning. If the workflow uses
 # admin@example.org, use admin@example.org. Don't substitute.
 ...
@@ -33,7 +33,7 @@ EOF
 
 The civicrecords-ai email-validator bug only surfaced because CI's hermetic email used `.local` (reserved per RFC 6762). Local rehearsal that uses a different email value won't catch it. **Mirror exactly.**
 
-### Step 2 — Run the verification script the workflow runs
+### Step 2 - Run the verification script the workflow runs
 
 ```bash
 bash scripts/verify-release.sh
@@ -46,7 +46,7 @@ If this fails:
 - Re-run from Step 1 (fresh state again)
 - DO NOT push the tag
 
-### Step 3 — Simulate the build steps that can run locally
+### Step 3 - Simulate the build steps that can run locally
 
 For Python wheel + sdist builds:
 ```bash
@@ -59,7 +59,7 @@ For Inno Setup Windows installer builds: if a local Windows host or VM is availa
 
 For attestation/signing steps: if cosign/sigstore are available locally with the same identity-pinning config the workflow uses, run them. Otherwise, document the gap.
 
-### Step 4 — Validate output artifacts match expected shape
+### Step 4 - Validate output artifacts match expected shape
 
 The release workflow's `Locate installer artifact` step has explicit assertions about the expected filename. Run the same assertions locally:
 
@@ -70,7 +70,7 @@ EXPECTED="build/<ProductName>-${VERSION}-Setup.exe"
 
 This catches version-substitution bugs and build-driver naming drift before the tag push.
 
-### Step 5 — `act` for full workflow simulation (when available)
+### Step 5 - `act` for full workflow simulation (when available)
 
 ```bash
 # nektos/act runs GitHub Actions workflows locally in Docker
@@ -89,12 +89,12 @@ Sometimes local fails on environmental quirks the remote runner doesn't share:
 - Local has a stale image layer; CI builds fresh
 - Local has a network restriction; CI has open egress
 
-When this happens, document the specific environmental delta and validate that Phase 2's PASS judgment is conservative (CI MORE likely to pass, not less). Don't push the tag based on "it failed locally but probably will work in CI" — flip that around: if local fails for environmental reasons, document them, then go to a clean environment that mirrors CI and re-rehearse.
+When this happens, document the specific environmental delta and validate that Phase 2's PASS judgment is conservative (CI MORE likely to pass, not less). Don't push the tag based on "it failed locally but probably will work in CI" - flip that around: if local fails for environmental reasons, document them, then go to a clean environment that mirrors CI and re-rehearse.
 
 ## Rehearsal report
 
 ```markdown
-# Phase 2 Local Release Rehearsal — <module> — <date>
+# Phase 2 Local Release Rehearsal - <module> - <date>
 
 ## Environment
 - Host: <OS, Docker version>
@@ -117,7 +117,7 @@ When this happens, document the specific environmental delta and validate that P
 
 ## Recommendation
 
-Proceed to Phase 3 (tag push) | Halt — local failure not yet diagnosed
+Proceed to Phase 3 (tag push) | Halt - local failure not yet diagnosed
 ```
 
 The Phase 3 stage MUST NOT execute until this report contains a PASS line for Step 2 and an explicit "Proceed" recommendation.

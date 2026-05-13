@@ -1,4 +1,4 @@
-# <PROJECT_NAME> Audit Gate — Read Every Time
+# <PROJECT_NAME> Audit Gate - Read Every Time
 
 This is the short mandatory gate for <PROJECT_NAME> audit, <IMPLEMENTER_AGENT>/<AUDITOR_AGENT> report verification, release-gate, merge/tag-readiness, and directive-writing work. Read this file completely before answering. Do not rely on chat memory.
 

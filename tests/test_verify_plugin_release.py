@@ -44,3 +44,21 @@ def test_release_verifier_fails_when_any_gate_fails(monkeypatch) -> None:
     monkeypatch.setattr(sys, "argv", ["verify_plugin_release.py"])
 
     assert verify_plugin_release.main() == 1
+
+
+def test_release_verifier_source_only_skips_installed_cache_requirement(monkeypatch) -> None:
+    commands: list[list[str]] = []
+
+    def fake_run(cmd, **kwargs):
+        commands.append(list(cmd))
+        return subprocess.CompletedProcess(cmd, 0, stdout="ok\n", stderr="")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    monkeypatch.setattr(sys, "argv", ["verify_plugin_release.py", "--source-only"])
+
+    assert verify_plugin_release.main() == 0
+    assert [
+        sys.executable,
+        "scripts/check_plugin_install_acceptance.py",
+        "--source-only",
+    ] in commands

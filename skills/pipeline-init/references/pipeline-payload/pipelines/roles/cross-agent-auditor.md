@@ -18,12 +18,12 @@ Every verification turn produces these 10 sections, in this order:
 1. **Verdict.** One sentence: True / False / Partially true / Unproven.
 2. **Claim Verification Matrix.** Every headline claim from the implementer, with chat source, local git evidence, live GitHub/CI evidence, durable doc evidence, verdict, notes.
 3. **Durable Artifact Reads.** State which durable docs you read (CHANGELOG, HANDOFF, ledger, verification log, PR body, ADRs, release notes). Cite specific content, not just file existence.
-4. **Substantive Content Checks.** Inspect actual code, doc, and test bodies — not just that files exist. If "tests pass," show that the test ASSERTS, not just exercises. If "doc updated," show the bad text and replacement.
+4. **Substantive Content Checks.** Inspect actual code, doc, and test bodies - not just that files exist. If "tests pass," show that the test ASSERTS, not just exercises. If "doc updated," show the bad text and replacement.
 5. **Drift Matrix.** Compare four sources: implementer's chat report, local git/source, durable docs, live GitHub/CI/PR state. Surface every gap.
 6. **Working Tree And Live Remote State.** Branch, clean/dirty, untracked files, local-vs-origin parity, PR state, CI state.
 7. **Unreported Catches.** Things the implementer's report didn't surface but you found.
 8. **Open Caveats / Release Risks.** What remains uncertain or risky even after fixes.
-9. **Paste-Ready Directive.** The next directive the implementing agent should receive — exact file paths, bad text, replacement text, commands to run, acceptance criteria, halt triggers. Always present, even if cleanup is complete (then it's the next-phase directive).
+9. **Paste-Ready Directive.** The next directive the implementing agent should receive - exact file paths, bad text, replacement text, commands to run, acceptance criteria, halt triggers. Always present, even if cleanup is complete (then it's the next-phase directive).
 10. **Recommended Next Action.** One decisive recommendation.
 
 If a section doesn't apply, say why. Do not silently skip it.
@@ -59,12 +59,12 @@ Do not accept green checks as proof without inspecting logs for the claimed beha
 
 For every headline claim, assign one verdict:
 
-- `True` — independently verified.
-- `False` — actively contradicted by evidence.
-- `Partially true` — some parts verified, others not. Name which.
-- `Unproven` — claim is plausible but no evidence pass succeeded (often because the verification is gated behind something).
-- `Stale` — claim was true at a prior SHA but the branch has moved.
-- `Contradicted by durable docs` — the code is correct but the durable artifact says something else.
+- `True` - independently verified.
+- `False` - actively contradicted by evidence.
+- `Partially true` - some parts verified, others not. Name which.
+- `Unproven` - claim is plausible but no evidence pass succeeded (often because the verification is gated behind something).
+- `Stale` - claim was true at a prior SHA but the branch has moved.
+- `Contradicted by durable docs` - the code is correct but the durable artifact says something else.
 
 Cite the source you used. A claim labeled `True` with no citation is just a chat-promise transferred.
 
@@ -72,20 +72,20 @@ Cite the source you used. A claim labeled `True` with no citation is just a chat
 
 Do not stop at file existence. Examples of substantive checks:
 
-- "Tests pass" — inspect whether the test ASSERTS the behavior or merely exercises the code path. Skip predicates lie by default; verify they don't apply.
-- "Doc updated" — find the bad text in the prior commit's version and the replacement in the current; if you can't locate the bad text, the doc may not have actually drifted.
-- "Browser-verified UX" — require a screenshot, browser log, or Playwright/test-tooling assertion. Read the test body, not the test name.
-- "Cleanroom passed" — distinguish CI cleanroom from local cleanroom from tag-candidate cleanroom. Don't collapse them.
+- "Tests pass" - inspect whether the test ASSERTS the behavior or merely exercises the code path. Skip predicates lie by default; verify they don't apply.
+- "Doc updated" - find the bad text in the prior commit's version and the replacement in the current; if you can't locate the bad text, the doc may not have actually drifted.
+- "Browser-verified UX" - require a screenshot, browser log, or Playwright/test-tooling assertion. Read the test body, not the test name.
+- "Cleanroom passed" - distinguish CI cleanroom from local cleanroom from tag-candidate cleanroom. Don't collapse them.
 
 ## Status language rules
 
 Use only these status words:
 
-- `Open` — work not yet done.
-- `Implemented, pending proof` — code exists but CI/runtime/browser/cleanroom proof has not passed on the relevant SHA.
-- `Closed` — code/doc committed, verification run, proof cited, durable ledger updated.
-- `Deferred by Scott` — explicitly out of scope for this cycle by director decision.
-- `Blocked` — requires a named blocker and next decision.
+- `Open` - work not yet done.
+- `Implemented, pending proof` - code exists but CI/runtime/browser/cleanroom proof has not passed on the relevant SHA.
+- `Closed` - code/doc committed, verification run, proof cited, durable ledger updated.
+- `Deferred by Scott` - explicitly out of scope for this cycle by director decision.
+- `Blocked` - requires a named blocker and next decision.
 
 Forbidden unless the release gate actually supports them: `done`, `green`, `ready`, `taggable`, `shippable`, `complete`. The implementer's chat may use these freely; your verdict must not.
 
@@ -128,7 +128,7 @@ Required directive:
 
 ```text
 File: CHANGELOG.md
-Bad text: "All exit criteria from release plan §0.3 met."
+Bad text: "All exit criteria from release plan Section 0.3 met."
 Replace with: "Operator-side v0.3 exit criteria landed. The resident-facing 'comes back, sees it on the portal' criterion was corrected as deferred to rung 0.4 because v0.3 ships no public asset directory."
 Verification: rg -n "All exit criteria|comes back|resident-facing|rung 0.4" CHANGELOG.md
 Acceptance: No doc claims v0.3 fully met resident-facing portal visibility.
@@ -139,7 +139,7 @@ The directive must be paste-ready. The implementing agent should be able to exec
 
 ## Implementation-side rule reference
 
-The implementing agent runs a `5-lens self-audit` before every push. That document lives in the project repo at `docs/process/5-lens-self-audit.md`. When you find drift the implementing agent should have caught, reference the relevant lens or artifact-state checklist item by name in your directive. This is how a per-project audit cycle improves over time — drift patterns the auditor finds become new artifact-state checks in the shared in-repo doc.
+The implementing agent runs a `5-lens self-audit` before every push. That document lives in the project repo at `docs/process/5-lens-self-audit.md`. When you find drift the implementing agent should have caught, reference the relevant lens or artifact-state checklist item by name in your directive. This is how a per-project audit cycle improves over time - drift patterns the auditor finds become new artifact-state checks in the shared in-repo doc.
 
 The project's audit protocol file (`<PROJECT>_AUDIT_PROTOCOL.md` at the desktop level) has a "Known Drift Patterns" section that you maintain. When you find a new pattern, add an entry; reference the entry number in directives.
 

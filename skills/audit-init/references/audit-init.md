@@ -1,13 +1,13 @@
 ---
-description: Scaffold dual-AI audit-handoff infrastructure for a project — out-of-repo audit gate + protocol and in-repo 5-lens self-audit. For projects where one AI implements and a different AI audits.
-argument-hint: (none — interactive)
+description: Scaffold dual-AI audit-handoff infrastructure for a project - out-of-repo audit gate + protocol and in-repo 5-lens self-audit. For projects where one AI implements and a different AI audits.
+argument-hint: (none - interactive)
 ---
 
-# audit-init — scaffold dual-AI audit infrastructure
+# audit-init - scaffold dual-AI audit infrastructure
 
-You are setting up the audit-handoff discipline for a project that uses two AI systems: one implements, the other audits. This complements `pipeline-init`'s execution-side discipline (research → plan → execute → verify) with a verification-side discipline that catches drift the implementing agent misses.
+You are setting up the audit-handoff discipline for a project that uses two AI systems: one implements, the other audits. This complements `pipeline-init`'s execution-side discipline (research -> plan -> execute -> verify) with a verification-side discipline that catches drift the implementing agent misses.
 
-The user should already have run `pipeline-init` first if they want both. `audit-init` can be run standalone if the project doesn't use the full pipeline — the audit discipline is independent.
+The user should already have run `pipeline-init` first if they want both. `audit-init` can be run standalone if the project doesn't use the full pipeline - the audit discipline is independent.
 
 ## What this creates
 
@@ -19,37 +19,37 @@ Three artifacts plus optional per-agent wiring:
 
 Optional wiring:
 - For Codex in either role: a Codex project instructions feedback file pointing at the right artifact.
-- For another AI in either role: the equivalent project-context or skill-registration file for that runtime (varies by runtime — point the operator at where that AI reads its standing instructions).
+- For another AI in either role: the equivalent project-context or skill-registration file for that runtime (varies by runtime - point the operator at where that AI reads its standing instructions).
 - Optional update to project-level `AGENTS.md` or runtime-equivalent project-context file declaring the discipline.
 
-## Step 1 — Gather inputs
+## Step 1 - Gather inputs
 
 Use `a structured user question` to collect:
 
 - **Question:** `What is the project name? (capitalized, e.g. CivicSuite, CivicCast)`
 - **Question:** `Which AI system implements code in this project?` Options: `Codex`, `Other (name it)`.
-- **Question:** `Which AI system audits in this project?` Options: `Codex`, `Other (name it)`. (If same as implementer, this is a single-agent project — see Step 6.)
+- **Question:** `Which AI system audits in this project?` Options: `Codex`, `Other (name it)`. (If same as implementer, this is a single-agent project - see Step 6.)
 - **Question:** `What is the local path to the project repo?` (Use the current directory if it looks like a repo, otherwise ask.)
 - **Question:** `What is the desktop-level directory where the gate + protocol should live?` Default: parent of the project repo path.
 
 Capture:
-- `<PROJECT_NAME>` — the capitalized project name.
-- `<PROJECT_NAME_UPPER>` — uppercase for file names.
-- `<IMPLEMENTER_AGENT>` — `Codex` or the operator's named other AI.
-- `<AUDITOR_AGENT>` — `Codex` or the operator's named other AI.
-- `<PROJECT_REPO_PATH>` — local path.
-- `<DESKTOP_PATH>` — out-of-repo path.
-- `<AUDIT_GATE_PATH>` — `<DESKTOP_PATH>/<PROJECT_NAME_UPPER>_AUDIT_GATE.md`.
-- `<AUDIT_PROTOCOL_PATH>` — `<DESKTOP_PATH>/<PROJECT_NAME_UPPER>_AUDIT_PROTOCOL.md`.
+- `<PROJECT_NAME>` - the capitalized project name.
+- `<PROJECT_NAME_UPPER>` - uppercase for file names.
+- `<IMPLEMENTER_AGENT>` - `Codex` or the operator's named other AI.
+- `<AUDITOR_AGENT>` - `Codex` or the operator's named other AI.
+- `<PROJECT_REPO_PATH>` - local path.
+- `<DESKTOP_PATH>` - out-of-repo path.
+- `<AUDIT_GATE_PATH>` - `<DESKTOP_PATH>/<PROJECT_NAME_UPPER>_AUDIT_GATE.md`.
+- `<AUDIT_PROTOCOL_PATH>` - `<DESKTOP_PATH>/<PROJECT_NAME_UPPER>_AUDIT_PROTOCOL.md`.
 
-## Step 2 — Sanity check
+## Step 2 - Sanity check
 
 Before writing anything:
 - Check if either of `<AUDIT_GATE_PATH>` or `<AUDIT_PROTOCOL_PATH>` already exists. If yes, ask `a structured user question`: `Existing audit infrastructure detected. Overwrite, augment, or abort?`
 - Check if `<PROJECT_REPO_PATH>/docs/process/5-lens-self-audit.md` exists. Same question.
 - Confirm the project repo path is a real git repo (`git -C <path> rev-parse`).
 
-## Step 3 — Scaffold the three artifacts
+## Step 3 - Scaffold the three artifacts
 
 Read the three template files from the installed skill:
 - `references/audit-gate-template.md`
@@ -57,21 +57,21 @@ Read the three template files from the installed skill:
 - `references/5-lens-self-audit-template.md`
 
 For each, perform placeholder substitution:
-- `<PROJECT_NAME>` → captured value
-- `<IMPLEMENTER_AGENT>` → captured value
-- `<AUDITOR_AGENT>` → captured value
-- `<AUDIT_GATE_PATH>` → captured path
-- `<AUDIT_PROTOCOL_PATH>` → captured path
-- `<PROJECT_REPO_PATH>` → captured path
+- `<PROJECT_NAME>` -> captured value
+- `<IMPLEMENTER_AGENT>` -> captured value
+- `<AUDITOR_AGENT>` -> captured value
+- `<AUDIT_GATE_PATH>` -> captured path
+- `<AUDIT_PROTOCOL_PATH>` -> captured path
+- `<PROJECT_REPO_PATH>` -> captured path
 
 Write the substituted content:
-- Gate → `<AUDIT_GATE_PATH>`
-- Protocol → `<AUDIT_PROTOCOL_PATH>`
-- 5-lens doc → `<PROJECT_REPO_PATH>/docs/process/5-lens-self-audit.md` (create the `docs/process/` directory if needed)
+- Gate -> `<AUDIT_GATE_PATH>`
+- Protocol -> `<AUDIT_PROTOCOL_PATH>`
+- 5-lens doc -> `<PROJECT_REPO_PATH>/docs/process/5-lens-self-audit.md` (create the `docs/process/` directory if needed)
 
-## Step 4 — Open a PR for the in-repo doc
+## Step 4 - Open a PR for the in-repo doc
 
-The in-repo `docs/process/5-lens-self-audit.md` lands via PR, not direct push to main. Open a branch `process/shared-audit-knowledge`, commit the new doc with a message describing the dual-AI setup, push, and open a PR. Don't merge automatically — let the user review and merge.
+The in-repo `docs/process/5-lens-self-audit.md` lands via PR, not direct push to main. Open a branch `process/shared-audit-knowledge`, commit the new doc with a message describing the dual-AI setup, push, and open a PR. Don't merge automatically - let the user review and merge.
 
 Commit message template:
 
@@ -90,7 +90,7 @@ This is process documentation only. No feature work, no code change,
 no tag/release impact.
 ```
 
-## Step 5 — Per-agent wiring
+## Step 5 - Per-agent wiring
 
 Based on the role assignment, write the per-agent pointers:
 
@@ -99,7 +99,7 @@ Create or propose a Codex project-instructions pointer (typically in `AGENTS.md`
 
 ```markdown
 ---
-name: <PROJECT_NAME> audit protocol — Codex is auditor
+name: <PROJECT_NAME> audit protocol - Codex is auditor
 description: When auditing <PROJECT_NAME> work from <IMPLEMENTER_AGENT>, read the gate first.
 type: feedback
 ---
@@ -125,7 +125,7 @@ Create or propose a Codex project-instructions pointer (typically in `AGENTS.md`
 
 ```markdown
 ---
-name: <PROJECT_NAME> 5-lens self-audit — Codex is implementer
+name: <PROJECT_NAME> 5-lens self-audit - Codex is implementer
 description: Before every <PROJECT_NAME> push, run the in-repo 5-lens self-audit.
 type: feedback
 ---
@@ -142,7 +142,7 @@ plus the artifact-state checklist, plus the post-push SHA-propagation step.
 ```
 
 ### If a non-Codex AI is in either role
-Print the relevant file paths and a one-paragraph summary of what that agent needs to read every turn. The user wires it into the other AI's standing-instructions surface manually (skill file, project-context file, system prompt, custom GPT instructions — whatever the runtime exposes). Pattern to convey:
+Print the relevant file paths and a one-paragraph summary of what that agent needs to read every turn. The user wires it into the other AI's standing-instructions surface manually (skill file, project-context file, system prompt, custom GPT instructions - whatever the runtime exposes). Pattern to convey:
 
 ```markdown
 ## <PROJECT_NAME> audit-handoff discipline
@@ -153,13 +153,13 @@ When working on <PROJECT_NAME> as the <role>:
 - The mandatory 10-section verification output and the 5-lens self-audit are non-negotiable.
 ```
 
-## Step 6 — Single-agent fallback
+## Step 6 - Single-agent fallback
 
 If the same agent plays both roles, the dual-AI discipline collapses to a single-agent self-audit-and-verify pass. Still useful, but the structural benefit is reduced. Tell the user this explicitly and ask if they want to proceed anyway. If yes, scaffold the in-repo 5-lens doc only (skip the out-of-repo gate/protocol since there's no separate verifier needing them).
 
-## Step 7 — Update project-level AGENTS.md or AGENTS.md
+## Step 7 - Update project-level AGENTS.md or AGENTS.md
 
-If the project has a `AGENTS.md` or `AGENTS.md`, ask before editing. If approved, add a "HARD GATE — <PROJECT_NAME> Cross-Agent Audit Protocol" section pointing at the gate and protocol. Pattern:
+If the project has a `AGENTS.md` or `AGENTS.md`, ask before editing. If approved, add a "HARD GATE - <PROJECT_NAME> Cross-Agent Audit Protocol" section pointing at the gate and protocol. Pattern:
 
 ```markdown
 ## HARD GATE - <PROJECT_NAME> Cross-Agent Audit Protocol
@@ -175,7 +175,7 @@ Long reference protocol:
 `<AUDIT_PROTOCOL_PATH>`
 ```
 
-## Step 8 — Summary
+## Step 8 - Summary
 
 Print a summary to the user:
 
@@ -190,8 +190,8 @@ In-repo (PR opened):
 - <PROJECT_REPO_PATH>/docs/process/5-lens-self-audit.md (branch: process/shared-audit-knowledge, PR #<n>)
 
 Per-agent wiring:
-- <IMPLEMENTER_AGENT> implementer: <path to memory file / skill addition / "none — Other agent">
-- <AUDITOR_AGENT> auditor: <path to memory file / skill addition / "none — Other agent">
+- <IMPLEMENTER_AGENT> implementer: <path to memory file / skill addition / "none - Other agent">
+- <AUDITOR_AGENT> auditor: <path to memory file / skill addition / "none - Other agent">
 
 Next steps:
 1. Review the PR and merge to land the in-repo doc.

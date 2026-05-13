@@ -3,7 +3,7 @@ description: Initialize a new pipeline run (creates the manifest skeleton). Run 
 argument-hint: <pipeline-type> <slug>
 ---
 
-# new-run — initialize a pipeline run
+# new-run - initialize a pipeline run
 
 You are initializing a new agentic pipeline run. Do not start the pipeline. Do not validate semantic content of the manifest. Just initialize the directory and the manifest skeleton, then hand off to the user.
 
@@ -15,8 +15,8 @@ The user's project must have been initialized with `pipeline-init` first. Verify
 
 `$ARGUMENTS` is one line containing two whitespace-separated tokens:
 
-- **`<pipeline-type>`** — must match a YAML in `.pipelines/` (typically `feature` or `bugfix`).
-- **`<slug>`** — kebab-case task name, e.g. `auth-timeout`. Lowercase ASCII, hyphens only.
+- **`<pipeline-type>`** - must match a YAML in `.pipelines/` (typically `feature` or `bugfix`).
+- **`<slug>`** - kebab-case task name, e.g. `auth-timeout`. Lowercase ASCII, hyphens only.
 
 Example: `feature auth-timeout`
 
@@ -24,7 +24,7 @@ If `$ARGUMENTS` does not contain exactly two tokens, stop and tell the user the 
 
 ## What to do
 
-Execute these steps in order. Do not skip any. Do not run a Bash subshell loop — perform each step as its own tool call.
+Execute these steps in order. Do not skip any. Do not run a Bash subshell loop - perform each step as its own tool call.
 
 ### 1. Parse arguments
 
@@ -72,8 +72,8 @@ Use `a structured user question` to present this question:
 - **Question:** `Run initialized at .agent-runs/<run_id>/manifest.yaml`
 - **Header:** `Next step`
 - **Options:**
-  - Label: `I'll fill it in now` — Description: `Open the file in your editor, complete every field, then run run-pipeline <pipeline_type> <run_id>.`
-  - Label: `What goes in each field?` — Description: `Read .pipelines/manifest-template.yaml — every field has an inline comment explaining what it expects.`
+  - Label: `I'll fill it in now` - Description: `Open the file in your editor, complete every field, then run run-pipeline <pipeline_type> <run_id>.`
+  - Label: `What goes in each field?` - Description: `Read .pipelines/manifest-template.yaml - every field has an inline comment explaining what it expects.`
 
 Do not start the pipeline. Do not validate the manifest content. The pipeline runner (`run-pipeline`) does that as its first step.
 
@@ -83,4 +83,4 @@ Do not start the pipeline. Do not validate the manifest content. The pipeline ru
 - Do not write to any path other than the new `.agent-runs/<run_id>/manifest.yaml`.
 - Do not invoke any agent.
 - Do not run policy checks, tests, or builds.
-- If any validation fails, stop and report — do not paper over the failure with defaults.
+- If any validation fails, stop and report - do not paper over the failure with defaults.

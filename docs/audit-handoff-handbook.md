@@ -1,13 +1,13 @@
-# Audit-Handoff Handbook — agent-pipeline-codex v0.3
+# Audit-Handoff Handbook - agent-pipeline-codex v0.3
 
 This is the operator's reference for the dual-AI audit-handoff discipline. It exists because long autonomous runs by a single AI accumulate drift faster than they accumulate features, and a second AI reading the durable artifacts cold catches what the first AI missed.
 
 ## What this handbook covers
 
 The `audit-init` command and the artifacts it produces:
-- `<PROJECT>_AUDIT_GATE.md` — short mandatory gate read every audit turn (out-of-repo)
-- `<PROJECT>_AUDIT_PROTOCOL.md` — long reference protocol (out-of-repo)
-- `<project>/docs/process/5-lens-self-audit.md` — in-repo shared discipline
+- `<PROJECT>_AUDIT_GATE.md` - short mandatory gate read every audit turn (out-of-repo)
+- `<PROJECT>_AUDIT_PROTOCOL.md` - long reference protocol (out-of-repo)
+- `<project>/docs/process/5-lens-self-audit.md` - in-repo shared discipline
 - Per-agent wiring (Codex project instructions feedback file on the Codex side; the second AI's project-context or skill-registration file on the other side; or manual instructions for runtimes without a standing-instructions surface)
 
 ## When to use the audit-handoff discipline
@@ -29,11 +29,11 @@ Don't use it for:
 ### Implementing-side (5-lens self-audit before push)
 
 The implementing agent runs a hostile audit on its own diff before push. Five lenses:
-1. Engineering — every name/path/version is grep-verified.
-2. UX — every user-visible string is read cold.
-3. Tests — every claim that code "passes" is verified to actually ASSERT, not just exercise.
-4. Docs — every code change is reflected in README/CHANGELOG/HANDOFF/PR-body/ledger.
-5. QA — read the final state, not the diff. Cross-file contradictions surface here.
+1. Engineering - every name/path/version is grep-verified.
+2. UX - every user-visible string is read cold.
+3. Tests - every claim that code "passes" is verified to actually ASSERT, not just exercise.
+4. Docs - every code change is reflected in README/CHANGELOG/HANDOFF/PR-body/ledger.
+5. QA - read the final state, not the diff. Cross-file contradictions surface here.
 
 Plus an artifact-state checklist of project-specific drift items that the auditor has surfaced over time.
 
@@ -67,7 +67,7 @@ This is how the discipline gets stronger over time. Each audit cycle that finds 
 
 ## Role-agent matrix
 
-The discipline is symmetric — any agent can play either role:
+The discipline is symmetric - any agent can play either role:
 
 | Project | Implementer | Auditor |
 |---|---|---|
@@ -128,14 +128,14 @@ The cost: they're not version-controlled in the project's history. The mitigatio
 
 **Ongoing operation**: zero overhead. The implementer reads its memory/skill pointer on session start, runs the 5-lens before push. The auditor reads its memory/skill pointer + the gate on session start, produces the 10-section output. The shared in-repo doc accumulates new artifact-state items as audits find them.
 
-The discipline is self-maintaining. The drift catalog in section 22 of the protocol IS the maintenance artifact — every new pattern that gets logged makes the next cycle a little tighter.
+The discipline is self-maintaining. The drift catalog in section 22 of the protocol IS the maintenance artifact - every new pattern that gets logged makes the next cycle a little tighter.
 
 ## See also
 
-- `commandsaudit-init.md` — command logic
-- `pipelines/roles/cross-agent-auditor.md` — verifier role file
-- `pipelines/roles/implementer-pre-push.md` — implementer role file
-- `pipelines/templates/audit-gate-template.md` — gate template
-- `pipelines/templates/audit-protocol-template.md` — protocol template
-- `pipelines/templates/5-lens-self-audit-template.md` — in-repo doc template
-- `docs/module-release-handbook.md` — pairs with this discipline for module releases
+- `commandsaudit-init.md` - command logic
+- `pipelines/roles/cross-agent-auditor.md` - verifier role file
+- `pipelines/roles/implementer-pre-push.md` - implementer role file
+- `pipelines/templates/audit-gate-template.md` - gate template
+- `pipelines/templates/audit-protocol-template.md` - protocol template
+- `pipelines/templates/5-lens-self-audit-template.md` - in-repo doc template
+- `docs/module-release-handbook.md` - pairs with this discipline for module releases

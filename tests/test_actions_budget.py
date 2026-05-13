@@ -1,7 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from pathlib import Path
+import subprocess
 
+from scripts import check_actions_budget
 from scripts.check_actions_budget import validate_workflow
 
 
@@ -103,9 +105,38 @@ def test_pipeline_scaffold_contains_workflow_cost_policy() -> None:
     run_all = (payload / "scripts" / "run_all.py").read_text(encoding="utf-8")
     ag = (payload / "pipelines" / "templates" / "AGENTS.md").read_text(encoding="utf-8")
     planner = (payload / "pipelines" / "roles" / "planner.md").read_text(encoding="utf-8")
+    directives = (
+        payload / "pipelines" / "templates" / "workflow-cost-directives.md"
+    ).read_text(encoding="utf-8")
 
     assert "check_actions_budget" in run_all
     assert "GitHub Actions Workflow-Cost Directives" in ag
-    assert "Never add a daily cron without explicit Scott approval" in ag
-    assert "Every `upload-artifact` step must set `retention-days: 7`" in ag
+    assert "workflow-cost-directives.md" in ag
+    assert "Never add a daily cron without explicit Scott approval" in directives
+    assert "Every `upload-artifact` step must set `retention-days: 7`" in directives
     assert "Workflow-cost plan" in planner
+
+
+def test_run_mode_includes_committed_workflow_diff(monkeypatch) -> None:
+    calls: list[list[str]] = []
+
+    def fake_run(args, **kwargs):
+        calls.append(args)
+        if args[:2] == ["git", "status"]:
+            return subprocess.CompletedProcess(args, 0, stdout="", stderr="")
+        if args[:3] == ["git", "rev-parse", "--abbrev-ref"]:
+            return subprocess.CompletedProcess(args, 0, stdout="origin/main\n", stderr="")
+        if args[:3] == ["git", "diff", "--name-only"]:
+            return subprocess.CompletedProcess(
+                args, 0, stdout=".github/workflows/ci.yml\nREADME.md\n", stderr=""
+            )
+        raise AssertionError(args)
+
+    monkeypatch.setattr(check_actions_budget.subprocess, "run", fake_run)
+
+    paths, base = check_actions_budget._changed_workflows_for_run(None)
+
+    assert base == "origin/main"
+    assert [path.as_posix() for path in paths] == [
+        (check_actions_budget.REPO_ROOT / ".github/workflows/ci.yml").as_posix()
+    ]
