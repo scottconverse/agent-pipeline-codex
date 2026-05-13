@@ -26,6 +26,14 @@ Yes. Drop a `.pipelines/<your-type>.yaml` file in your project's pipeline direct
 
 Re-invoke the same `run-pipeline <type> <run-id>` command. The orchestrator reads `run.log`, finds the first stage without a `COMPLETE` entry, and resumes from there. `FAILED` and `BLOCKED` count as incomplete, so they re-run. The log is the source of truth — never edit it.
 
+### Q: Why didn't the agent stop after CI went green?
+
+Because green CI is evidence, not a stop condition. During an authorized run, stopping requires `active-control-state.md` to record a valid stop condition, `final_response_gate.py` to allow a final response, and `agent_decision_gate.py` to allow the specific stop/defer/skip/final decision. If the run should continue, `pipeline_continue.py` prints the next required action.
+
+### Q: What if the agent thinks a blocker might exist?
+
+It must verify the blocker before treating it as real. `unverified_blocker_or_risk` is an invalid stop condition. For example, "a push could trigger CI" is not enough; the agent must inspect workflows or repo settings, record evidence, and then run `agent_decision_gate.py --write-ledger`.
+
 ### Q: The verifier marked a criterion NOT MET but I think it's fine. Can I override?
 
 No. The manager hard rule forbids PROMOTE on any NOT MET criterion. The only exception is PARTIAL with explicit director-decisions deferral, and that requires both halves cited verbatim. If you genuinely disagree with the verifier, the fix is to amend the manifest (clearer `expected_outputs`, clearer `definition_of_done`) and re-run — not to override the verdict. The whole point of the verifier is that it cannot be talked out of NOT MET.

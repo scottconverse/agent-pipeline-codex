@@ -1,10 +1,16 @@
-# Roadmap — v0.5 candidate set
+# Roadmap — v0.5 shipped set and v0.6 carry-forward
 
-This is a living document. The v0.5 candidate set crystallizes as ideas from the [Ideas](ideas-seed.md) thread accumulate evidence — projects that needed it, receipts of where the gap bit, sketches that converge on a concrete design.
+This is a living document. The v0.5 candidate set crystallized from project receipts and shipped as single-AI hardening plus the later control-loop enforcement patch. Remaining candidates carry forward to v0.6.
 
-The candidate set is **not a commitment.** v0.5 will ship some subset of this; the rest will roll to v0.6 or get dropped if they don't accumulate enough receipts.
+## Shipped in v0.5.x
 
-## What's plausible for v0.5
+- Critic, drift-detector, and auto-promote stages.
+- Strict manifest schema validation.
+- Pre-edit fact-forcing in the executor role.
+- Workflow-cost discipline and `check_actions_budget.py`.
+- Control-loop enforcement: `active-control-state.md`, `final_response_gate.py`, `agent_decision_gate.py`, `decision-ledger.ndjson`, and `pipeline_continue.py`.
+
+## What's plausible for v0.6
 
 Roughly in order of how much evidence each has accumulated.
 
@@ -84,7 +90,7 @@ For the record:
 
 ## How this roadmap moves
 
-The roadmap is a living artifact. When a candidate accumulates enough receipts (typically: three projects independently hitting the same gap), it moves to the v0.5 commitment list. When v0.5 ships, this file gets renamed to `roadmap-v0.5-shipped.md` and a new `roadmap-v0.6.md` takes its place.
+The roadmap is a living artifact. When a candidate accumulates enough receipts (typically: three projects independently hitting the same gap), it moves to the next commitment list. When v0.6 planning starts in earnest, create `roadmap-v0.6.md` and leave this file as the shipped/carry-forward record.
 
 To push a candidate up, comment on this thread with a specific receipt: "On project X, task Y, the failure mode was Z, and the existing layers didn't catch it because…" Receipts move candidates; opinions don't.
 

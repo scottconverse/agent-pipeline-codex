@@ -1,4 +1,4 @@
-# Ideas — what should v0.5 (and beyond) look like?
+# Ideas — what should v0.6 (and beyond) look like?
 
 This thread collects proposals for future versions. Anything from a single new policy check to a whole new layer is fair game. The bar for "this should ship" is: a specific failure mode the existing layers don't catch, plus a sketch of what catches it.
 
@@ -14,7 +14,13 @@ You don't need a full design. "A `data-migration` pipeline type with a dry-run r
 
 ## Current candidate set (informal)
 
-These are ideas under active consideration. None are committed. Some have been discussed in passing across projects; some are extensions that fell out of v0.4 design discussions. Order is not priority.
+These are ideas under active consideration. None are committed. Some have been discussed in passing across projects; some are extensions that fell out of v0.4 and v0.5 design discussions. Order is not priority.
+
+## Recently shipped out of this idea set
+
+- Single-AI hardening: critic, drift-detector, auto-promote, and manifest schema checks.
+- Workflow-cost discipline: `check_actions_budget.py` plus role guidance for Actions cost hygiene.
+- Control-loop enforcement: `final_response_gate.py`, `agent_decision_gate.py`, `decision-ledger.ndjson`, and `pipeline_continue.py`.
 
 ### Project memory layer
 
@@ -65,3 +71,4 @@ Ideas that get traction either become explicit candidates here or move to GitHub
 - "Make the gates optional." Same reason.
 - "Replace the policy stage with hooks." Hooks intercept per-tool-call; policy intercepts per-stage. v0.4 added the per-tool-call intercept (judge); the per-stage check is still the right grain for path-scope and TODO checks.
 - "Generate the manifest automatically." Some auto-fill is fine (see "Better PRD-to-manifest" above); full auto-generate defeats the gate.
+- "Let the agent stop on judgment." Stopping is now a control-plane decision. If a blocker is real, record evidence and pass `agent_decision_gate.py`; if not, continue.

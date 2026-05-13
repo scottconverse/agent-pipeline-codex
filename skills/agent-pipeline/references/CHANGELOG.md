@@ -15,6 +15,7 @@ release; the `CHANGELOG` will call them out.
 - **Fail-closed final-response gate.** Added `scripts/final_response_gate.py` and scaffold payload coverage for `scripts/policy/final_response_gate.py`. The gate discovers active `.agent-runs/*/active-control-state.md` files and blocks final responses whenever an authorized run still has `final_response_allowed: false`.
 - **Agent decision gate and ledger.** Added `scripts/agent_decision_gate.py` to validate stop/defer/skip/final decisions, reject unverified blocker claims, and append `.agent-runs/<run-id>/decision-ledger.ndjson`.
 - **Pipeline continuation navigator.** Added `scripts/pipeline_continue.py` to print the next required action for active runs when stopping is not allowed.
+- **Public docs for control-loop enforcement.** Updated the landing page, architecture diagrams, and discussion seed posts so the public surface explains the final-response gate, decision gate, decision ledger, and continuation navigator.
 - **Mechanical control-loop gate.** Added `scripts/check_pipeline_control_loop.py`, `.agent-runs/<run-id>/active-control-state.md`, and `docs/process/pipeline-control-loop.md` so authorized runs cannot end unless a valid stop condition is recorded and checked.
 - **Workflow-cost policy gate.** Added `scripts/check_actions_budget.py` and scaffold payload coverage so changed GitHub Actions workflows are checked for mandatory cost directives before a slice can complete.
 

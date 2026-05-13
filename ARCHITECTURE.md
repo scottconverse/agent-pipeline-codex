@@ -37,20 +37,20 @@ flowchart TB
         A1[".codex-plugin/plugin.json"]
         A2["skills + commands/<br/>pipeline-init<br/>new-run<br/>run-pipeline"]
         A3["pipelines/<br/>feature.yaml<br/>bugfix.yaml<br/>roles/*.md"]
-        A4["scripts/<br/>check_*.py<br/>run_all.py"]
+        A4["scripts/<br/>check_*.py<br/>final_response_gate.py<br/>agent_decision_gate.py<br/>pipeline_continue.py<br/>run_all.py"]
     end
 
     subgraph ProjectLayer["Project layer (per repo, after pipeline-init)"]
         direction LR
         B1["AGENTS.md"]
         B2[".pipelines/<br/>copies of YAMLs<br/>copies of roles/"]
-        B3["scripts/policy/<br/>copies of check scripts"]
+        B3["scripts/policy/<br/>checks + control gates"]
         B4[".gitignore<br/>(adds .agent-runs/)"]
     end
 
     subgraph RunLayer["Run layer (per pipeline invocation)"]
         direction LR
-        C1[".agent-runs/&lt;run-id&gt;/<br/>manifest.yaml<br/>research.md<br/>plan.md<br/>...<br/>manager-decision.md<br/>run.log"]
+        C1[".agent-runs/&lt;run-id&gt;/<br/>manifest.yaml<br/>research.md<br/>plan.md<br/>...<br/>manager-decision.md<br/>active-control-state.md<br/>decision-ledger.ndjson<br/>run.log"]
     end
 
     PluginLayer -- "pipeline-init copies into" --> ProjectLayer
@@ -140,6 +140,8 @@ flowchart LR
     POL --> MGR
     JL --> MGR
     I0 --> MGR
+    MGR --> ACS["active-control-state.md<br/>(orchestrator)<br/>stop condition + next action"]
+    ACS --> DG["decision-ledger.ndjson<br/>(agent_decision_gate)<br/>stop/defer/skip receipts"]
 
     classDef human fill:#ffd9b3,stroke:#cc6600,color:#000
     classDef agent fill:#cce5ff,stroke:#0066cc,color:#000
@@ -149,6 +151,7 @@ flowchart LR
     class R,P,TW,E,V,MGR agent
     class POL policy
     class JL judge
+    class ACS,DG policy
 ```
 
 Two important properties of this flow:
@@ -233,6 +236,25 @@ status, an unverified blocker, a recommended next action, unresolved caveats, or
 required gates have passed. `Open Caveats / Release Risks` blocks completion
 unless each item is fixed or marked `INTENTIONAL DEFERRAL:` with cited
 authorization.
+
+```mermaid
+flowchart TB
+    Intent["Agent intends to stop, defer, skip push/CI, ask a non-gate question, compact-and-stop, or final-answer"] --> State["Write/read active-control-state.md"]
+    State --> Loop["check_pipeline_control_loop.py --run X"]
+    Loop --> Final["final_response_gate.py --require-active-run"]
+    Final --> Decision["agent_decision_gate.py --intent ... --claimed-stop-condition ... --write-ledger"]
+    Decision --> Allowed{Allowed?}
+    Allowed -- yes --> Stop["Stop/report with valid condition and ledger receipt"]
+    Allowed -- no --> Continue["pipeline_continue.py prints required next action"]
+    Continue --> Work["Continue the authorized run"]
+
+    classDef policy fill:#fff3b3,stroke:#999900,color:#000
+    classDef stop fill:#ffd9b3,stroke:#cc6600,color:#000
+    classDef work fill:#cce5ff,stroke:#0066cc,color:#000
+    class Loop,Final,Decision,Continue policy
+    class Stop stop
+    class Work work
+```
 
 ---
 
@@ -590,6 +612,10 @@ agent-pipeline-codex/                        # the plugin
     ├── check_allowed_paths.py           # diff vs. manifest allowed_paths
     ├── check_no_todos.py                # scan for TODO/FIXME/HACK
     ├── check_adr_gate.py                # ADRs are append-only
+    ├── check_pipeline_control_loop.py   # active-control-state validator
+    ├── final_response_gate.py           # discovers active runs and blocks final responses
+    ├── agent_decision_gate.py           # validates stop/defer/skip intent and writes ledger
+    ├── pipeline_continue.py             # prints next required action
     └── run_all.py                       # check runner
 ```
 
@@ -609,6 +635,10 @@ After `pipeline-init`, your project gets:
 │   ├── check_allowed_paths.py
 │   ├── check_no_todos.py
 │   ├── check_adr_gate.py
+│   ├── check_pipeline_control_loop.py
+│   ├── final_response_gate.py
+│   ├── agent_decision_gate.py
+│   ├── pipeline_continue.py
 │   └── run_all.py
 └── .agent-runs/                         # gitignored, created on first new-run
     └── <run-id>/
@@ -620,6 +650,8 @@ After `pipeline-init`, your project gets:
         ├── policy-report.md
         ├── verifier-report.md
         ├── manager-decision.md
+        ├── active-control-state.md      # continuation contract
+        ├── decision-ledger.ndjson       # stop/defer/skip/final decision receipts
         ├── judge-log.yaml               # v0.4 — written when judge layer is active
         ├── judge-metrics.yaml           # v0.4 — written when judge layer is active
         ├── judge-decisions/             # v0.4 — one YAML per judged action
@@ -720,6 +752,14 @@ sequenceDiagram
             CC->>Runs: subagent writes artifact
         end
         CC->>Runs: append run.log line
+        CC->>Runs: update active-control-state.md
+        CC->>Proj: run final_response_gate / agent_decision_gate before any stop
+        alt decision gate blocks
+            CC->>Proj: run pipeline_continue.py
+            CC->>CC: continue to required next action
+        else valid stop condition
+            CC->>Runs: append decision-ledger.ndjson
+        end
     end
     CC->>U: pipeline complete; show manager decision
 ```

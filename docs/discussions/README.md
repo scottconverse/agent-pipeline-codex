@@ -1,6 +1,6 @@
 # Discussion board seed posts
 
-This directory holds the seed content for the project's GitHub Discussions board. Each file maps to one Discussions category and contains the announcement / starter post text. Paste the body of each file into the corresponding category on https://github.com/scottconverse/agent-pipeline-codex/discussions when announcing v0.4 (or any future release that meaningfully changes the project's shape).
+This directory holds the seed content for the project's GitHub Discussions board. Each file maps to one Discussions category and contains the announcement / starter post text. Paste the body of each file into the corresponding category on https://github.com/scottconverse/agent-pipeline-codex/discussions when announcing a release that meaningfully changes the project's shape.
 
 These are source-controlled because:
 
@@ -13,10 +13,11 @@ These are source-controlled because:
 | File | GitHub Discussions category | Format on github.com |
 | :--- | :--- | :--- |
 | [`announcements-v0.4.md`](announcements-v0.4.md) | Announcements | Pinned post announcing v0.4 |
+| [`announcements-v0.5-control-loop.md`](announcements-v0.5-control-loop.md) | Announcements | Pinned post announcing v0.5 control-loop enforcement |
 | [`q-and-a-seed.md`](q-and-a-seed.md) | Q&A | Seed FAQ thread |
 | [`show-and-tell-seed.md`](show-and-tell-seed.md) | Show and tell | Seed post inviting case studies |
 | [`ideas-seed.md`](ideas-seed.md) | Ideas | Seed post for v0.5+ proposals |
-| [`roadmap-v0.5.md`](roadmap-v0.5.md) | Roadmap | Pinned post describing the v0.5 candidate set |
+| [`roadmap-v0.5.md`](roadmap-v0.5.md) | Roadmap | Pinned post describing the v0.5 shipped set and v0.6 carry-forward |
 
 ## When to update
 
@@ -28,9 +29,9 @@ The Q&A, show-and-tell, and ideas seeds are evergreen — update them when the q
 
 ## How to use
 
-When announcing v0.4:
+When announcing a release:
 
-1. Open https://github.com/scottconverse/agent-pipeline-codex/discussions
+1. Confirm Discussions are enabled, then open https://github.com/scottconverse/agent-pipeline-codex/discussions
 2. For each file above whose category exists on the board, create a new discussion in that category and paste the file's body. Pin the announcement and the roadmap.
 3. If a category doesn't exist yet, create it under Discussions → Manage categories first.
 4. Link back to this directory in each seeded post so future contributors can find the source.

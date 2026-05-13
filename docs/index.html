@@ -137,6 +137,8 @@
   }
   .legend .swatch.gate { background: var(--accent); border-color: var(--accent); }
   .legend .swatch.policy { background: var(--ink); }
+  .legend .swatch.control { background: var(--paper); border-color: var(--rust); position: relative; }
+  .legend .swatch.control::before { content: ""; position: absolute; left: 4px; right: 4px; top: 10px; border-top: 2px solid var(--rust); }
   .legend .swatch.new { background: var(--paper); border-color: var(--moss); position: relative; }
   .legend .swatch.new::after { content: ""; position: absolute; inset: 3px; border: 1px solid var(--moss); }
   .legend .item .text { color: var(--mid); text-transform: uppercase; line-height: 1.6; }
@@ -280,7 +282,7 @@
 <header class="masthead">
   <div class="mark">agent-pipeline-codex</div>
   <div class="meta">
-    <span>v0.5.3</span>
+    <span>v0.5.3+control-loop</span>
     <span>Apache-2.0</span>
     <span>Codex Desktop App plugin</span>
   </div>
@@ -315,11 +317,12 @@
     </div>
 
     <aside class="hero-meta">
-      <div class="row"><span>Release</span><strong class="rust">0.5.3</strong></div>
+      <div class="row"><span>Release</span><strong class="rust">0.5.3+</strong></div>
       <div class="row"><span>Stages</span><strong>11</strong></div>
       <div class="row"><span>Human gates</span><strong>3</strong></div>
       <div class="row"><span>Role files</span><strong>13</strong></div>
       <div class="row"><span>Policy checks</span><strong>6</strong></div>
+      <div class="row"><span>Decision gates</span><strong>3</strong></div>
       <div class="row"><span>Pipelines</span><strong>3</strong></div>
       <div class="row"><span>Status</span><strong>beta</strong></div>
     </aside>
@@ -328,11 +331,11 @@
 
 <section class="diagram-wrap frame">
   <span class="frame-mark">Fig. 01 · Pipeline schematic</span>
-  <span class="frame-mark-right">v0.5.3 · feature.yaml</span>
+  <span class="frame-mark-right">v0.5.3+ · feature.yaml</span>
 
   <div class="figcap">
-    <span class="label">Eleven stages · four phases · three gates</span>
-    <span class="title">A run, end to end.</span>
+    <span class="label">Eleven stages · four phases · three human gates · three control gates</span>
+    <span class="title">A run, plus the stop-decision control plane.</span>
   </div>
 
   <div class="diagram-scroll">
@@ -478,8 +481,8 @@
     </g>
 
     <line class="hair-stroke" x1="50" y1="296" x2="1370" y2="296"/>
-    <text class="lbl-mid" x="50" y="316">* On clean runs at v0.5, the manager gate auto-fires when the six structural conditions are met. Auto-promote reads parseable count lines from §verify, §critique, §drift, §policy, §judge, §implementation.</text>
-    <text class="lbl-mid" x="50" y="336">Stage names mirror <tspan font-style="italic" font-family="Source Serif 4">pipelines/feature.yaml</tspan>. Role briefs live under <tspan font-style="italic" font-family="Source Serif 4">pipelines/roles/&lt;role&gt;.md</tspan>.</text>
+    <text class="lbl-mid" x="50" y="316">* On clean runs at v0.5, the manager gate auto-fires when the six structural conditions are met. Auto-promote reads parseable count lines from verify, critique, drift, policy, judge, and implementation.</text>
+    <text class="lbl-mid" x="50" y="336">Before any final, defer, skipped push, skipped CI, handoff-and-stop, or compact-and-stop: check_pipeline_control_loop, final_response_gate, agent_decision_gate, then pipeline_continue if blocked.</text>
   </svg>
   </div>
 
@@ -499,6 +502,10 @@
     <div class="item">
       <span class="swatch new"></span>
       <div class="text"><strong>New at v0.5</strong>Drift-detector, critique, auto-promote. Single-AI hardening.</div>
+    </div>
+    <div class="item">
+      <span class="swatch control"></span>
+      <div class="text"><strong>Control plane</strong>Final-response gate, decision gate, decision ledger, and navigator. Stops require evidence.</div>
     </div>
   </div>
 </section>
@@ -619,11 +626,11 @@
         </div>
 
         <div class="layer current">
-          <div class="v">v0.5.3<strong>Install packaging</strong><span class="badge">Current</span></div>
+          <div class="v">v0.5.3+<strong>Control-loop enforcement</strong><span class="badge">Current</span></div>
           <div>
-            <div class="l-title">Installed Codex skills are self-contained.</div>
-            <p class="l-body">Each skill now carries its own command references, templates, pipeline definitions, and policy scripts under its installed folder. The control-loop gate makes continuation mechanical: green CI, successful push, and recommended next action are evidence to continue, not reasons to stop.</p>
-            <div class="l-catches"><strong>Fixes</strong> Skills installed into <code>$CODEX_HOME/skills</code> no longer depend on missing <code>../../commands</code> paths.</div>
+            <div class="l-title">The agent must prove it can stop.</div>
+            <p class="l-body">Installed skills are self-contained, and continuation is now enforced by three scripts: <code>final_response_gate.py</code> discovers active runs, <code>agent_decision_gate.py</code> rejects unverified blockers and writes <code>decision-ledger.ndjson</code>, and <code>pipeline_continue.py</code> prints the next required action when stopping is not allowed.</p>
+            <div class="l-catches"><strong>Fixes</strong> Green CI, successful push, recommended next action, draft PR status, release/tag after gates pass, and unverified blocker risk are not stop conditions.</div>
           </div>
         </div>
       </div>
@@ -645,8 +652,9 @@
         <li>Propose autonomous mode. Every gate is explicit.</li>
         <li>Silently expand scope. The policy stage blocks every change outside <code>allowed_paths</code>.</li>
         <li>Skip tests. <em>Never skip tests</em> is enforced as a project-level hard rule.</li>
-        <li>Promote a run if the verifier marked any criterion <code>NOT MET</code>.</li>
+        <li>Promote a run when the verifier marked any criterion as not met.</li>
         <li>Merge in-flight work while a halt is active — including cleanup PRs that "seem obviously safe."</li>
+        <li>Stop, defer, skip push, skip CI, or write a stopping handoff because of an unverified risk.</li>
       </ul>
     </div>
   </div>
@@ -669,6 +677,7 @@
         <div class="lesson"><div class="lh">Manager cites, never summarises</div><div class="lb">The final decision quotes the verifier verbatim. Summarisation and encouragement are how bad runs get promoted, and both are forbidden in the role file.</div></div>
         <div class="lesson"><div class="lh">Decisions are written</div><div class="lb">Director decisions belong in <code>director-decisions.md</code>, not in chat. The researcher surfaces them; the human picks in writing.</div></div>
         <div class="lesson"><div class="lh">Standing invariants beat memory</div><div class="lb">v0.5.1's doc-currency invariants enforce inventory accuracy on every run because cumulative drift was the failure mode v0.2 through v0.5 silently accumulated.</div></div>
+        <div class="lesson"><div class="lh">Stops need receipts</div><div class="lb">The agent's stop, defer, and skip decisions pass through <code>agent_decision_gate.py</code>. If the blocker is inferred instead of verified, the gate blocks and <code>pipeline_continue.py</code> prints the next action.</div></div>
       </div>
     </div>
   </div>
@@ -700,7 +709,7 @@
 <footer class="foot page">
   <span>© Scott Converse · Apache-2.0</span>
   <span><a href="https://github.com/scottconverse/agent-pipeline-codex">github</a> · <a href="https://github.com/scottconverse/agent-pipeline-codex/discussions">discussions</a></span>
-  <span>v0.5.3 · 2026</span>
+  <span>v0.5.3+control-loop · 2026</span>
 </footer>
 
 </body>
