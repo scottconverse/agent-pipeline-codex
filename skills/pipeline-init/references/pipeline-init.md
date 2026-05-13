@@ -73,10 +73,14 @@ Once the project's working directory is identified and the orientation is settle
 2. **`scripts/policy/` directory** — copy from the installed skill's `references/pipeline-payload/scripts/` directory:
    - `__init__.py`
    - `check_allowed_paths.py`
+   - `check_actions_budget.py`
    - `check_no_todos.py`
    - `check_adr_gate.py`
-- `run_all.py`
-- `check_pipeline_control_loop.py`
+   - `run_all.py`
+   - `check_pipeline_control_loop.py`
+   - `final_response_gate.py`
+   - `agent_decision_gate.py`
+   - `pipeline_continue.py`
 
 3. **`.gitignore`** — append `.agent-runs/` (create file if it doesn't exist; check for existing entry before appending to avoid duplicates).
 

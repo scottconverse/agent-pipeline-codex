@@ -12,12 +12,17 @@ release; the `CHANGELOG` will call them out.
 
 ### Added
 
+- **Fail-closed final-response gate.** Added `scripts/final_response_gate.py` and scaffold payload coverage for `scripts/policy/final_response_gate.py`. The gate discovers active `.agent-runs/*/active-control-state.md` files and blocks final responses whenever an authorized run still has `final_response_allowed: false`.
+- **Agent decision gate and ledger.** Added `scripts/agent_decision_gate.py` to validate stop/defer/skip/final decisions, reject unverified blocker claims, and append `.agent-runs/<run-id>/decision-ledger.ndjson`.
+- **Pipeline continuation navigator.** Added `scripts/pipeline_continue.py` to print the next required action for active runs when stopping is not allowed.
 - **Mechanical control-loop gate.** Added `scripts/check_pipeline_control_loop.py`, `.agent-runs/<run-id>/active-control-state.md`, and `docs/process/pipeline-control-loop.md` so authorized runs cannot end unless a valid stop condition is recorded and checked.
+- **Workflow-cost policy gate.** Added `scripts/check_actions_budget.py` and scaffold payload coverage so changed GitHub Actions workflows are checked for mandatory cost directives before a slice can complete.
 
 ### Changed
 
-- **Continuation is executable.** Updated `run-pipeline`, `feature.yaml`, `bugfix.yaml`, `manifest-template.yaml`, manager, verifier, and implementer-pre-push roles so successful push, green CI, draft PR status, recommended next action, and release/tag after all gates pass are not stop conditions.
+- **Continuation is executable.** Updated `run-pipeline`, `feature.yaml`, `bugfix.yaml`, `manifest-template.yaml`, manager, verifier, and implementer-pre-push roles so successful push, green CI, draft PR status, unverified blockers, recommended next action, and release/tag after all gates pass are not stop conditions. The final-response and decision gates must pass before stopping is allowed.
 - **Caveats are blocking.** `Open Caveats / Release Risks` now blocks completion unless each item is fixed or marked `INTENTIONAL DEFERRAL:` with cited authorization.
+- **Workflow-cost discipline is slice completeness.** Updated runtime `run-pipeline`, scaffolded AGENTS.md, planner/executor/verifier/manager role guidance, and control-loop docs so workflow file changes must name touched workflows, apply the 10 directives, record evidence, and treat unresolved violations as release risks.
 
 ## [0.5.3] - 2026-05-11
 

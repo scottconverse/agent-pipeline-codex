@@ -227,9 +227,9 @@ any final response. That file records the current stage, last completed gate,
 next required action, stop condition, whether a final response is allowed, and
 the action the runner is continuing to.
 
-`scripts/check_pipeline_control_loop.py --run <run-id>` is the mechanical gate.
-It fails when the runner tries to stop on successful push, green CI, draft PR
-status, a recommended next action, unresolved caveats, or release/tag after all
+`scripts/policy/check_pipeline_control_loop.py --run <run-id>` validates the recorded control state for one run. `scripts/policy/final_response_gate.py --require-active-run` is the pre-final executable gate; it discovers active control-state files and blocks when any active run must continue. `scripts/policy/agent_decision_gate.py --write-ledger` validates the agent's specific stop, defer, skip, or final-response decision and records the result in `decision-ledger.ndjson`. `scripts/policy/pipeline_continue.py` prints the next executable action when the agent is not allowed to stop.
+The gates fail when the runner tries to stop on successful push, green CI, draft PR
+status, an unverified blocker, a recommended next action, unresolved caveats, or release/tag after all
 required gates have passed. `Open Caveats / Release Risks` blocks completion
 unless each item is fixed or marked `INTENTIONAL DEFERRAL:` with cited
 authorization.

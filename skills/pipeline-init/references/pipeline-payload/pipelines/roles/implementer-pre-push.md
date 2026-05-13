@@ -100,7 +100,8 @@ Before any final response during an authorized pipeline run:
 
 1. Write `.agent-runs/<run-id>/active-control-state.md`.
 2. Run `python scripts/policy/check_pipeline_control_loop.py --run <run-id>`.
-3. If `stop_condition: none`, continue to the recorded `continuing_to` action instead of ending the turn.
+3. Run `python scripts/policy/final_response_gate.py --require-active-run`.
+4. If the final-response gate blocks, continue to the recorded `continuing_to` action instead of ending the turn.
 4. If `Open Caveats / Release Risks` contains unresolved bullets, fix them before calling the slice complete. The only allowed exception is a bullet prefixed with `INTENTIONAL DEFERRAL:` and backed by explicit manifest or director-decision authorization.
 
 Successful push, green CI, PR draft status, and a recommended next action are not stop conditions. Merge, release, and tag are not stop conditions after the required review, test, judge, CI, and release gates have passed and the action is inside the authorized slice.

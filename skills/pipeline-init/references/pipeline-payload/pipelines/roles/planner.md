@@ -20,11 +20,14 @@ Write **`.agent-runs/<run-id>/plan.md`** with these sections:
 6. **Layered audit hooks** — how this work satisfies the project's layered audit pattern (per-commit careful-coding, per-checkpoint sanity sweep, per-rung audit-lite).
 7. **Definition of done** — restatement of `manifest.definition_of_done` plus the explicit list of artifacts and tests that prove it.
 
+8. **Workflow-cost plan** - required when the plan creates or modifies `.github/workflows/*.yml` or `.github/workflows/*.yaml`. Name every workflow file before editing, state which of the 10 workflow-cost directives apply, and name the exact policy command that will prove the mechanically checkable rules: `python scripts/policy/run_all.py --run <run-id>`. If no workflow files are touched, write `No workflow files touched; workflow-cost directives preserved.`
+
 ## Hard rules
 
 - Do not modify any file outside `.agent-runs/<run-id>/`.
 - Do not run code, tests, or builds.
 - Do not invoke other agents.
+- If the plan touches GitHub Actions workflow files, the workflow-cost plan is mandatory. Do not let the executor discover workflow scope later without a REPLAN.
 - Every file path you propose must fall under `manifest.allowed_paths` and not under `manifest.forbidden_paths`. If a needed file falls outside, raise it as an open question and STOP — do not silently expand scope.
 - If the research.md is missing, malformed, or names unresolved questions that block planning, STOP and write a one-line plan.md saying so.
 - **If director-decisions.md exists, honor its choices as binding.** Every part of plan.md that touches a binding decision MUST cite the relevant decision section. If you cannot satisfy them and the manifest's definition_of_done simultaneously, that is a REPLAN trigger — surface it explicitly rather than silently picking one constraint over another.
@@ -36,3 +39,4 @@ The plan is complete only when:
 - Every test in §4 names a specific contract, not just "test X works."
 - Every risk in §5 names a specific mitigation, not "be careful."
 - A test-writer reading only this plan can produce failing tests without consulting any other source.
+- Workflow changes, if any, are named up front and tied to the workflow-cost directives and policy check.

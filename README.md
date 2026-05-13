@@ -22,7 +22,7 @@ This plugin enforces a structural pattern that catches every one of those:
 5. **Verifier stage** — independent fresh-context check against every manifest exit criterion.
 6. **Manager gate** — final PROMOTE/BLOCK/REPLAN decision, must cite verifier evidence verbatim.
 
-7. **Control-loop gate** — before any final response during an authorized run, `.agent-runs/<run-id>/active-control-state.md` must record a valid stop condition and `scripts/check_pipeline_control_loop.py --run <run-id>` must pass. Green CI, successful push, draft PR status, and a recommended next action are not stop conditions.
+7. **Control-loop gate** — before any final response, stop, deferral, or skipped action during an authorized run, `.agent-runs/<run-id>/active-control-state.md` must record a valid stop condition, `scripts/policy/check_pipeline_control_loop.py --run <run-id>` must pass, `scripts/policy/final_response_gate.py --require-active-run` must print `final_response_gate: ALLOW`, and `scripts/policy/agent_decision_gate.py` must allow the specific decision. Green CI, successful push, draft PR status, unverified blocker risk, and a recommended next action are not stop conditions.
 
 ## Install
 
@@ -73,6 +73,9 @@ After init, your project has:
 scripts/policy/
 ├── check_manifest_schema.py        # v0.5 — strict manifest contract validator
 ├── check_allowed_paths.py          # generic, manifest-driven
+├── final_response_gate.py          # pre-final continuation gate
+├── agent_decision_gate.py          # stop/skip/defer decision gate + ledger
+├── pipeline_continue.py            # executable next-action navigator
 ├── check_no_todos.py               # generic, configurable scan dirs
 ├── check_adr_gate.py               # generic, ADRs are append-only
 ├── auto_promote.py                 # v0.5 — six-condition machine-checkable promote

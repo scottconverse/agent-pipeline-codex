@@ -35,6 +35,8 @@ Write **`.agent-runs/<run-id>/verifier-report.md`** with these sections:
 6. **Cross-cutting checks** — items the auditor lens reviews: blast radius (what adjacent code could break and was checked); doc-currency (USER-MANUAL or equivalent updated where the change is operator-facing); CHANGELOG entry written; ADR written if a closed decision applied.
 7. **Open Caveats / Release Risks** — anything that satisfies the exit criteria but adds debt. Every bullet is blocking unless it has already been fixed or starts with `INTENTIONAL DEFERRAL:` and cites the manifest or director decision authorizing the deferral. Do not use this section as a parking lot for work that belongs in the current slice.
 
+Add a **Workflow-cost evidence** section before Open Caveats / Release Risks. If the implementation changed `.github/workflows/*.yml` or `.github/workflows/*.yaml`, name each workflow file and verify the 10 workflow-cost directives were applied. Confirm `check_actions_budget` ran inside `python scripts/policy/run_all.py --run <run-id>` and quote any violations. If no workflows changed, write `No workflow files touched; workflow-cost directives preserved.`
+
 ## Hard rules
 
 - Do not modify any file outside `.agent-runs/<run-id>/`.
@@ -45,6 +47,7 @@ Write **`.agent-runs/<run-id>/verifier-report.md`** with these sections:
 - If implementation-report.md is missing or claims tests pass that in fact fail, mark the run NOT MET and stop.
 - Do not call unresolved caveats non-blocking. If the work has a caveat, either verify the fix in this slice or cite the explicit `INTENTIONAL DEFERRAL:` authorization.
 - Do not treat green CI, successful push, draft PR status, or a recommended next action as evidence that the slice can stop.
+- Do not treat a workflow-cost violation as informational. Any unresolved violation in a changed workflow is a release risk and blocks completion.
 
 ## Output checklist
 

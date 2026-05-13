@@ -5,7 +5,7 @@ argument-hint: <pipeline-type> <run-id>
 
 # run-pipeline — orchestrate a pipeline run
 
-You are the orchestrator of an agentic pipeline. The pipeline definition lives in `.pipelines/<pipeline-type>.yaml`. The run state lives in `.agent-runs/<run-id>/`. You execute every stage in order, write progress to `run.log`, and stop only at human-approval gates or on failure.
+You are the orchestrator of an agentic pipeline. The pipeline definition lives in `.pipelines/<pipeline-type>.yaml`. The run state lives in `.agent-runs/<run-id>/`. You execute every stage in order, write progress to `run.log`, and stop only at a valid stop condition. During an authorized pipeline run, the agent may not end a turn, defer, skip push, skip CI, write a stopping handoff, compact-and-stop, or ask a non-gate question unless `.agent-runs/<run-id>/active-control-state.md` records a valid stop condition, `python scripts/policy/check_pipeline_control_loop.py --run <run-id>` passes, `python scripts/policy/final_response_gate.py --require-active-run` prints `final_response_gate: ALLOW`, and `python scripts/policy/agent_decision_gate.py --intent <intent> --claimed-stop-condition <condition> --write-ledger` allows that specific decision.
 
 You do NOT do the work of any stage yourself. You delegate every agent stage to a subagent via the Codex `spawn_agent` tool, run policy stages via the shell tool, and ask the user via `a structured user question` at human gates. Your job is the loop and the logging.
 
@@ -71,7 +71,42 @@ Print to the user (no tool call needed — just plain text):
 - Total stage count and their names in order
 - Which stages are already complete (from the log)
 - Which stage is starting now
-- A note that the run will stop at any human gate or stage failure, and can be resumed by re-invoking `run-pipeline <pipeline-type> <run-id>` with the same arguments
+- A note that the run will stop at any valid stop condition, and can be resumed by re-invoking `run-pipeline <pipeline-type> <run-id>` with the same arguments
+- A note that successful push, green CI, PR draft status, open caveats, and a recommended next action are not stop conditions
+- A note that an unverified blocker or risk is not a stop condition; claimed blockers must be verified before they can stop, defer, or skip an action
+- A note that workflow-cost discipline is part of slice completeness when the slice changes `.github/workflows/*.yml` or `.github/workflows/*.yaml`
+
+### A6. Workflow-cost discipline
+
+The pipeline treats GitHub Actions cost discipline as mandatory policy, not advisory guidance.
+
+If the slice adds or modifies `.github/workflows/*.yml` or `.github/workflows/*.yaml`, the run must:
+
+1. Name the workflow files in `plan.md` before editing.
+2. Apply the 10 workflow-cost directives below.
+3. Run `python scripts/policy/run_all.py --run <run-id>` so `check_actions_budget` validates the mechanically checkable rules.
+4. Record workflow-cost evidence in `.agent-runs/<run-id>/implementation-report.md` and `.agent-runs/<run-id>/verifier-report.md`.
+5. Treat unresolved workflow-cost violations as release risks that block slice completion.
+
+The 10 workflow-cost directives are:
+
+1. Never add a daily cron without explicit Scott approval. Weekly is the maximum default schedule. Daily is allowed only for a specific justified need, such as security scanning or dependency drift, and the run record must prove weekly is insufficient before daily is used.
+2. Every new GitHub Actions workflow must include this concurrency block, except release or tag workflows where cancellation would corrupt the release:
+
+   ```yaml
+   concurrency:
+     group: ${{ github.workflow }}-${{ github.ref }}
+     cancel-in-progress: true
+   ```
+
+3. Do not duplicate `push: branches: [main]` and `pull_request: branches: [main]` for the same validation workflow. Use `pull_request:` by default. Use `push: branches: [main]` only for workflows that must run on direct main pushes, such as deployments.
+4. Batch work-in-progress commits before pushing. Before pushing a slice branch, squash local work-in-progress commits when doing so preserves the useful history. Avoid pushing many small commits that each trigger full CI.
+5. Add `paths:` filters when adding any heavy workflow, especially workflows that install TeX, build Docker images, run Playwright, install browsers, run large language models, or perform cleanroom/e2e validation. Documentation-only changes must not trigger heavyweight CI unless the workflow validates documentation.
+6. macOS jobs are allowed on release tags only. Do not add `runs-on: macos-latest` to PR-fired jobs unless Scott explicitly approves the exception.
+7. Windows jobs are allowed on PR only when truly necessary. Windows runners cost more than Linux runners. New workflows must justify Windows use in the run record or policy check evidence.
+8. Python version matrices are allowed on tags or weekly cron. PR CI must test one production Python version by default, currently Python 3.12, unless Scott explicitly approves broader PR matrix coverage.
+9. Cache anything that takes more than 30 seconds to install. This includes apt packages, Playwright browsers, Ollama models, Docker layers, npm caches, pip caches, and other large dependency downloads. Use first-party cache support from setup actions when available.
+10. Every `upload-artifact` step must set `retention-days: 7` unless the artifact is a release artifact or Scott explicitly approves longer retention.
 
 ---
 
@@ -286,13 +321,26 @@ The runner uses Handler 4 ONLY when the stage's YAML sets `auto_promote_aware: t
 
 The loop stops on the FIRST of:
 
-- A `BLOCKED` outcome at any human gate (handler 1 or handler 4 fall-through)
-- A `FAILED` outcome at the policy stage (handler 2)
-- A `FAILED` outcome at any agent stage (handler 3)
-- A failed manifest schema validation at A2 (v0.5)
+- A `BLOCKED` outcome at an explicit human approval gate in the pipeline
+- A failed gate that needs user direction
+- A destructive action is required
+- A credential or secret is required
+- A scope conflict is detected
+- An external system remains unavailable after retry
+- The user explicitly says pause or stop
 - All stages have `COMPLETE` log entries — fall through to Phase C
 
 Never advance past a non-`COMPLETE` stage. Never rewrite or delete an existing log entry.
+
+Invalid stop conditions:
+
+- Successful push
+- Green CI
+- Recommended next action
+- Open caveats
+- Release or tag action after all required review, test, judge, CI, and release gates have passed
+- PR draft status by itself
+- Unverified blocker or risk
 
 ---
 
@@ -302,15 +350,65 @@ When every stage has a `COMPLETE` log entry:
 
 1. Print to the user:
    ```
-   Pipeline complete. All stages passed.
+   Pipeline stages complete. Control-loop gate still applies.
    Run: .agent-runs/<run-id>/
    ```
 2. List every artifact file in `.agent-runs/<run-id>/` with its size (use `ls -la` via the shell tool).
 3. If `manager-decision.md` exists, read its first non-empty line and display it. (It should start with `**Decision: PROMOTE**`, `**Decision: BLOCK**`, or `**Decision: REPLAN**`.)
-4. Tell the user the pipeline run is done and what the next action is based on the manager decision:
-   - `PROMOTE` — proceed to merge per the manifest's `required_gates` (the final `human_approval_merge` gate is outside this pipeline; the user merges via PR review).
+4. Tell the user the pipeline manager decision and the next action based on that decision:
+   - `PROMOTE` — continue to the next authorized action. Push, merge, release, and tag are executed when they are inside the authorized slice and all required gates have passed.
    - `BLOCK` — review the manager-decision.md for the smallest fix set; address it and re-run the failing stages.
    - `REPLAN` — the manifest needs to be revised; review the manager's recommended changes.
+
+5. The three manager decisions are interpreted mechanically:
+   - `PROMOTE` means continue to the next authorized action. If push has already been authorized, continue into Phase D. If merge, release, or tag is inside the authorized slice and all required review, test, judge, CI, and release gates have passed, execute it instead of stopping.
+   - `BLOCK` means review `manager-decision.md` for the smallest fix set, record `failed_gate_needs_user_direction` only when user direction is actually required, then address the fix set and re-run the failing stages.
+   - `REPLAN` means the manifest must be revised before further implementation. Record `scope_conflict` when the revision changes authorized scope.
+6. Write or update `.agent-runs/<run-id>/active-control-state.md`.
+7. Run `python scripts/policy/check_pipeline_control_loop.py --run <run-id>`.
+8. Run `python scripts/policy/final_response_gate.py --require-active-run`.
+9. Run `python scripts/policy/agent_decision_gate.py --intent final_response --claimed-stop-condition <condition> --write-ledger`.
+10. If any command blocks, do not send a final answer. Run `python scripts/policy/pipeline_continue.py` and continue to the printed action.
+
+---
+
+## Phase D — Post-Push CI Follow-Through
+
+Run this phase after every authorized push.
+
+1. Record the pushed branch and head SHA in `.agent-runs/<run-id>/post-push-ci-report.md`.
+2. Monitor the remote CI checks for that exact SHA.
+3. If any check fails, inspect the logs, fix failures inside the authorized scope, run the local verification required by the manifest, commit, push, and repeat Phase D for the new SHA.
+4. If CI is green and no unresolved caveats remain, update `.agent-runs/<run-id>/active-control-state.md` with `stop_condition: none`, `final_response_allowed: false`, and the next required action.
+5. If CI is green and the next required action is merge, release, or tag inside the authorized slice after all gates have passed, execute that action and then continue to Phase E.
+
+Green CI is evidence. It is not permission to stop.
+
+---
+
+## Phase E — Active Control State
+
+Before every user-facing final response during an authorized pipeline run, write `.agent-runs/<run-id>/active-control-state.md` with exactly these fields:
+
+```yaml
+active_run: true
+current_stage: <stage-id-or-post-push-ci>
+last_completed_gate: <gate-or-none>
+next_required_action: <concrete-action>
+stop_condition: none | human_approval_gate | failed_gate_needs_user_direction | destructive_action | credential_or_secret_required | scope_conflict | external_system_unavailable_after_retry | user_explicitly_paused_or_stopped
+final_response_allowed: true | false
+continuing_to: <concrete-action>
+```
+
+Rules:
+
+- `stop_condition: none` requires `final_response_allowed: false` and a non-empty `continuing_to`.
+- Any valid stop condition requires `final_response_allowed: true` and a concrete explanation in `next_required_action`.
+- These strings are never valid stop conditions: `successful_push`, `green_ci`, `recommended_next_action`, `open_caveats`, `release_or_tag_after_gates_pass`, `pr_draft_status`, `unverified_blocker_or_risk`.
+- An `Open Caveats / Release Risks` section blocks completion when it contains any unresolved bullet not prefixed with `INTENTIONAL DEFERRAL:`.
+- Run `python scripts/policy/check_pipeline_control_loop.py --run <run-id>` before any final response. If it fails, continue work or fix the control state.
+- Run `python scripts/policy/final_response_gate.py --require-active-run` before any final response. If it prints `final_response_gate: BLOCK`, continue to the printed `continuing_to` action.
+- Run `python scripts/policy/agent_decision_gate.py --intent <intent> --claimed-stop-condition <condition> --write-ledger` before every stop, defer, skipped push, skipped CI, handoff-and-stop, compact-and-stop, or non-gate question. If it prints `agent_decision_gate: BLOCK`, run `python scripts/policy/pipeline_continue.py` and continue.
 
 ---
 
@@ -325,6 +423,11 @@ When every stage has a `COMPLETE` log entry:
 - **Never invent stages not in the YAML.** The pipeline schema is the source of truth.
 - **Never assume tool availability.** If `a structured user question`, `Agent`, or any other tool is in the deferred list, load it via `ToolSearch` before invoking.
 - **Never propose autonomous mode.** Every gate is explicit. If the user wants autonomous, they explicitly raise it; the runner does not suggest it.
+- **Never end an authorized run without both control-loop gates.** `.agent-runs/<run-id>/active-control-state.md` must exist, `python scripts/policy/check_pipeline_control_loop.py --run <run-id>` must pass, and `python scripts/policy/final_response_gate.py --require-active-run` must print `final_response_gate: ALLOW` before any final response.
+- **Never stop on an unverified blocker.** Claimed blockers must pass `python scripts/policy/agent_decision_gate.py --intent <intent> --claimed-stop-condition <condition> --write-ledger`. If the gate blocks, run `python scripts/policy/pipeline_continue.py` and continue.
+- **Never treat completion evidence as a stop condition.** Successful push, green CI, draft PR status, and a recommended next action all require continued execution when the next action is authorized.
+- **Never leave unresolved caveats behind.** Every `Open Caveats / Release Risks` bullet is blocking until fixed or prefixed with `INTENTIONAL DEFERRAL:` and backed by the manifest or user direction.
+- **Never stop for release or tag after gates pass.** If merge, release, or tag is inside the authorized slice and all required review, test, judge, CI, and release gates have passed, execute it.
 - **At any failure or stop, give the user the exact resume command:** `run-pipeline <pipeline-type> <run-id>` — re-invoking is safe because the log determines where to start.
 - **Never merge in-flight PRs while a halt is active.** If the orchestrator is stopped on any gate or any open question, no other repo state changes happen — including cleanup PRs that "seem safe."
 - **Judge layer is opt-in and per-run-determined.** The presence of `.pipelines/action-classification.yaml` at the start of the run decides whether Handler 3a or Handler 3 is used for the executor stage. Do not toggle this mid-run; if the file is added or removed while a run is paused, the resumed run uses whatever is on disk at resume time, which is intentional but worth knowing.

@@ -42,6 +42,8 @@ When the preset is absent (any auto-promote condition failed, or the auto-promot
 
 **Control-loop requirement:** PROMOTE is allowed only when every `Open Caveats / Release Risks` bullet has been fixed or is prefixed with `INTENTIONAL DEFERRAL:` and cites the manifest or director decision authorizing the deferral. PROMOTE means continue to the next authorized action. It is not a stop condition, and it does not allow the runner to send a final response.
 
+**Workflow-cost requirement:** PROMOTE is allowed only when changed GitHub Actions workflows have named workflow-cost evidence in verifier-report.md and `policy-report.md` shows `check_actions_budget` passed. Any unresolved workflow-cost violation is a release risk and blocks PROMOTE.
+
 ## What to produce
 
 Write **`.agent-runs/<run-id>/manager-decision.md`** with these sections:
@@ -62,6 +64,7 @@ Write **`.agent-runs/<run-id>/manager-decision.md`** with these sections:
 - **Do not say PROMOTE if the verifier said NOT MET on any criterion.** PARTIAL with explicit director-decision-authorized deferral is the ONLY exception, and only when you cite both halves.
 - **Do not say PROMOTE when unresolved caveats remain.** Every `Open Caveats / Release Risks` bullet is blocking until fixed or explicitly marked `INTENTIONAL DEFERRAL:` with cited authorization.
 - **Do not treat PROMOTE, green CI, successful push, or draft PR status as stop conditions.** They are evidence that the runner continues to the next authorized action.
+- **Do not PROMOTE changed workflows without workflow-cost evidence.** The verifier must name changed workflow files and the policy report must show `check_actions_budget` passed.
 - **Do not treat merge, release, or tag as stop conditions after gates pass.** If those actions are inside the authorized slice and all required review, test, judge, CI, and release gates have passed, your disposition says to execute them.
 - **Do not write passive next-action language.** `Recommended next action` is executable when inside authorized scope.
 - **Do not summarize the artifacts.** Cite them. The decision must be supported by a quote, not by a paraphrase.

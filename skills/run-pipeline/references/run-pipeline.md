@@ -5,7 +5,7 @@ argument-hint: <pipeline-type> <run-id>
 
 # run-pipeline — orchestrate a pipeline run
 
-You are the orchestrator of an agentic pipeline. The pipeline definition lives in `.pipelines/<pipeline-type>.yaml`. The run state lives in `.agent-runs/<run-id>/`. You execute every stage in order, write progress to `run.log`, and stop only at a valid stop condition. During an authorized pipeline run, the agent may not end a turn unless `.agent-runs/<run-id>/active-control-state.md` records a valid stop condition and `scripts/check_pipeline_control_loop.py --run <run-id>` passes.
+You are the orchestrator of an agentic pipeline. The pipeline definition lives in `.pipelines/<pipeline-type>.yaml`. The run state lives in `.agent-runs/<run-id>/`. You execute every stage in order, write progress to `run.log`, and stop only at a valid stop condition. During an authorized pipeline run, the agent may not end a turn, defer, skip push, skip CI, write a stopping handoff, compact-and-stop, or ask a non-gate question unless `.agent-runs/<run-id>/active-control-state.md` records a valid stop condition, `python scripts/policy/check_pipeline_control_loop.py --run <run-id>` passes, `python scripts/policy/final_response_gate.py --require-active-run` prints `final_response_gate: ALLOW`, and `python scripts/policy/agent_decision_gate.py --intent <intent> --claimed-stop-condition <condition> --write-ledger` allows that specific decision.
 
 You do NOT do the work of any stage yourself. You delegate every agent stage to a subagent via the Codex `spawn_agent` tool, run policy stages via the shell tool, and ask the user via `a structured user question` at human gates. Your job is the loop and the logging.
 
@@ -73,6 +73,40 @@ Print to the user (no tool call needed — just plain text):
 - Which stage is starting now
 - A note that the run will stop at any valid stop condition, and can be resumed by re-invoking `run-pipeline <pipeline-type> <run-id>` with the same arguments
 - A note that successful push, green CI, PR draft status, open caveats, and a recommended next action are not stop conditions
+- A note that an unverified blocker or risk is not a stop condition; claimed blockers must be verified before they can stop, defer, or skip an action
+- A note that workflow-cost discipline is part of slice completeness when the slice changes `.github/workflows/*.yml` or `.github/workflows/*.yaml`
+
+### A6. Workflow-cost discipline
+
+The pipeline treats GitHub Actions cost discipline as mandatory policy, not advisory guidance.
+
+If the slice adds or modifies `.github/workflows/*.yml` or `.github/workflows/*.yaml`, the run must:
+
+1. Name the workflow files in `plan.md` before editing.
+2. Apply the 10 workflow-cost directives below.
+3. Run `python scripts/policy/run_all.py --run <run-id>` so `check_actions_budget` validates the mechanically checkable rules.
+4. Record workflow-cost evidence in `.agent-runs/<run-id>/implementation-report.md` and `.agent-runs/<run-id>/verifier-report.md`.
+5. Treat unresolved workflow-cost violations as release risks that block slice completion.
+
+The 10 workflow-cost directives are:
+
+1. Never add a daily cron without explicit Scott approval. Weekly is the maximum default schedule. Daily is allowed only for a specific justified need, such as security scanning or dependency drift, and the run record must prove weekly is insufficient before daily is used.
+2. Every new GitHub Actions workflow must include this concurrency block, except release or tag workflows where cancellation would corrupt the release:
+
+   ```yaml
+   concurrency:
+     group: ${{ github.workflow }}-${{ github.ref }}
+     cancel-in-progress: true
+   ```
+
+3. Do not duplicate `push: branches: [main]` and `pull_request: branches: [main]` for the same validation workflow. Use `pull_request:` by default. Use `push: branches: [main]` only for workflows that must run on direct main pushes, such as deployments.
+4. Batch work-in-progress commits before pushing. Before pushing a slice branch, squash local work-in-progress commits when doing so preserves the useful history. Avoid pushing many small commits that each trigger full CI.
+5. Add `paths:` filters when adding any heavy workflow, especially workflows that install TeX, build Docker images, run Playwright, install browsers, run large language models, or perform cleanroom/e2e validation. Documentation-only changes must not trigger heavyweight CI unless the workflow validates documentation.
+6. macOS jobs are allowed on release tags only. Do not add `runs-on: macos-latest` to PR-fired jobs unless Scott explicitly approves the exception.
+7. Windows jobs are allowed on PR only when truly necessary. Windows runners cost more than Linux runners. New workflows must justify Windows use in the run record or policy check evidence.
+8. Python version matrices are allowed on tags or weekly cron. PR CI must test one production Python version by default, currently Python 3.12, unless Scott explicitly approves broader PR matrix coverage.
+9. Cache anything that takes more than 30 seconds to install. This includes apt packages, Playwright browsers, Ollama models, Docker layers, npm caches, pip caches, and other large dependency downloads. Use first-party cache support from setup actions when available.
+10. Every `upload-artifact` step must set `retention-days: 7` unless the artifact is a release artifact or Scott explicitly approves longer retention.
 
 ---
 
@@ -306,6 +340,7 @@ Invalid stop conditions:
 - Open caveats
 - Release or tag action after all required review, test, judge, CI, and release gates have passed
 - PR draft status by itself
+- Unverified blocker or risk
 
 ---
 
@@ -330,8 +365,10 @@ When every stage has a `COMPLETE` log entry:
    - `BLOCK` means review `manager-decision.md` for the smallest fix set, record `failed_gate_needs_user_direction` only when user direction is actually required, then address the fix set and re-run the failing stages.
    - `REPLAN` means the manifest must be revised before further implementation. Record `scope_conflict` when the revision changes authorized scope.
 6. Write or update `.agent-runs/<run-id>/active-control-state.md`.
-7. Run `scripts/check_pipeline_control_loop.py --run <run-id>`.
-8. If the checker reports `stop_condition: none`, do not send a final answer. Continue to the `continuing_to` action recorded in the control state.
+7. Run `python scripts/policy/check_pipeline_control_loop.py --run <run-id>`.
+8. Run `python scripts/policy/final_response_gate.py --require-active-run`.
+9. Run `python scripts/policy/agent_decision_gate.py --intent final_response --claimed-stop-condition <condition> --write-ledger`.
+10. If any command blocks, do not send a final answer. Run `python scripts/policy/pipeline_continue.py` and continue to the printed action.
 
 ---
 
@@ -367,9 +404,11 @@ Rules:
 
 - `stop_condition: none` requires `final_response_allowed: false` and a non-empty `continuing_to`.
 - Any valid stop condition requires `final_response_allowed: true` and a concrete explanation in `next_required_action`.
-- These strings are never valid stop conditions: `successful_push`, `green_ci`, `recommended_next_action`, `open_caveats`, `release_or_tag_after_gates_pass`, `pr_draft_status`.
+- These strings are never valid stop conditions: `successful_push`, `green_ci`, `recommended_next_action`, `open_caveats`, `release_or_tag_after_gates_pass`, `pr_draft_status`, `unverified_blocker_or_risk`.
 - An `Open Caveats / Release Risks` section blocks completion when it contains any unresolved bullet not prefixed with `INTENTIONAL DEFERRAL:`.
-- Run `scripts/check_pipeline_control_loop.py --run <run-id>` before any final response. If it fails, continue work or fix the control state.
+- Run `python scripts/policy/check_pipeline_control_loop.py --run <run-id>` before any final response. If it fails, continue work or fix the control state.
+- Run `python scripts/policy/final_response_gate.py --require-active-run` before any final response. If it prints `final_response_gate: BLOCK`, continue to the printed `continuing_to` action.
+- Run `python scripts/policy/agent_decision_gate.py --intent <intent> --claimed-stop-condition <condition> --write-ledger` before every stop, defer, skipped push, skipped CI, handoff-and-stop, compact-and-stop, or non-gate question. If it prints `agent_decision_gate: BLOCK`, run `python scripts/policy/pipeline_continue.py` and continue.
 
 ---
 
@@ -384,7 +423,8 @@ Rules:
 - **Never invent stages not in the YAML.** The pipeline schema is the source of truth.
 - **Never assume tool availability.** If `a structured user question`, `Agent`, or any other tool is in the deferred list, load it via `ToolSearch` before invoking.
 - **Never propose autonomous mode.** Every gate is explicit. If the user wants autonomous, they explicitly raise it; the runner does not suggest it.
-- **Never end an authorized run without the control-loop gate.** `.agent-runs/<run-id>/active-control-state.md` must exist and `scripts/check_pipeline_control_loop.py --run <run-id>` must pass before any final response.
+- **Never end an authorized run without both control-loop gates.** `.agent-runs/<run-id>/active-control-state.md` must exist, `python scripts/policy/check_pipeline_control_loop.py --run <run-id>` must pass, and `python scripts/policy/final_response_gate.py --require-active-run` must print `final_response_gate: ALLOW` before any final response.
+- **Never stop on an unverified blocker.** Claimed blockers must pass `python scripts/policy/agent_decision_gate.py --intent <intent> --claimed-stop-condition <condition> --write-ledger`. If the gate blocks, run `python scripts/policy/pipeline_continue.py` and continue.
 - **Never treat completion evidence as a stop condition.** Successful push, green CI, draft PR status, and a recommended next action all require continued execution when the next action is authorized.
 - **Never leave unresolved caveats behind.** Every `Open Caveats / Release Risks` bullet is blocking until fixed or prefixed with `INTENTIONAL DEFERRAL:` and backed by the manifest or user direction.
 - **Never stop for release or tag after gates pass.** If merge, release, or tag is inside the authorized slice and all required review, test, judge, CI, and release gates have passed, execute it.

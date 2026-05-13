@@ -29,6 +29,7 @@ THIS_DIR = Path(__file__).resolve().parent
 CHECKS: list[tuple[str, list[str]]] = [
     ("check_manifest_schema", ["check_manifest_schema.py"]),
     ("check_allowed_paths", ["check_allowed_paths.py"]),
+    ("check_actions_budget", ["check_actions_budget.py"]),
     ("check_no_todos", ["check_no_todos.py"]),
     ("check_adr_gate", ["check_adr_gate.py"]),
 ]

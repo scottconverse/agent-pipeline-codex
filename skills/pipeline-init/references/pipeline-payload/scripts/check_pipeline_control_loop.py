@@ -36,6 +36,7 @@ INVALID_STOP_CONDITIONS = {
     "open_caveats",
     "release_or_tag_after_gates_pass",
     "pr_draft_status",
+    "unverified_blocker_or_risk",
 }
 
 REQUIRED_STATE_KEYS = (

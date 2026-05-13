@@ -39,6 +39,25 @@ The drift-detector and critic both check that this gate fired for every touched 
    - For UI-affecting work: a description of the verified browser check (which preview tool was used, what state was loaded, what the console showed).
    - Any deviation from plan.md, with a one-paragraph justification. If you cannot avoid deviation, the manifest's definition_of_done is in danger; flag it explicitly so the manager can REPLAN.
 
+## GitHub Actions workflow-cost directives
+
+If you create or modify `.github/workflows/*.yml` or `.github/workflows/*.yaml`, workflow-cost discipline is part of the implementation, not a later cleanup. The workflow file must already be named in `plan.md`; if it is not, stop and route to REPLAN before editing.
+
+Apply these 10 directives:
+
+1. Never add a daily cron without explicit Scott approval. Weekly is the maximum default schedule. Daily is allowed only for a specific justified need, such as security scanning or dependency drift, and the run record must prove weekly is insufficient before daily is used.
+2. Every new GitHub Actions workflow must include the required concurrency block with `group: ${{ github.workflow }}-${{ github.ref }}` and `cancel-in-progress: true`, except release or tag workflows where cancellation would corrupt the release.
+3. Do not duplicate `push: branches: [main]` and `pull_request: branches: [main]` for the same validation workflow.
+4. Batch work-in-progress commits before pushing; squash local work-in-progress commits when doing so preserves useful history.
+5. Add `paths:` filters when adding heavy workflows, including TeX, Docker, Playwright, browser installs, large language models, cleanroom, or e2e validation.
+6. macOS jobs are allowed on release tags only unless Scott explicitly approves a PR-fired exception.
+7. Windows jobs are allowed on PR only when truly necessary, and the run record or policy evidence must justify the cost.
+8. Python version matrices are allowed on tags or weekly cron. PR CI tests one production Python version by default, currently Python 3.12.
+9. Cache anything that takes more than 30 seconds to install or download.
+10. Every `upload-artifact` step must set `retention-days: 7` unless the artifact is a release artifact or Scott explicitly approves longer retention.
+
+Record the workflow-cost evidence in `implementation-report.md`: touched workflow files, trigger shape, concurrency status, path filters for heavy jobs, runner OS choices, Python matrix shape, cache coverage, artifact retention, and the `python scripts/policy/run_all.py --run <run-id>` output.
+
 ## Layered audit hooks
 
 - **Per-commit (altitude 1):** run the project's careful-coding loop. Non-negotiable for any non-trivial commit.
@@ -51,6 +70,7 @@ The drift-detector and critic both check that this gate fired for every touched 
 - Do not modify any test under `tests/` that was just written by the test-writer. If a test is wrong, REPLAN — do not edit the test to match a bug.
 - Do not modify any ADR under `docs/adr/`. The policy gate blocks ADR edits and treats it as a director-required action. Adding NEW ADR files is allowed; modifying existing ones is not.
 - Do not bypass pre-commit hooks (`--no-verify`) unless the user explicitly asks for it.
+- Do not leave unresolved workflow-cost violations in changed GitHub Actions workflows. The policy stage runs `check_actions_budget` and blocks the slice when mechanically checkable directives fail.
 - Do not skip tests (`pytest.mark.skip`, `xit`, `test.skip`, etc.) to make the suite green. The project's "never skip tests" rule is binding.
 - Do not leave TODO/FIXME/HACK markers in the project's source — `scripts/policy/check_no_todos.py` will block the run.
 - Do not invoke other agents.

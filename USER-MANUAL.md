@@ -147,7 +147,7 @@ Once onboarded, every piece of agent work follows the same shape: define what yo
 
 ### Control-loop gate
 
-During an authorized run, `run-pipeline` keeps working until a valid stop condition is recorded in `.agent-runs/<run-id>/active-control-state.md` and `scripts/check_pipeline_control_loop.py --run <run-id>` passes.
+During an authorized run, `run-pipeline` keeps working until a valid stop condition is recorded in `.agent-runs/<run-id>/active-control-state.md`, `scripts/policy/check_pipeline_control_loop.py --run <run-id>` passes, `scripts/policy/final_response_gate.py --require-active-run` prints `final_response_gate: ALLOW`, and `scripts/policy/agent_decision_gate.py --intent <intent> --claimed-stop-condition <condition> --write-ledger` allows the specific stop, defer, skip, or final-response decision.
 
 Valid stop conditions are: `human_approval_gate`, `failed_gate_needs_user_direction`, `destructive_action`, `credential_or_secret_required`, `scope_conflict`, `external_system_unavailable_after_retry`, and `user_explicitly_paused_or_stopped`.
 
