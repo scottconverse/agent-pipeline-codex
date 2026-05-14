@@ -71,6 +71,7 @@ Policy and control scripts (Python, stdlib only):
 - `check_scope_lock.py` - v0.5.9 canonical release-plan rung validator
 - `check_rung_file_ownership.py` - v0.5.9 future-rung path and commit-subject blocker
 - `check_release_docs_consistency.py` - v0.5.9 docs vs locked rung consistency gate
+- `check_execute_readiness.py` - pre-verify DoD readiness gate; blocks policy/verify when execute only completed a partial slice
 - `check_allowed_paths.py` - manifest-driven path enforcement
 - `check_no_todos.py` - no TODO/FIXME/HACK in source
 - `check_adr_gate.py` - ADRs are append-only
@@ -287,6 +288,7 @@ plan            -> planner subagent -> plan.md
                 -> human gate (you approve plan)
 test-write      -> test-writer subagent -> failing-tests-report.md
 execute         -> executor subagent -> implementation-report.md (commits made)
+                -> check_execute_readiness.py must pass before policy
 policy          -> bash -> policy-report.md
 verify          -> verifier subagent -> verifier-report.md
 manager         -> manager subagent -> manager-decision.md
@@ -575,6 +577,25 @@ Before the executor's first edit/write to any file in a run, it must produce a f
 
 This is the v0.5 substitute for "tell the agent to read carefully." Asking is useless; demanding a written artifact forces the investigation.
 
+### Pre-verify DoD readiness gate
+
+The executor must not hand off a partial implementation slice to full-rung
+policy/verify gates. Before execute can complete, `implementation-report.md`
+must include:
+
+```markdown
+**DoD readiness: READY**
+**DoD checklist: <T> total, <R> ready, <B> blocked, <D> deferred**
+```
+
+That checklist is built from `manifest.expected_outputs`,
+`manifest.definition_of_done`, project UX/docs/testing gates, and any prior
+manager/verifier/drift/critic blockers. `READY` is allowed only when every item
+is implemented with evidence or explicitly deferred with cited manifest or
+director-decision authorization. `scripts/policy/check_execute_readiness.py`
+and `run_all.py` block the run when the readiness block is missing, says
+`NOT_READY`, has blocked items, or contains unchecked readiness boxes.
+
 ### Strict manifest schema validation
 
 `scripts/policy/check_manifest_schema.py` enforces:
@@ -616,7 +637,7 @@ Single-model-family blind spots correlate. If both the executor and the critic s
 - **Verifier-clean fails:** open `verifier-report.md`, address every NOT MET / PARTIAL criterion. Then re-run the verifier stage.
 - **Critic-clean fails:** open `critic-report.md`. Blocker or critical findings need to be addressed in code or in the manifest before the run promotes. Minor findings don't block.
 - **Drift-clean fails:** open `drift-report.md`. Blocker drift typically means a durable doc lies about the change - fix the doc.
-- **Policy fails:** open `policy-report.md`. Same as pre-v0.5 - fix the violation.
+- **Policy fails:** open `policy-report.md`. If `check_execute_readiness` failed, continue executor implementation until the full manifest DoD is implemented/evidenced or explicitly deferred; do not send a backend-only slice to verifier.
 - **Tests-passed fails:** the implementation-report.md doesn't have a recognizable test-passing signal. Re-run tests, paste output, re-run executor stage with the fix.
 
 Re-running `run-pipeline <type> <run-id>` after fixing the underlying issue picks up at the failing stage thanks to the append-only `run.log`.

@@ -27,10 +27,51 @@ Subsequent edits to the same file in the same run do NOT require this gate to be
 
 The drift-detector and critic both check that this gate fired for every touched file. A missing fact block on any file you modified is a finding against this stage.
 
+## Pre-verify DoD readiness gate (binding)
+
+The execute stage may take multiple implementation passes. It is not complete
+just because a useful slice passes tests. Before writing the final
+`implementation-report.md`, build a checklist from all of:
+
+1. every `manifest.expected_outputs` item;
+2. every sentence or clause in `manifest.definition_of_done`;
+3. every UX, documentation, QA/testing, CI, release-evidence, persistence,
+   browser-verification, security, and policy gate named by the project's
+   `AGENTS.md` or equivalent instructions;
+4. every unresolved manager/verifier/drift/critic blocker from prior attempts
+   in this run.
+
+You MUST keep implementing while any checklist item is inside the manifest's
+authorized scope and is not implemented/evidenced. Do not hand a backend-only,
+docs-only, or test-only slice to full-rung verifier/manager gates when the
+manifest promises an end-to-end product outcome.
+
+The `implementation-report.md` MUST include this exact machine-readable block
+near the top:
+
+```markdown
+## 0. Pre-verify DoD Readiness Gate
+
+**DoD readiness: READY**
+**DoD checklist: <T> total, <R> ready, <B> blocked, <D> deferred**
+```
+
+Use `**DoD readiness: READY**` only when every checklist item is either
+implemented with evidence or explicitly deferred with a cited manifest or
+director-decision authorization. If any item remains incomplete, write
+`**DoD readiness: NOT_READY**`, list the blockers, and keep implementing unless
+a true stop condition applies.
+
+`scripts/policy/check_execute_readiness.py --run <run-id>` and
+`scripts/policy/run_all.py --run <run-id>` block policy/verify when this block
+is missing, says `NOT_READY`, has blocked items, or contains unchecked readiness
+boxes.
+
 ## What to produce
 
 1. **Implementation** - code in the files named by `plan.md` Section 3, all inside `manifest.allowed_paths`. Each commit must follow the project's altitude-1 careful-coding loop (read callers and runtime first; identify the data contract and blast radius; re-read end-to-end after edit; narrate one full code path; run a 5-lens self-audit before committing).
 2. **`.agent-runs/<run-id>/implementation-report.md`** containing:
+   - Section `0. Pre-verify DoD Readiness Gate` with the exact readiness and checklist count lines above.
    - The list of commits made on the run's branch (sha + subject).
    - For each file modified or created: the function/class added or changed and the test that exercises it.
    - The current test-runner output showing every test in failing-tests-report.md now passes (and the rest of the suite still passes - no regressions).
@@ -71,6 +112,7 @@ Record the workflow-cost evidence in `implementation-report.md`: touched workflo
 ## Output checklist
 
 The stage is complete only when:
+- `implementation-report.md` includes `**DoD readiness: READY**` and a parseable `**DoD checklist: T total, R ready, B blocked, D deferred**` line with `B == 0`.
 - Every previously-failing test in failing-tests-report.md now passes.
 - The full test suite, lint, format, and type-check all pass.
 - No file outside `manifest.allowed_paths` was modified.

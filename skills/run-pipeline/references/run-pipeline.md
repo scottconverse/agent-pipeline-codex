@@ -88,6 +88,7 @@ Print to the user (no tool call needed - just plain text):
 - A note that the run will stop at any valid stop condition, and can be resumed by re-invoking `run-pipeline <pipeline-type> <run-id>` with the same arguments
 - A note that successful push, green CI, PR draft status, open caveats, and a recommended next action are not stop conditions
 - A note that an unverified blocker or risk is not a stop condition; claimed blockers must be verified before they can stop, defer, or skip an action
+- A note that execute-stage DoD readiness is a hard pre-verify gate: backend/local tests alone do not allow advancement when manifest-level product, UX, docs, evidence, persistence, browser, CI, or release criteria remain incomplete
 - A note that workflow-cost discipline is part of slice completeness when the slice changes `.github/workflows/*.yml` or `.github/workflows/*.yaml`
 
 ### A6. Workflow-cost discipline
@@ -187,7 +188,8 @@ Steps:
    - **Prompt:** the role file content verbatim, followed by `\n\n---\n\nRUN CONTEXT:\n` followed by the run-context block, followed by `\n\nRUN ID: <run-id>\nWORKING DIR: .agent-runs/<run-id>/\nWrite your output to .agent-runs/<run-id>/<expected_artifact_filename> and stop.`
 4. After the Codex subagent completes, verify the expected artifact exists. The expected filename is the stage's `artifact` field. Use the shell tool: `test -s .agent-runs/<run-id>/<artifact>` (the `-s` flag also catches empty files).
 5. If the artifact file is missing or empty: append `<TS> | <stage_name> | FAILED | artifact not produced (or empty)` to `run.log`. Report the failure with the agent's last message. STOP the pipeline.
-6. If the artifact exists and is non-empty: append `<TS> | <stage_name> | COMPLETE | <artifact_filename> written` to `run.log`. Briefly report the stage completed and continue to the next stage.
+6. If `role: executor`, enforce DoD readiness before logging COMPLETE. If `scripts/policy/check_execute_readiness.py` exists, run `python scripts/policy/check_execute_readiness.py --run <run-id>`. If it is absent in an older initialized project, manually parse `implementation-report.md` for `**DoD readiness: READY**` and `**DoD checklist: T total, R ready, B blocked, D deferred**` with zero blocked items, and record that the project plumbing must be updated before promotion. If readiness fails, append `<TS> | execute | BLOCKED | implementation-report.md did not prove full DoD readiness` to `run.log`, display the readiness-check output, and continue implementation inside the executor stage when the missing work is inside authorized scope. Do not advance to policy/verify on a backend-only, docs-only, or test-only slice when the manifest promises an end-to-end product outcome.
+7. If the artifact exists and is non-empty: append `<TS> | <stage_name> | COMPLETE | <artifact_filename> written` to `run.log`. Briefly report the stage completed and continue to the next stage.
 
 ### Handler 3a - executor with judge interceptor (opt-in via action-classification.yaml)
 
@@ -324,7 +326,9 @@ When the executor subagent finishes (whether by writing its artifact normally OR
 
 5. If the executor was halted mid-loop (by judge BLOCK or human block), the implementation-report.md may be incomplete or missing. In that case the executor stage is marked BLOCKED in the run log per the verdict-routing rules in Step 5 above; `judge-log.yaml` and `judge-metrics.yaml` are still written so the verifier and manager can see what happened.
 
-6. If the executor completed normally and the artifact exists: append `<TS> | execute | COMPLETE | implementation-report.md written; judge intercepted <N> action(s)` to `run.log` and continue to the next stage.
+6. If the executor completed normally and the artifact exists, enforce DoD readiness. If `scripts/policy/check_execute_readiness.py` exists, run it. If it is absent in an older initialized project, manually parse `implementation-report.md` for the exact readiness and zero-blocker checklist lines, and record that the project plumbing must be updated before promotion. If readiness fails, append `<TS> | execute | BLOCKED | implementation-report.md did not prove full DoD readiness; judge intercepted <N> action(s)` to `run.log`, display the readiness-check output, and continue implementation inside the authorized executor scope. Do not advance to policy/verify.
+
+7. If the executor completed normally, the artifact exists, and DoD readiness passes: append `<TS> | execute | COMPLETE | implementation-report.md written; judge intercepted <N> action(s)` to `run.log` and continue to the next stage.
 
 ### Handler 4 - `role: manager` with `auto_promote_aware: true` (v0.5)
 
@@ -451,6 +455,7 @@ Rules:
 - **Never stop on an unverified blocker.** Claimed blockers must pass `python scripts/policy/agent_decision_gate.py --intent <intent> --claimed-stop-condition <condition> --write-ledger`. If the gate blocks, run `python scripts/policy/pipeline_continue.py` and continue.
 - **Never treat completion evidence as a stop condition.** Successful push, green CI, draft PR status, and a recommended next action all require continued execution when the next action is authorized.
 - **Never leave unresolved caveats behind.** Every `Open Caveats / Release Risks` bullet is blocking until fixed or prefixed with `INTENTIONAL DEFERRAL:` and backed by the manifest or user direction.
+- **Never advance from execute to policy/verify without full DoD readiness.** Backend tests, local lint, or a partial slice passing is not enough. The executor must prove every manifest expected output, every Definition of Done clause, every applicable project UX/docs/testing gate, and every prior blocker is implemented/evidenced or intentionally deferred. `check_execute_readiness.py` must pass when present; older projects without the script still get the same manual parse gate and must receive the updated plumbing before promotion.
 - **Never stop for release or tag after gates pass.** If merge, release, or tag is inside the authorized slice and all required review, test, judge, CI, and release gates have passed, execute it.
 - **At any failure or stop, give the user the exact resume command:** `run-pipeline <pipeline-type> <run-id>` - re-invoking is safe because the log determines where to start.
 - **Never merge in-flight PRs while a halt is active.** If the orchestrator is stopped on any gate or any open question, no other repo state changes happen - including cleanup PRs that "seem safe."

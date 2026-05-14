@@ -42,8 +42,16 @@ EXPECTED_SKILLS = [
 ]
 EXPECTED_INSTALLED_FILES = [
     ".codex-plugin/plugin.json",
+    "commands/run-pipeline.md",
+    "pipelines/roles/executor.md",
+    "scripts/check_execute_readiness.py",
     "scripts/check_plugin_install_acceptance.py",
+    "scripts/run_all.py",
     "scripts/verify_plugin_release.py",
+    "skills/pipeline-init/references/pipeline-payload/pipelines/roles/executor.md",
+    "skills/pipeline-init/references/pipeline-payload/scripts/check_execute_readiness.py",
+    "skills/pipeline-init/references/pipeline-payload/scripts/run_all.py",
+    "skills/run-pipeline/references/run-pipeline.md",
 ]
 
 

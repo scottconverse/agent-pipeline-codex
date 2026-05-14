@@ -12,6 +12,11 @@ release; the `CHANGELOG` will call them out.
 
 ### Changed
 
+- **Execute-stage DoD readiness gate.** Executor and runner instructions now
+  forbid advancing a partial slice to policy/verify. `implementation-report.md`
+  must declare `**DoD readiness: READY**` with a parseable zero-blocker DoD
+  checklist, and `check_execute_readiness.py` now blocks `run_all.py` when the
+  full manifest Definition of Done is not implemented or explicitly deferred.
 - **Live install verification hardening.** The live plugin acceptance gate now
   runs repeated fresh Codex probes and preserves each transcript so one
   transient model enumeration miss cannot fail a release when deterministic

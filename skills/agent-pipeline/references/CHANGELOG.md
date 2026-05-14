@@ -10,6 +10,20 @@ release; the `CHANGELOG` will call them out.
 
 ## [Unreleased]
 
+### Changed
+
+- **Execute-stage DoD readiness gate.** Executor and runner instructions now
+  forbid advancing a partial slice to policy/verify. `implementation-report.md`
+  must declare `**DoD readiness: READY**` with a parseable zero-blocker DoD
+  checklist, and `check_execute_readiness.py` now blocks `run_all.py` when the
+  full manifest Definition of Done is not implemented or explicitly deferred.
+- **Live install verification hardening.** The live plugin acceptance gate now
+  runs repeated fresh Codex probes and preserves each transcript so one
+  transient model enumeration miss cannot fail a release when deterministic
+  installed-cache/source checks are correct.
+- **Main-branch CI coverage.** The source-only release verifier now runs on
+  pushes to `main`, not only pull requests and manual dispatches.
+
 ## [0.5.10] - 2026-05-14
 
 Patch release. Closes stale-control-state stop escapes by binding final,

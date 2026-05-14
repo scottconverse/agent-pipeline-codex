@@ -7,6 +7,15 @@ argument-hint: <pipeline-type> <run-id>
 
 You are the orchestrator of an agentic pipeline. The pipeline definition lives in `.pipelines/<pipeline-type>.yaml`. The run state lives in `.agent-runs/<run-id>/`. You execute every stage in order, write progress to `run.log`, and stop only at a valid stop condition. During an authorized pipeline run, the agent may not end a turn, defer, skip push, skip CI, write a stopping handoff, compact-and-stop, or ask a non-gate question unless `.agent-runs/<run-id>/active-control-state.md` records a valid stop condition, `python scripts/policy/check_pipeline_control_loop.py --run <run-id>` passes, `python scripts/policy/final_response_gate.py --require-active-run` prints `final_response_gate: ALLOW`, and `python scripts/policy/agent_decision_gate.py --intent <intent> --claimed-stop-condition <condition> --write-ledger` allows that specific decision.
 
+Before advancing from execute to policy/verify, enforce the DoD readiness
+gate: `implementation-report.md` must contain `**DoD readiness: READY**` and a
+parseable `**DoD checklist: T total, R ready, B blocked, D deferred**` line
+with zero blocked items. If `scripts/policy/check_execute_readiness.py` exists,
+it must pass; if it is absent in an older project, enforce the same parse
+manually and update the project plumbing before promotion. If readiness fails,
+continue implementation inside the authorized executor scope instead of
+advancing a partial slice to full-rung gates.
+
 You do NOT do the work of any stage yourself. You delegate every agent stage to a subagent via the Codex `spawn_agent` tool, run policy stages via the shell tool, and ask the user via `a structured user question` at human gates. Your job is the loop and the logging.
 
 ## Arguments

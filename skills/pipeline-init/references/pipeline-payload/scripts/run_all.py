@@ -36,6 +36,7 @@ CHECKS: list[tuple[str, list[str]]] = [
     ("check_manifest_schema", ["check_manifest_schema.py"]),
     ("check_scope_lock", ["check_scope_lock.py"]),
     ("check_allowed_paths", ["check_allowed_paths.py"]),
+    ("check_execute_readiness", ["check_execute_readiness.py"]),
     ("check_rung_file_ownership", ["check_rung_file_ownership.py"]),
     ("check_release_docs_consistency", ["check_release_docs_consistency.py"]),
     ("check_actions_budget", ["check_actions_budget.py"]),
@@ -98,6 +99,7 @@ def main() -> int:
         "check_rung_file_ownership",
         "check_release_docs_consistency",
         "check_actions_budget",
+        "check_execute_readiness",
     }
 
     results: list[tuple[str, bool, str]] = []

@@ -20,11 +20,12 @@ This plugin enforces a structural pattern that catches every one of those:
 1. **Manifest + scope-lock gate** - every run starts with an explicit, human-approved manifest plus a scope lock naming the canonical release-plan rung, proof statement, allowed terms, and forbidden future-rung terms.
 2. **Director-decisions gate** - the researcher surfaces open questions; the human picks; choices are recorded as binding constraints before the planner runs.
 3. **Plan gate** - the planner produces a plan; the human approves or sends back.
-4. **Policy stage** - automated checks block the run if the manifest fails strict schema validation (v0.5), the scope lock disagrees with the canonical release plan (v0.5.9), any change falls outside `allowed_paths`, edited paths or commit messages belong to another rung, docs contradict the locked rung, the diff contains TODO/FIXME/HACK markers, or an existing ADR was modified.
-5. **Verifier stage** - independent fresh-context check against every manifest exit criterion.
-6. **Manager gate** - final PROMOTE/BLOCK/REPLAN decision, must cite verifier evidence verbatim.
+4. **Execute readiness gate** - before the runner may advance from execute to policy/verify, `implementation-report.md` must prove the full manifest Definition of Done is ready, not merely that a backend or test slice passed. The report needs a machine-readable `**DoD readiness: READY**` line and a zero-blocker DoD checklist covering expected outputs, DoD clauses, project UX/docs/testing gates, and prior blockers.
+5. **Policy stage** - automated checks block the run if the manifest fails strict schema validation (v0.5), the scope lock disagrees with the canonical release plan (v0.5.9), execute readiness is missing or blocked, any change falls outside `allowed_paths`, edited paths or commit messages belong to another rung, docs contradict the locked rung, the diff contains TODO/FIXME/HACK markers, or an existing ADR was modified.
+6. **Verifier stage** - independent fresh-context check against every manifest exit criterion.
+7. **Manager gate** - final PROMOTE/BLOCK/REPLAN decision, must cite verifier evidence verbatim.
 
-7. **Control-loop gate** - before any final response, stop, deferral, or skipped action during an authorized run, `.agent-runs/<run-id>/active-control-state.md` must record a valid stop condition, `scripts/policy/check_pipeline_control_loop.py --run <run-id>` must pass, `scripts/policy/final_response_gate.py --require-active-run` must print `final_response_gate: ALLOW`, and `scripts/policy/agent_decision_gate.py` must allow the specific decision through the shared `stop_validator.py`. Green CI, successful push, draft PR status, stale state, unverified blocker risk, and a recommended next action are not stop conditions.
+8. **Control-loop gate** - before any final response, stop, deferral, or skipped action during an authorized run, `.agent-runs/<run-id>/active-control-state.md` must record a valid stop condition, `scripts/policy/check_pipeline_control_loop.py --run <run-id>` must pass, `scripts/policy/final_response_gate.py --require-active-run` must print `final_response_gate: ALLOW`, and `scripts/policy/agent_decision_gate.py` must allow the specific decision through the shared `stop_validator.py`. Green CI, successful push, draft PR status, stale state, unverified blocker risk, and a recommended next action are not stop conditions.
 
 ## Install
 
@@ -44,6 +45,12 @@ python scripts/verify_plugin_release.py --live
 That gate must print `PLUGIN-RELEASE-VERIFY: PASSED`, including the nested
 `PLUGIN-INSTALL-ACCEPTANCE: PASSED` live check. Repository tests, standalone
 skill copies, and docs deployment are not install proof.
+
+The live gate first verifies deterministic source and installed-cache state,
+then runs repeated fresh Codex probes. One transient model enumeration miss is
+preserved in the transcript but does not fail the release if another fresh
+probe sees the complete namespaced plugin surface and no plugin-specific loader
+warning appears.
 
 Fresh-session prompts must verify the namespaced plugin skills, not only the
 standalone skill names. The expected names are:
