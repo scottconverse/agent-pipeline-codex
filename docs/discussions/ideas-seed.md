@@ -21,6 +21,7 @@ These are ideas under active consideration. None are committed. Some have been d
 - Single-AI hardening: critic, drift-detector, auto-promote, and manifest schema checks.
 - Workflow-cost discipline: `check_actions_budget.py` plus role guidance for Actions cost hygiene.
 - Control-loop enforcement: `final_response_gate.py`, `agent_decision_gate.py`, `decision-ledger.ndjson`, and `pipeline_continue.py`.
+- Status polish: `show-run-status`, malformed `run.log` line visibility, production ledger writer-to-validator coverage, and git action-classification regression tests.
 
 ### Project memory layer
 
@@ -33,6 +34,10 @@ The verifier produces a single artifact at the end of the stage. For long-runnin
 ### Cross-run artifact diff
 
 When the same run-id is re-invoked after a halt, the only history is `run.log` lines. Knowing what changed between attempt 1 and attempt 2 (which files, which test results, which manifest fields) would help diagnose stuck runs. Sketch: a `runs/<run-id>/attempts/N/` subdirectory per re-invocation, with a diff summary at top level.
+
+### Richer run-status views
+
+`show-run-status` now provides a read-only summary of stage progress, active control state, skipped malformed log lines, and artifacts. The next step would be a richer status lens: grouped artifact health, last-test evidence, current stop-gate verdict, or a compact "why can/can't I stop?" section. This should wait for real receipts showing which operator questions the current command still fails to answer.
 
 ### Per-stage timeouts and cost caps
 

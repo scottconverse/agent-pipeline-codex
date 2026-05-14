@@ -9,6 +9,7 @@ This is a living document. The v0.5 candidate set crystallized from project rece
 - Pre-edit fact-forcing in the executor role.
 - Workflow-cost discipline and `check_actions_budget.py`.
 - Control-loop enforcement: `active-control-state.md`, `final_response_gate.py`, `agent_decision_gate.py`, `decision-ledger.ndjson`, and `pipeline_continue.py`.
+- Status polish: `show-run-status`, skipped malformed `run.log` line reporting, production ledger writer-to-validator coverage, and focused git action-classification regression tests.
 
 ## What's plausible for v0.6
 
@@ -78,6 +79,7 @@ Listed for transparency, not committed.
 - **Streaming verifier output** for long-running verifications.
 - **Cross-run artifact diff** for stuck runs.
 - **Judge layer for non-executor stages** (researcher, planner) - likely overkill; only ship if a specific class of misuse emerges.
+- **Richer run-status views** beyond the current read-only summary, such as grouped artifact health, last-test evidence, or a compact "why can/can't I stop?" view. Ship only after repeated operator receipts show the current `show-run-status` output is too sparse.
 
 ## What's been considered and rejected
 

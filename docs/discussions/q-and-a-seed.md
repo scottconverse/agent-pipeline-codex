@@ -26,6 +26,10 @@ Yes. Drop a `.pipelines/<your-type>.yaml` file in your project's pipeline direct
 
 Re-invoke the same `run-pipeline <type> <run-id>` command. The orchestrator reads `run.log`, finds the first stage without a `COMPLETE` entry, and resumes from there. `FAILED` and `BLOCKED` count as incomplete, so they re-run. The log is the source of truth - never edit it.
 
+### Q: How do I check where a run is without changing anything?
+
+Use `show-run-status <run-id>`. It is read-only: it summarizes completed stages, the latest non-complete event, active control state, artifact inventory, and whether any malformed `run.log` lines were skipped. Use it before resuming a stale run or after a compacted session when you need orientation without advancing the pipeline.
+
 ### Q: Why didn't the agent stop after CI went green?
 
 Because green CI is evidence, not a stop condition. During an authorized run, stopping requires `active-control-state.md` to record a valid stop condition, `final_response_gate.py` to allow a final response, and `agent_decision_gate.py` to allow the specific stop/defer/skip/final decision. If the run should continue, `pipeline_continue.py` prints the next required action.
