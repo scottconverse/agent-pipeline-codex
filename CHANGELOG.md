@@ -10,6 +10,15 @@ release; the `CHANGELOG` will call them out.
 
 ## [Unreleased]
 
+### Changed
+
+- **Live install verification hardening.** The live plugin acceptance gate now
+  runs repeated fresh Codex probes and preserves each transcript so one
+  transient model enumeration miss cannot fail a release when deterministic
+  installed-cache/source checks are correct.
+- **Main-branch CI coverage.** The source-only release verifier now runs on
+  pushes to `main`, not only pull requests and manual dispatches.
+
 ## [0.5.10] - 2026-05-14
 
 Patch release. Closes stale-control-state stop escapes by binding final,

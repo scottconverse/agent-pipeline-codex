@@ -45,6 +45,12 @@ That gate must print `PLUGIN-RELEASE-VERIFY: PASSED`, including the nested
 `PLUGIN-INSTALL-ACCEPTANCE: PASSED` live check. Repository tests, standalone
 skill copies, and docs deployment are not install proof.
 
+The live gate first verifies deterministic source and installed-cache state,
+then runs repeated fresh Codex probes. One transient model enumeration miss is
+preserved in the transcript but does not fail the release if another fresh
+probe sees the complete namespaced plugin surface and no plugin-specific loader
+warning appears.
+
 Fresh-session prompts must verify the namespaced plugin skills, not only the
 standalone skill names. The expected names are:
 

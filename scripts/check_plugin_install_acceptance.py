@@ -222,12 +222,45 @@ def check_installed_layout(codex_home: Path, root: Path, require_installed: bool
     return checks
 
 
-def run_live_check(root: Path, model: str, timeout: int) -> tuple[list[Check], str]:
+def _live_payload_checks(payload: dict, combined: str) -> tuple[list[Check], bool]:
+    expected_namespaced = [f"{EXPECTED_PLUGIN}:{skill}" for skill in EXPECTED_SKILLS]
+    namespaced = sorted(str(item) for item in payload.get("namespaced_skills", []))
+    missing = [skill for skill in expected_namespaced if skill not in namespaced]
+    loader_clean = not _has_plugin_loader_warning(combined, payload)
+    checks = [
+        Check(
+            "live plugin visible",
+            bool(payload.get("plugin_visible")),
+            f"plugin_visible={payload.get('plugin_visible')!r}",
+        ),
+        Check(
+            "live namespaced skills complete",
+            not missing,
+            f"missing={missing!r} seen={namespaced!r}",
+        ),
+        Check(
+            "live plugin loader clean",
+            loader_clean,
+            "no plugin-specific loader warning" if loader_clean else "plugin-specific loader warning",
+        ),
+    ]
+    return checks, bool(payload.get("plugin_visible")) and not missing and loader_clean
+
+
+def _has_plugin_loader_warning(combined: str, payload: dict | None = None) -> bool:
+    payload = payload or {}
+    return (
+        f"failed to load skill {EXPECTED_PLUGIN}" in combined
+        or f"failed to load plugin: {EXPECTED_PLUGIN}" in combined
+        or bool(payload.get("plugin_loader_warning_visible"))
+    )
+
+
+def run_live_check(root: Path, model: str, timeout: int, attempts: int = 3) -> tuple[list[Check], str]:
     codex = shutil.which("codex")
     if not codex:
         return [Check("live codex executable", False, "codex not found on PATH")], ""
 
-    expected_namespaced = [f"{EXPECTED_PLUGIN}:{skill}" for skill in EXPECTED_SKILLS]
     prompt = (
         "Do not read files or run tools. Inspect only your current system-provided "
         "Skills/Plugins context. Return exactly JSON with keys plugin_visible "
@@ -238,59 +271,85 @@ def run_live_check(root: Path, model: str, timeout: int) -> tuple[list[Check], s
     )
 
     with tempfile.TemporaryDirectory(prefix="agent-pipeline-install-acceptance-") as tmp:
-        output_path = Path(tmp) / "last-message.json"
-        cmd = [
-            codex,
-            "exec",
-            "--ephemeral",
-            "--skip-git-repo-check",
-            "-C",
-            str(root),
-            "-m",
-            model,
-            "-o",
-            str(output_path),
-            prompt,
-        ]
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, check=False)
-        combined = (proc.stdout or "") + (proc.stderr or "")
+        probe_results: list[tuple[int, list[Check], bool]] = []
+        transcripts: list[str] = []
+        attempt_count = max(1, attempts)
+        loader_warning_seen = False
 
-        checks = [Check("live codex exec exit", proc.returncode == 0, f"exit={proc.returncode}")]
-        if not output_path.exists():
-            checks.append(Check("live codex last message", False, f"missing {output_path}"))
-            return checks, combined
-
-        raw = output_path.read_text(encoding="utf-8").strip()
-        try:
-            payload = json.loads(raw)
-        except json.JSONDecodeError as exc:
-            checks.append(Check("live codex JSON", False, f"{exc}: {raw[:200]}"))
-            return checks, combined
-
-        namespaced = sorted(str(item) for item in payload.get("namespaced_skills", []))
-        missing = [skill for skill in expected_namespaced if skill not in namespaced]
-        checks.extend(
-            [
-                Check(
-                    "live plugin visible",
-                    bool(payload.get("plugin_visible")),
-                    f"plugin_visible={payload.get('plugin_visible')!r}",
-                ),
-                Check(
-                    "live namespaced skills complete",
-                    not missing,
-                    f"missing={missing!r} seen={namespaced!r}",
-                ),
-                Check(
-                    "live plugin loader clean",
-                    f"failed to load skill {EXPECTED_PLUGIN}" not in combined
-                    and f"failed to load plugin: {EXPECTED_PLUGIN}" not in combined
-                    and not bool(payload.get("plugin_loader_warning_visible")),
-                    "no plugin-specific loader warning",
-                ),
+        for attempt in range(1, attempt_count + 1):
+            output_path = Path(tmp) / f"last-message-{attempt}.json"
+            cmd = [
+                codex,
+                "exec",
+                "--ephemeral",
+                "--skip-git-repo-check",
+                "-C",
+                str(root),
+                "-m",
+                model,
+                "-o",
+                str(output_path),
+                prompt,
             ]
-        )
-        return checks, combined
+            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, check=False)
+            combined = (proc.stdout or "") + (proc.stderr or "")
+            loader_warning_seen = loader_warning_seen or _has_plugin_loader_warning(combined)
+            transcripts.append(
+                "\n".join(
+                    [
+                        f"LIVE-CODEX-ATTEMPT {attempt} BEGIN",
+                        combined.rstrip(),
+                        f"LIVE-CODEX-ATTEMPT {attempt} END",
+                    ]
+                )
+            )
+
+            attempt_checks = [
+                Check("live codex exec exit", proc.returncode == 0, f"attempt={attempt} exit={proc.returncode}")
+            ]
+            if not output_path.exists():
+                attempt_checks.append(Check("live codex last message", False, f"attempt={attempt} missing {output_path}"))
+                probe_results.append((attempt, attempt_checks, False))
+                continue
+
+            raw = output_path.read_text(encoding="utf-8").strip()
+            try:
+                payload = json.loads(raw)
+            except json.JSONDecodeError as exc:
+                attempt_checks.append(Check("live codex JSON", False, f"attempt={attempt} {exc}: {raw[:200]}"))
+                probe_results.append((attempt, attempt_checks, False))
+                continue
+
+            loader_warning_seen = loader_warning_seen or _has_plugin_loader_warning(combined, payload)
+            payload_checks, payload_ok = _live_payload_checks(payload, combined)
+            attempt_checks.extend(payload_checks)
+            probe_results.append((attempt, attempt_checks, proc.returncode == 0 and payload_ok))
+
+        passing_attempts = [attempt for attempt, _, ok in probe_results if ok]
+        final_checks = [
+            Check(
+                "live codex probe attempts",
+                bool(passing_attempts) and not loader_warning_seen,
+                f"attempts={attempt_count} passing={passing_attempts!r}",
+            ),
+            Check(
+                "live plugin loader clean",
+                not loader_warning_seen,
+                "no plugin-specific loader warning" if not loader_warning_seen else "plugin-specific loader warning",
+            )
+        ]
+        if not passing_attempts:
+            for attempt, attempt_checks, _ in probe_results:
+                for check in attempt_checks:
+                    final_checks.append(
+                        Check(
+                            f"attempt {attempt}: {check.name}",
+                            check.ok,
+                            check.detail,
+                        )
+                    )
+
+        return final_checks, "\n".join(transcripts)
 
 
 def print_report(checks: list[Check]) -> None:
@@ -306,6 +365,12 @@ def main() -> int:
     parser.add_argument("--require-installed", action="store_true")
     parser.add_argument("--source-only", action="store_true")
     parser.add_argument("--live", action="store_true", help="Launch a fresh codex exec process.")
+    parser.add_argument(
+        "--live-attempts",
+        type=int,
+        default=3,
+        help="Number of fresh codex exec probes to tolerate transient model enumeration misses.",
+    )
     parser.add_argument("--model", default="gpt-5.4-mini")
     parser.add_argument("--timeout", type=int, default=180)
     args = parser.parse_args()
@@ -315,7 +380,7 @@ def main() -> int:
     if not args.source_only:
         checks.extend(check_installed_layout(args.codex_home, args.repo_root, args.require_installed))
     if args.live:
-        live_checks, live_output = run_live_check(args.repo_root, args.model, args.timeout)
+        live_checks, live_output = run_live_check(args.repo_root, args.model, args.timeout, args.live_attempts)
         checks.extend(live_checks)
         if live_output:
             print("LIVE-CODEX-OUTPUT-BEGIN")

@@ -118,6 +118,12 @@ The required success lines are `PLUGIN-RELEASE-VERIFY: PASSED` and the nested
 namespaced skills load, and that no plugin-specific loader warnings were
 emitted.
 
+The live check combines deterministic source/installed-cache verification with
+repeated fresh Codex probes. A single model enumeration miss is kept in the
+transcript for auditability, but the gate fails only when repeated probes cannot
+observe the complete namespaced plugin surface or a plugin-specific loader
+warning appears.
+
 When starting a fresh project session, verify the namespaced plugin skills
 explicitly:
 

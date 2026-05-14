@@ -558,6 +558,7 @@
       <div class="install"><pre><span class="comment"># Install once, across all Codex Desktop App projects</span>
 <span class="prompt">></span> git clone https://github.com/scottconverse/agent-pipeline-codex.git ~/agent-pipeline-codex-plugin
 <span class="prompt">></span> python scripts/verify_plugin_release.py --live
+<span class="comment"># The live gate checks deterministic install state, then repeats fresh Codex probes.</span>
 
 <span class="comment"># Then in any project root</span>
 <span class="prompt">></span> Use pipeline-init for this project.

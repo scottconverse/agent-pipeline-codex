@@ -1,6 +1,19 @@
 name: CI
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/ci.yml"
+      - "scripts/**"
+      - "tests/**"
+      - "skills/**"
+      - "pipelines/**"
+      - "commands/**"
+      - "README.md"
+      - "ARCHITECTURE.md"
+      - "USER-MANUAL.md"
+      - "CHANGELOG.md"
   pull_request:
     branches: [main]
     paths:
@@ -36,4 +49,3 @@ jobs:
 
       - name: Run source-only release verification
         run: python scripts/verify_plugin_release.py --source-only
-
