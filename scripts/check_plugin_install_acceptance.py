@@ -40,6 +40,11 @@ EXPECTED_SKILLS = [
     "show-run-status",
     "validate-manifest",
 ]
+EXPECTED_INSTALLED_FILES = [
+    ".codex-plugin/plugin.json",
+    "scripts/check_plugin_install_acceptance.py",
+    "scripts/verify_plugin_release.py",
+]
 
 
 @dataclass
@@ -201,6 +206,24 @@ def check_installed_layout(codex_home: Path, root: Path, require_installed: bool
                 "installed cache matches source version",
                 installed_metadata.get("version") == source_metadata.get("version"),
                 f"source={source_metadata.get('version')!r} installed={installed_metadata.get('version')!r}",
+            )
+        )
+
+    installed_files = [*EXPECTED_INSTALLED_FILES, *[f"skills/{skill}/SKILL.md" for skill in EXPECTED_SKILLS]]
+    for rel_path in installed_files:
+        source_file = root / rel_path
+        installed_file = installed / rel_path
+        if not source_file.exists():
+            checks.append(Check(f"source install file {rel_path}", False, f"missing {source_file}"))
+            continue
+        if not installed_file.exists():
+            checks.append(Check(f"installed cache file {rel_path}", False, f"missing {installed_file}"))
+            continue
+        checks.append(
+            Check(
+                f"installed cache file {rel_path} matches source",
+                installed_file.read_bytes() == source_file.read_bytes(),
+                rel_path,
             )
         )
 

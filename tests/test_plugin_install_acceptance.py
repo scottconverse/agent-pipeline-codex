@@ -1,10 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import json
+import shutil
 import subprocess
 from pathlib import Path
 
 from scripts.check_plugin_install_acceptance import (
+    EXPECTED_INSTALLED_FILES,
     EXPECTED_MARKETPLACE,
     EXPECTED_PLUGIN,
     EXPECTED_SKILLS,
@@ -16,6 +18,14 @@ from scripts.check_plugin_install_acceptance import (
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def copy_required_installed_files(cache: Path) -> None:
+    for rel_path in [*EXPECTED_INSTALLED_FILES, *[f"skills/{skill}/SKILL.md" for skill in EXPECTED_SKILLS]]:
+        source_file = ROOT / rel_path
+        target_file = cache / rel_path
+        target_file.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source_file, target_file)
 
 
 def test_source_layout_has_all_expected_plugin_skills() -> None:
@@ -57,6 +67,7 @@ source = 'C:\\Users\\scott\\.codex\\local-marketplaces\\agent-pipeline-local'
         json.dumps({"name": EXPECTED_PLUGIN, "version": version}),
         encoding="utf-8",
     )
+    copy_required_installed_files(cache)
 
     failures = [check for check in check_installed_layout(codex_home, ROOT, True) if not check.ok]
 
@@ -114,11 +125,55 @@ source = 'C:\\Users\\scott\\.codex\\local-marketplaces\\agent-pipeline-local'
         json.dumps({"name": EXPECTED_PLUGIN, "version": version}),
         encoding="utf-8",
     )
+    copy_required_installed_files(cache)
     standalone.write_text("stale standalone skill", encoding="utf-8")
 
     failures = [check.name for check in check_installed_layout(codex_home, ROOT, True) if not check.ok]
 
     assert f"standalone skill {EXPECTED_SKILLS[0]} matches plugin source" in failures
+
+
+def test_installed_layout_flags_stale_cache_file_copy(tmp_path: Path) -> None:
+    version = plugin_version()
+    codex_home = tmp_path / ".codex"
+    marketplace_json = (
+        codex_home
+        / "local-marketplaces"
+        / EXPECTED_MARKETPLACE
+        / ".agents"
+        / "plugins"
+        / "marketplace.json"
+    )
+    cache = codex_home / "plugins" / "cache" / EXPECTED_MARKETPLACE / EXPECTED_PLUGIN / version
+    marketplace_json.parent.mkdir(parents=True)
+    (cache / ".codex-plugin").mkdir(parents=True)
+
+    (codex_home / "config.toml").write_text(
+        f"""
+[plugins."{EXPECTED_PLUGIN}@{EXPECTED_MARKETPLACE}"]
+enabled = true
+
+[marketplaces.{EXPECTED_MARKETPLACE}]
+source_type = "local"
+source = 'C:\\Users\\scott\\.codex\\local-marketplaces\\agent-pipeline-local'
+""".strip(),
+        encoding="utf-8",
+    )
+    marketplace_json.write_text(
+        json.dumps(
+            {
+                "name": EXPECTED_MARKETPLACE,
+                "plugins": [{"name": EXPECTED_PLUGIN, "source": {"source": "local"}}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    copy_required_installed_files(cache)
+    (cache / "scripts" / "check_plugin_install_acceptance.py").write_text("stale script", encoding="utf-8")
+
+    failures = [check.name for check in check_installed_layout(codex_home, ROOT, True) if not check.ok]
+
+    assert "installed cache file scripts/check_plugin_install_acceptance.py matches source" in failures
 
 
 def test_live_check_retries_transient_missing_skill(monkeypatch) -> None:
