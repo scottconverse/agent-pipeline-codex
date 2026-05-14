@@ -49,13 +49,23 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+try:
+    from policy_utils import find_repo_root
+except ModuleNotFoundError:  # pragma: no cover - package import in tests
+    from scripts.policy_utils import find_repo_root
+
 CRITERIA_LINE_RE = re.compile(
-    r"\*\*Criteria:\s*(\d+)\s+total,\s*(\d+)\s+MET,\s*(\d+)\s+PARTIAL,\s*(\d+)\s+NOT MET,\s*(\d+)\s+NOT APPLICABLE\*\*"
+    r"\*\*Criteria:\s*(\d+)\s+total\s*,\s*(\d+)\s+MET\s*,\s*(\d+)\s+PARTIAL\s*,\s*(\d+)\s+NOT\s+MET\s*,\s*(\d+)\s+NOT\s+APPLICABLE\*\*",
+    re.IGNORECASE,
 )
 FINDINGS_LINE_RE = re.compile(
-    r"\*\*Findings:\s*(\d+)\s+total,\s*(\d+)\s+blocker,\s*(\d+)\s+critical,\s*(\d+)\s+major,\s*(\d+)\s+minor\*\*"
+    r"\*\*Findings:\s*(\d+)\s+total\s*,\s*(\d+)\s+blocker\s*,\s*(\d+)\s+critical\s*,\s*(\d+)\s+major\s*,\s*(\d+)\s+minor\*\*",
+    re.IGNORECASE,
 )
-DRIFT_LINE_RE = re.compile(r"\*\*Drift:\s*(\d+)\s+total,\s*(\d+)\s+blocker\*\*")
+DRIFT_LINE_RE = re.compile(
+    r"\*\*Drift:\s*(\d+)\s+total\s*,\s*(\d+)\s+blocker\*\*",
+    re.IGNORECASE,
+)
 POLICY_PASS_LINE = "POLICY: ALL CHECKS PASSED"
 TEST_PASS_PATTERNS = (
     re.compile(r"\b(\d+)\s+passed(?:,\s*0\s+failed)?", re.IGNORECASE),
@@ -64,15 +74,7 @@ TEST_PASS_PATTERNS = (
 )
 
 
-def _find_repo_root() -> Path:
-    """Resolve the repo root. Same layout-detection as the other policy scripts."""
-    script_dir = Path(__file__).resolve().parent
-    if script_dir.name == "policy" and script_dir.parent.name == "scripts":
-        return script_dir.parents[1]
-    return script_dir.parent
-
-
-REPO_ROOT = _find_repo_root()
+REPO_ROOT = find_repo_root(__file__)
 RUN_DIR_BASE = REPO_ROOT / ".agent-runs"
 
 
@@ -341,7 +343,7 @@ def _write_report(run_dir: Path, conditions: list[ConditionResult]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.5")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.6")
     parser.add_argument(
         "--run",
         required=True,

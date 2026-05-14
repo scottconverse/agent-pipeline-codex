@@ -282,7 +282,7 @@
 <header class="masthead">
   <div class="mark">agent-pipeline-codex</div>
   <div class="meta">
-    <span>v0.5.5+policy-hardening</span>
+    <span>v0.5.6+install-proof</span>
     <span>Apache-2.0</span>
     <span>Codex Desktop App plugin</span>
   </div>
@@ -317,7 +317,7 @@
     </div>
 
     <aside class="hero-meta">
-      <div class="row"><span>Release</span><strong class="rust">0.5.5</strong></div>
+      <div class="row"><span>Release</span><strong class="rust">0.5.6</strong></div>
       <div class="row"><span>Stages</span><strong>11</strong></div>
       <div class="row"><span>Human gates</span><strong>3</strong></div>
       <div class="row"><span>Role files</span><strong>13</strong></div>
@@ -331,7 +331,7 @@
 
 <section class="diagram-wrap frame">
   <span class="frame-mark">Fig. 01 | Pipeline schematic</span>
-  <span class="frame-mark-right">v0.5.5 | feature.yaml</span>
+  <span class="frame-mark-right">v0.5.6 | feature.yaml</span>
 
   <div class="figcap">
     <span class="label">Eleven stages | four phases | three human gates | three control gates</span>
@@ -627,11 +627,11 @@
         </div>
 
         <div class="layer current">
-          <div class="v">v0.5.5<strong>Policy hardening</strong><span class="badge">Current</span></div>
+          <div class="v">v0.5.6<strong>Install proof</strong><span class="badge">Current</span></div>
           <div>
-            <div class="l-title">The policy layer closes review-found bypasses.</div>
-            <p class="l-body">Manifest parsing now preserves quoted hash characters, allowed-path checks include untracked files, workflow-cost checks inspect committed diffs in pipeline mode, and <code>validate-manifest</code> gives operators a fast preflight before a run starts.</p>
-            <div class="l-catches"><strong>Fixes</strong> Parser truncation, untracked scope drift, vacuous workflow-cost passes, missing policy-script regression coverage.</div>
+            <div class="l-title">The install surface has one truth.</div>
+            <p class="l-body">Policy scripts now share one repo-root helper, auto-promote parser tests cover malformed and whitespace-varied count lines, and fresh-session prompts must verify the namespaced <code>agent-pipeline-codex:*</code> skills instead of stale standalone skill names.</p>
+            <div class="l-catches"><strong>Fixes</strong> Helper drift, brittle parser confidence, stale standalone skill ambiguity, and incomplete restart prompts.</div>
           </div>
         </div>
       </div>
@@ -678,7 +678,7 @@
         <div class="lesson"><div class="lh">Manager cites, never summarises</div><div class="lb">The final decision quotes the verifier verbatim. Summarisation and encouragement are how bad runs get promoted, and both are forbidden in the role file.</div></div>
         <div class="lesson"><div class="lh">Decisions are written</div><div class="lb">Director decisions belong in <code>director-decisions.md</code>, not in chat. The researcher surfaces them; the human picks in writing.</div></div>
         <div class="lesson"><div class="lh">Standing invariants beat memory</div><div class="lb">v0.5.1's doc-currency invariants enforce inventory accuracy on every run because cumulative drift was the failure mode v0.2 through v0.5 silently accumulated.</div></div>
-        <div class="lesson"><div class="lh">Installs need runtime proof</div><div class="lb">A plugin release is not installed until <code>verify_plugin_release.py --live</code> proves a fresh Codex process sees the plugin and all namespaced skills.</div></div>
+        <div class="lesson"><div class="lh">Installs need runtime proof</div><div class="lb">A plugin release is not installed until <code>verify_plugin_release.py --live</code> proves a fresh Codex process sees the plugin and the namespaced <code>agent-pipeline-codex:*</code> skills.</div></div>
       </div>
     </div>
   </div>
@@ -710,7 +710,7 @@
 <footer class="foot page">
   <span>(c) Scott Converse | Apache-2.0</span>
   <span><a href="https://github.com/scottconverse/agent-pipeline-codex">github</a> | <a href="https://github.com/scottconverse/agent-pipeline-codex/discussions">discussions</a></span>
-  <span>v0.5.5+policy-hardening | 2026</span>
+  <span>v0.5.6+install-proof | 2026</span>
 </footer>
 
 </body>

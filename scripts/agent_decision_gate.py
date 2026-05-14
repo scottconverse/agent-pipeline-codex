@@ -16,6 +16,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 try:
+    from scripts.policy_utils import find_repo_root
     from scripts.check_pipeline_control_loop import (
         INVALID_STOP_CONDITIONS,
         VALID_STOP_CONDITIONS,
@@ -23,6 +24,7 @@ try:
     )
     from scripts.final_response_gate import discover_state_files, evaluate_final_response_gate
 except ModuleNotFoundError:  # pragma: no cover - direct script execution from scripts/
+    from policy_utils import find_repo_root  # type: ignore
     from check_pipeline_control_loop import (  # type: ignore
         INVALID_STOP_CONDITIONS,
         VALID_STOP_CONDITIONS,
@@ -63,13 +65,6 @@ class DecisionResult:
     required_next_action: str = ""
     continuing_to: str = ""
     state_path: str = ""
-
-
-def _find_repo_root() -> Path:
-    script_dir = Path(__file__).resolve().parent
-    if script_dir.name == "policy" and script_dir.parent.name == "scripts":
-        return script_dir.parents[1]
-    return script_dir.parent
 
 
 def _read_state(path: Path) -> dict[str, str]:
@@ -207,10 +202,10 @@ def write_decision_ledger(run_dir: Path, result: DecisionResult, run_id: str | N
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.5")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.6")
     parser.add_argument(
         "--run-dir",
-        default=str(_find_repo_root() / ".agent-runs"),
+        default=str(find_repo_root(__file__) / ".agent-runs"),
         help="Directory containing run subdirectories. Defaults to .agent-runs in this repo.",
     )
     parser.add_argument("--run", help="Run id under .agent-runs/.")

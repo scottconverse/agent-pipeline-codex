@@ -9,18 +9,13 @@ import sys
 from pathlib import Path
 
 try:
+    from scripts.policy_utils import find_repo_root
     from scripts.check_pipeline_control_loop import parse_control_state, validate_control_state
     from scripts.final_response_gate import discover_state_files
 except ModuleNotFoundError:  # pragma: no cover - direct script execution from scripts/
+    from policy_utils import find_repo_root  # type: ignore
     from check_pipeline_control_loop import parse_control_state, validate_control_state  # type: ignore
     from final_response_gate import discover_state_files  # type: ignore
-
-
-def _find_repo_root() -> Path:
-    script_dir = Path(__file__).resolve().parent
-    if script_dir.name == "policy" and script_dir.parent.name == "scripts":
-        return script_dir.parents[1]
-    return script_dir.parent
 
 
 def _active_states(run_dir: Path) -> list[tuple[Path, dict[str, str]]]:
@@ -72,10 +67,10 @@ def next_action(run_dir: Path) -> tuple[int, str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.5")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.6")
     parser.add_argument(
         "--run-dir",
-        default=str(_find_repo_root() / ".agent-runs"),
+        default=str(find_repo_root(__file__) / ".agent-runs"),
         help="Directory containing run subdirectories. Defaults to .agent-runs in this repo.",
     )
     args = parser.parse_args()

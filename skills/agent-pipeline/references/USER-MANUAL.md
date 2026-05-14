@@ -2,7 +2,7 @@
 
 A Codex Desktop App plugin that orchestrates multi-stage agentic work with three human-approval gates. Built from real lessons across multi-week agent projects where autonomous runs go wrong silently and "manager-PROMOTE" failures slip past CI.
 
-**Version:** 0.5.5
+**Version:** 0.5.6
 **License:** Apache 2.0
 
 ---
@@ -45,13 +45,14 @@ If you don't have those yet, `pipeline-init` helps you scaffold them.
 
 ## What you get
 
-Six Codex skills: one overview/router plus five workflow skills.
+Six Codex skills: one overview/router plus five concrete workflow skills.
 
 | Skill | Purpose |
 | :--- | :--- |
 | `agent-pipeline` | Overview and routing. Explains the plugin and points to the specific workflow skill. |
 | `pipeline-init` | Onboard a project. Accepts a PRD path, a repo URL, or a description paragraph. Scaffolds `.pipelines/`, `scripts/policy/`, and `AGENTS.md` if missing. |
 | `new-run <type> <slug>` | Initialize a new pipeline run. Creates `.agent-runs/<run-id>/manifest.yaml` from the template and asks you to fill it in. |
+| `validate-manifest` | Preflight a run manifest against the same schema used by the policy stage. |
 | `run-pipeline <type> <run-id>` | Orchestrate a pipeline run end-to-end. Stops at human gates and on failure. Resumable. |
 | `audit-init` | (v0.3) Scaffold dual-AI audit-handoff infrastructure for projects where one AI implements and another audits. |
 
@@ -63,13 +64,19 @@ Three default pipeline definitions:
 
 Thirteen self-contained role files (markdown) - each tells a fresh Codex session exactly what to do and what is forbidden: `researcher`, `planner`, `test-writer`, `executor` (with v0.5 pre-edit fact-forcing), `verifier`, `drift-detector` (v0.5), `critic` (v0.5), `manager` (auto-promote-aware at v0.5), `judge` (v0.4 opt-in), `preflight-auditor` (v0.2), `local-rehearsal` (v0.2), `cross-agent-auditor` (v0.3), `implementer-pre-push` (v0.3).
 
-Six generic policy checks (Python, stdlib only):
+Policy and control scripts (Python, stdlib only):
 
 - `check_manifest_schema.py` - v0.5 strict manifest contract validator
 - `check_allowed_paths.py` - manifest-driven path enforcement
 - `check_no_todos.py` - no TODO/FIXME/HACK in source
 - `check_adr_gate.py` - ADRs are append-only
+- `check_actions_budget.py` - GitHub Actions cost-discipline gate
+- `check_pipeline_control_loop.py` - validates active control-state artifacts
+- `final_response_gate.py` - blocks final responses while an authorized run must continue
+- `agent_decision_gate.py` - validates stop/defer/skip decisions and writes the decision ledger
+- `pipeline_continue.py` - prints the next executable action for an active run
 - `auto_promote.py` - v0.5 six-condition machine-checkable promote
+- `validate_manifest.py` - standalone manifest preflight wrapper
 - `run_all.py` - combined runner
 
 ## Installation
@@ -104,6 +111,23 @@ The required success lines are `PLUGIN-RELEASE-VERIFY: PASSED` and the nested
 namespaced skills load, and that no plugin-specific loader warnings were
 emitted.
 
+When starting a fresh project session, verify the namespaced plugin skills
+explicitly:
+
+```text
+agent-pipeline-codex:agent-pipeline
+agent-pipeline-codex:pipeline-init
+agent-pipeline-codex:new-run
+agent-pipeline-codex:run-pipeline
+agent-pipeline-codex:audit-init
+agent-pipeline-codex:validate-manifest
+```
+
+Do not accept standalone names such as `agent-pipeline` or `run-pipeline` as
+proof that the current plugin is active. Standalone skills under
+`$CODEX_HOME/skills` can exist for compatibility and can drift from the plugin
+cache.
+
 For GitHub Actions or another headless environment that cannot see the local
 Codex Desktop plugin registry, run:
 
@@ -121,7 +145,7 @@ python scripts/policy/auto_promote.py --version
 python scripts/policy/check_manifest_schema.py --version
 ```
 
-Each prints `agent-pipeline-codex 0.5.5` and exits 0. The flag fires before any other argument validation, so it works on `auto_promote.py` without supplying `--run`. Use it to confirm a project actually has the v0.5 scripts and not stale copies from an earlier `pipeline-init`.
+Each prints `agent-pipeline-codex 0.5.6` and exits 0. The flag fires before any other argument validation, so it works on `auto_promote.py` without supplying `--run`. Use it to confirm a project actually has the v0.5 scripts and not stale copies from an earlier `pipeline-init`.
 
 If the script doesn't recognize `--version` (argparse prints a usage error and exits 2), the install is pre-v0.5. Re-run `pipeline-init` to refresh the scripts from the plugin source.
 

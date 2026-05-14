@@ -6,6 +6,7 @@ from pathlib import Path
 from scripts.check_plugin_install_acceptance import (
     EXPECTED_MARKETPLACE,
     EXPECTED_PLUGIN,
+    EXPECTED_SKILLS,
     check_installed_layout,
     check_source_layout,
     plugin_version,
@@ -68,3 +69,51 @@ def test_installed_layout_static_check_fails_when_plugin_not_enabled(tmp_path: P
     failures = [check.name for check in check_installed_layout(codex_home, ROOT, True) if not check.ok]
 
     assert "plugin enabled in config" in failures
+
+
+def test_installed_layout_flags_stale_standalone_skill_copy(tmp_path: Path) -> None:
+    version = plugin_version()
+    codex_home = tmp_path / ".codex"
+    marketplace_json = (
+        codex_home
+        / "local-marketplaces"
+        / EXPECTED_MARKETPLACE
+        / ".agents"
+        / "plugins"
+        / "marketplace.json"
+    )
+    cache = codex_home / "plugins" / "cache" / EXPECTED_MARKETPLACE / EXPECTED_PLUGIN / version
+    standalone = codex_home / "skills" / EXPECTED_SKILLS[0] / "SKILL.md"
+    marketplace_json.parent.mkdir(parents=True)
+    (cache / ".codex-plugin").mkdir(parents=True)
+    standalone.parent.mkdir(parents=True)
+
+    (codex_home / "config.toml").write_text(
+        f"""
+[plugins."{EXPECTED_PLUGIN}@{EXPECTED_MARKETPLACE}"]
+enabled = true
+
+[marketplaces.{EXPECTED_MARKETPLACE}]
+source_type = "local"
+source = 'C:\\Users\\scott\\.codex\\local-marketplaces\\agent-pipeline-local'
+""".strip(),
+        encoding="utf-8",
+    )
+    marketplace_json.write_text(
+        json.dumps(
+            {
+                "name": EXPECTED_MARKETPLACE,
+                "plugins": [{"name": EXPECTED_PLUGIN, "source": {"source": "local"}}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (cache / ".codex-plugin" / "plugin.json").write_text(
+        json.dumps({"name": EXPECTED_PLUGIN, "version": version}),
+        encoding="utf-8",
+    )
+    standalone.write_text("stale standalone skill", encoding="utf-8")
+
+    failures = [check.name for check in check_installed_layout(codex_home, ROOT, True) if not check.ok]
+
+    assert f"standalone skill {EXPECTED_SKILLS[0]} matches plugin source" in failures

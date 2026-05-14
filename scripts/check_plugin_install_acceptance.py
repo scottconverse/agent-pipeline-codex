@@ -203,6 +203,21 @@ def check_installed_layout(codex_home: Path, root: Path, require_installed: bool
             )
         )
 
+    for skill in EXPECTED_SKILLS:
+        standalone_skill = codex_home / "skills" / skill / "SKILL.md"
+        if not standalone_skill.exists():
+            continue
+        source_skill = root / "skills" / skill / "SKILL.md"
+        standalone_text = standalone_skill.read_text(encoding="utf-8-sig")
+        source_text = source_skill.read_text(encoding="utf-8-sig")
+        checks.append(
+            Check(
+                f"standalone skill {skill} matches plugin source",
+                standalone_text == source_text,
+                f"{standalone_skill}",
+            )
+        )
+
     return checks
 
 

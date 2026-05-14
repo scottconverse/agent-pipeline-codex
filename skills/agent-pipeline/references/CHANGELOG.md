@@ -10,6 +10,43 @@ release; the `CHANGELOG` will call them out.
 
 ## [Unreleased]
 
+## [0.5.6] - 2026-05-13
+
+Patch release. Finishes the shared policy-helper migration, hardens
+auto-promote parser coverage, and makes plugin handoff prompts require the
+namespaced `agent-pipeline-codex:*` skill surface so stale standalone skill
+copies cannot masquerade as the current plugin.
+
+### Added
+
+- **Policy utility regression tests.** Added tests for shared repo-root
+  detection in source and installed layouts, plus quoted-hash YAML comment
+  stripping.
+- **Auto-promote parser edge coverage.** Added tests for count lines with
+  mixed case and extra comma spacing, malformed verifier/critic count lines,
+  and blocker drift count lines.
+
+### Changed
+
+- **Shared policy utility migration.** Moved the remaining policy scripts onto
+  `scripts/policy_utils.py` for repo-root detection so source and scaffolded
+  project layouts use one implementation.
+- **Namespaced plugin guidance.** Updated install and fresh-session guidance to
+  require `agent-pipeline-codex:agent-pipeline`,
+  `agent-pipeline-codex:pipeline-init`,
+  `agent-pipeline-codex:new-run`,
+  `agent-pipeline-codex:run-pipeline`,
+  `agent-pipeline-codex:audit-init`, and
+  `agent-pipeline-codex:validate-manifest` when proving the plugin is active.
+
+### Fixed
+
+- **Standalone skill drift.** Treat stale standalone skills under
+  `$CODEX_HOME/skills` as install-surface drift and document that plugin
+  verification must use the namespaced plugin skill list.
+- **User Manual skill count.** Corrected the operator-facing skill inventory to
+  include `validate-manifest`.
+
 ## [0.5.5] - 2026-05-13
 
 Patch release. Hardens the policy layer against audit-found bypasses, adds a

@@ -19,6 +19,11 @@ import re
 import sys
 from pathlib import Path
 
+try:
+    from policy_utils import find_repo_root
+except ModuleNotFoundError:  # pragma: no cover - package import in tests
+    from scripts.policy_utils import find_repo_root
+
 VALID_STOP_CONDITIONS = {
     "human_approval_gate",
     "failed_gate_needs_user_direction",
@@ -53,14 +58,7 @@ SECTION_RE = re.compile(r"^#{1,6}\s+(?P<title>.+?)\s*$")
 KEY_RE = re.compile(r"^(?:-\s+)?(?P<key>[a-zA-Z0-9_-]+):\s*(?P<value>.*)$")
 
 
-def _find_repo_root() -> Path:
-    script_dir = Path(__file__).resolve().parent
-    if script_dir.name == "policy" and script_dir.parent.name == "scripts":
-        return script_dir.parents[1]
-    return script_dir.parent
-
-
-REPO_ROOT = _find_repo_root()
+REPO_ROOT = find_repo_root(__file__)
 RUN_DIR = REPO_ROOT / ".agent-runs"
 
 
@@ -155,7 +153,7 @@ def _print_policy() -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.5")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.6")
     parser.add_argument("--run", help="Pipeline run id under .agent-runs/.")
     parser.add_argument(
         "--state-file",

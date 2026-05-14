@@ -16,6 +16,11 @@ import subprocess
 import sys
 from pathlib import Path
 
+try:
+    from policy_utils import find_repo_root
+except ModuleNotFoundError:  # pragma: no cover - package import in tests
+    from scripts.policy_utils import find_repo_root
+
 WORKFLOW_RE = re.compile(r"^\.github/workflows/.*\.ya?ml$")
 CRON_RE = re.compile(r"cron:\s*['\"]([^'\"]+)['\"]")
 UPLOAD_RE = re.compile(r"uses:\s*actions/upload-artifact@")
@@ -33,22 +38,7 @@ HEAVY_MARKERS = (
 )
 
 
-def _repo_root() -> Path:
-    proc = subprocess.run(
-        ["git", "rev-parse", "--show-toplevel"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if proc.returncode == 0:
-        return Path(proc.stdout.strip())
-    script_dir = Path(__file__).resolve().parent
-    if script_dir.name == "policy" and script_dir.parent.name == "scripts":
-        return script_dir.parents[1]
-    return script_dir.parent
-
-
-REPO_ROOT = _repo_root()
+REPO_ROOT = find_repo_root(__file__)
 
 
 def _git_status_paths() -> list[Path]:

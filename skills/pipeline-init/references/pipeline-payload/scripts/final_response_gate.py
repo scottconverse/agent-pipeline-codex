@@ -16,8 +16,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 try:
+    from scripts.policy_utils import find_repo_root
     from scripts.check_pipeline_control_loop import parse_control_state, validate_control_state
 except ModuleNotFoundError:  # pragma: no cover - direct script execution from scripts/
+    from policy_utils import find_repo_root
     from check_pipeline_control_loop import parse_control_state, validate_control_state
 
 
@@ -28,13 +30,6 @@ class GateResult:
     state_path: Path | None = None
     next_required_action: str = ""
     continuing_to: str = ""
-
-
-def _find_repo_root() -> Path:
-    script_dir = Path(__file__).resolve().parent
-    if script_dir.name == "policy" and script_dir.parent.name == "scripts":
-        return script_dir.parents[1]
-    return script_dir.parent
 
 
 def discover_state_files(run_dir: Path) -> list[Path]:
@@ -115,10 +110,10 @@ def evaluate_final_response_gate(run_dir: Path, require_active_run: bool = False
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.5")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.6")
     parser.add_argument(
         "--run-dir",
-        default=str(_find_repo_root() / ".agent-runs"),
+        default=str(find_repo_root(__file__) / ".agent-runs"),
         help="Directory containing run subdirectories. Defaults to .agent-runs in this repo.",
     )
     parser.add_argument(
