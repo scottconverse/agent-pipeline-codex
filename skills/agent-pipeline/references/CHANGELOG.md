@@ -10,6 +10,32 @@ release; the `CHANGELOG` will call them out.
 
 ## [Unreleased]
 
+## [0.5.10] - 2026-05-14
+
+Patch release. Closes stale-control-state stop escapes by binding final,
+continue, and agent-decision gates to one shared stop validator.
+
+### Added
+
+- **Shared stop validator.** Added `scripts/stop_validator.py` and scaffold
+  payload coverage so `final_response_gate.py`, `pipeline_continue.py`, and
+  `agent_decision_gate.py` all use the same stop-condition truth function.
+- **Run-evidence stop checks.** Human approval stops are now valid only at the
+  manifest, plan, or manager gates and must match the resume stage derived from
+  `run.log` when pipeline evidence exists. Failed-gate stops require a matching
+  `FAILED` or `BLOCKED` event when `run.log` exists.
+- **Regression tests for stale stops.** Added focused coverage for stale human
+  gates, failed-gate proof, and evidence-file-only unrecorded blocker claims.
+
+### Changed
+
+- **Evidence-bound decisions.** `agent_decision_gate.py` no longer accepts
+  plain text evidence for unrecorded blocker claims. If the claimed blocker
+  does not match active control state, it must cite an existing evidence file.
+- **Centralized continuation behavior.** `pipeline_continue.py` now reports
+  validator failures from the same logic used by `final_response_gate.py`,
+  preventing valid-looking stale control state from becoming an escape hatch.
+
 ## [0.5.9] - 2026-05-14
 
 Patch release. Adds mechanical rung/scope authority so the pipeline proves it

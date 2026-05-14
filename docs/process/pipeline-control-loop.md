@@ -2,11 +2,13 @@
 
 The pipeline continuation rule is mechanical.
 
-During an authorized pipeline run, the agent may not send a final response, defer work, skip push, skip CI, write a stopping handoff, compact-and-stop, or pause unless `.agent-runs/<run-id>/active-control-state.md` records a valid stop condition, `scripts/policy/check_pipeline_control_loop.py --run <run-id>` passes, `scripts/policy/final_response_gate.py --require-active-run` prints `final_response_gate: ALLOW`, and `scripts/policy/agent_decision_gate.py` allows that specific decision.
+During an authorized pipeline run, the agent may not send a final response, defer work, skip push, skip CI, write a stopping handoff, compact-and-stop, or pause unless `.agent-runs/<run-id>/active-control-state.md` records a valid stop condition, `scripts/policy/stop_validator.py` can prove that stop condition from current run evidence, `scripts/policy/check_pipeline_control_loop.py --run <run-id>` passes, `scripts/policy/final_response_gate.py --require-active-run` prints `final_response_gate: ALLOW`, and `scripts/policy/agent_decision_gate.py` allows that specific decision.
 
-`final_response_gate.py` is the pre-final executable. It discovers `.agent-runs/*/active-control-state.md` files and fails closed when any active run records `final_response_allowed: false`.
+`stop_validator.py` is the shared truth executable imported by the final, continue, and agent-decision gates. It rejects valid-looking but stale state, including human approval stops outside manifest/plan/manager, human gates that do not match the resume stage derived from `run.log`, stale scope-repair stops after a passing scope-lock receipt, and failed-gate stops without matching failed or blocked run evidence.
 
-`agent_decision_gate.py` is the pre-decision executable. It rejects unverified blocker claims, invalid stop reasons, skipped actions without evidence, and any decision that conflicts with the active control state. With `--write-ledger`, it appends the decision to `.agent-runs/<run-id>/decision-ledger.ndjson`.
+`final_response_gate.py` is the pre-final executable. It discovers `.agent-runs/*/active-control-state.md` files and fails closed when any active run records `final_response_allowed: false` or when the shared validator rejects the recorded stop.
+
+`agent_decision_gate.py` is the pre-decision executable. It rejects unverified blocker claims, invalid stop reasons, skipped actions without evidence, and any decision that conflicts with the active control state. If a claimed blocker does not match active control state, the claim must cite an existing evidence file; plain text evidence alone is not enough. With `--write-ledger`, it appends the decision to `.agent-runs/<run-id>/decision-ledger.ndjson`.
 
 `pipeline_continue.py` is the navigator executable. It prints the active run's required continuation action when stopping is not allowed.
 
@@ -16,7 +18,7 @@ Every active run records:
 
 ```yaml
 active_run: true
-current_stage: <stage-id-or-post-push-ci>
+current_stage: <stage-id>
 last_completed_gate: <gate-or-none>
 next_required_action: <concrete-action>
 stop_condition: none | human_approval_gate | failed_gate_needs_user_direction | destructive_action | credential_or_secret_required | scope_conflict | external_system_unavailable_after_retry | user_explicitly_paused_or_stopped

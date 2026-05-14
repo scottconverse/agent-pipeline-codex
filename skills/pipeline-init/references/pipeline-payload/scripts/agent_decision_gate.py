@@ -20,9 +20,8 @@ try:
     from scripts.check_pipeline_control_loop import (
         INVALID_STOP_CONDITIONS,
         VALID_STOP_CONDITIONS,
-        parse_control_state,
     )
-    from scripts.final_response_gate import discover_state_files, evaluate_final_response_gate
+    from scripts.stop_validator import active_state_files, validate_all_active_stops
     from scripts.scope_lock_utils import (
         find_term_owner,
         list_value,
@@ -32,21 +31,39 @@ try:
         scalar_value,
     )
 except ModuleNotFoundError:  # pragma: no cover - direct script execution from scripts/
-    from policy_utils import find_repo_root  # type: ignore
-    from check_pipeline_control_loop import (  # type: ignore
-        INVALID_STOP_CONDITIONS,
-        VALID_STOP_CONDITIONS,
-        parse_control_state,
-    )
-    from final_response_gate import discover_state_files, evaluate_final_response_gate  # type: ignore
-    from scope_lock_utils import (  # type: ignore
-        find_term_owner,
-        list_value,
-        load_scope_lock,
-        normalize_text,
-        parse_release_plan,
-        scalar_value,
-    )
+    try:
+        from policy_utils import find_repo_root  # type: ignore
+        from check_pipeline_control_loop import (
+            INVALID_STOP_CONDITIONS,
+            VALID_STOP_CONDITIONS,
+        )  # type: ignore
+        from stop_validator import active_state_files, validate_all_active_stops  # type: ignore
+        from scope_lock_utils import (  # type: ignore
+            find_term_owner,
+            list_value,
+            load_scope_lock,
+            normalize_text,
+            parse_release_plan,
+            scalar_value,
+        )
+    except ModuleNotFoundError:  # pragma: no cover - copied project package import
+        from scripts.policy.policy_utils import find_repo_root  # type: ignore
+        from scripts.policy.check_pipeline_control_loop import (  # type: ignore
+            INVALID_STOP_CONDITIONS,
+            VALID_STOP_CONDITIONS,
+        )
+        from scripts.policy.stop_validator import (  # type: ignore
+            active_state_files,
+            validate_all_active_stops,
+        )
+        from scripts.policy.scope_lock_utils import (  # type: ignore
+            find_term_owner,
+            list_value,
+            load_scope_lock,
+            normalize_text,
+            parse_release_plan,
+            scalar_value,
+        )
 
 
 INVALID_DECISION_REASONS = INVALID_STOP_CONDITIONS | {
@@ -86,16 +103,17 @@ class DecisionResult:
 
 
 def _read_state(path: Path) -> dict[str, str]:
-    return parse_control_state(path.read_text(encoding="utf-8-sig"))
+    fields: dict[str, str] = {}
+    for line in path.read_text(encoding="utf-8-sig").splitlines():
+        if ":" not in line:
+            continue
+        key, _, value = line.strip().partition(":")
+        fields[key] = value.strip()
+    return fields
 
 
 def _active_state_paths(run_dir: Path) -> list[Path]:
-    paths = []
-    for path in discover_state_files(run_dir):
-        fields = _read_state(path)
-        if fields.get("active_run", "").lower() == "true":
-            paths.append(path)
-    return paths
+    return active_state_files(run_dir)
 
 
 def _state_for_run(run_dir: Path, run_id: str | None) -> Path | None:
@@ -112,10 +130,6 @@ def _state_for_run(run_dir: Path, run_id: str | None) -> Path | None:
 def _evidence_files_exist(evidence_files: list[str]) -> tuple[bool, list[str]]:
     missing = [item for item in evidence_files if not Path(item).exists()]
     return not missing, missing
-
-
-def _has_evidence(evidence: list[str], evidence_files: list[str]) -> bool:
-    return any(item.strip() for item in evidence) or bool(evidence_files)
 
 
 def _evaluate_start_rung_work(
@@ -190,7 +204,9 @@ def _evaluate_start_rung_work(
         ):
             continue
         owner = find_term_owner(plan, term)
-        owner_text = f"; {term} belongs to v{owner}" if owner and owner != current_rung else ""
+        owner_text = (
+            f"; {term} belongs to v{owner}" if owner and owner != current_rung else ""
+        )
         return DecisionResult(
             False,
             "start_rung_work",
@@ -198,8 +214,14 @@ def _evaluate_start_rung_work(
             f"SCOPE_CONFLICT: release-plan.md says v{current_rung} is {title}{owner_text}. Replan or get explicit scope amendment before editing.",
         )
 
-    canonical_terms = [title, scalar_value(lock, "proves"), *list_value(lock, "allowed_feature_terms")]
-    if prompt_text and not any(normalize_text(term) in normalized_prompt for term in canonical_terms if term):
+    canonical_terms = [
+        title,
+        scalar_value(lock, "proves"),
+        *list_value(lock, "allowed_feature_terms"),
+    ]
+    if prompt_text and not any(
+        normalize_text(term) in normalized_prompt for term in canonical_terms if term
+    ):
         return DecisionResult(
             False,
             "start_rung_work",
@@ -227,11 +249,12 @@ def evaluate_agent_decision(
     prompt_text: str = "",
     scope_amendment: str = "",
 ) -> DecisionResult:
-    evidence = evidence or []
     evidence_files = evidence_files or []
 
     if intent not in INTENTS:
-        return DecisionResult(False, intent, claimed_stop_condition, f"invalid intent `{intent}`")
+        return DecisionResult(
+            False, intent, claimed_stop_condition, f"invalid intent `{intent}`"
+        )
 
     if intent == "start_rung_work":
         return _evaluate_start_rung_work(
@@ -242,7 +265,9 @@ def evaluate_agent_decision(
             scope_amendment=scope_amendment,
         )
 
-    final_results = evaluate_final_response_gate(run_dir, require_active_run=require_active_run)
+    final_results = validate_all_active_stops(
+        run_dir, require_active_run=require_active_run
+    )
     blocked_final = [result for result in final_results if not result.allowed]
     if blocked_final:
         result = blocked_final[0]
@@ -286,17 +311,19 @@ def evaluate_agent_decision(
             state_path=str(state_path or ""),
         )
 
-    if recorded_stop != claimed_stop_condition and not _has_evidence(evidence, evidence_files):
+    if recorded_stop != claimed_stop_condition and not evidence_files:
         return DecisionResult(
             False,
             intent,
             claimed_stop_condition,
-            "claimed blocker has no evidence and does not match active control state",
+            "claimed blocker requires an evidence file and does not match active control state",
             state_path=str(state_path or ""),
         )
 
     if recorded_stop == claimed_stop_condition:
-        reason = f"decision allowed by recorded stop condition `{claimed_stop_condition}`"
+        reason = (
+            f"decision allowed by recorded stop condition `{claimed_stop_condition}`"
+        )
     else:
         reason = f"decision allowed by evidence for `{claimed_stop_condition}`"
 
@@ -311,8 +338,14 @@ def evaluate_agent_decision(
     )
 
 
-def write_decision_ledger(run_dir: Path, result: DecisionResult, run_id: str | None = None) -> Path:
-    state_path = Path(result.state_path) if result.state_path else _state_for_run(run_dir, run_id)
+def write_decision_ledger(
+    run_dir: Path, result: DecisionResult, run_id: str | None = None
+) -> Path:
+    state_path = (
+        Path(result.state_path)
+        if result.state_path
+        else _state_for_run(run_dir, run_id)
+    )
     if run_id:
         ledger_path = run_dir / run_id / "decision-ledger.ndjson"
     elif state_path:
@@ -332,7 +365,9 @@ def write_decision_ledger(run_dir: Path, result: DecisionResult, run_id: str | N
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.9")
+    parser.add_argument(
+        "--version", action="version", version="agent-pipeline-codex 0.5.10"
+    )
     parser.add_argument(
         "--run-dir",
         default=str(find_repo_root(__file__) / ".agent-runs"),

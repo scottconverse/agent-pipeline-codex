@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
 
-from pathlib import Path
-
 from scripts.policy_utils import find_repo_root, strip_yaml_comment
 
 

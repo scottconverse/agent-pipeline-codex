@@ -282,7 +282,7 @@
 <header class="masthead">
   <div class="mark">agent-pipeline-codex</div>
   <div class="meta">
-    <span>v0.5.9+scope-lock</span>
+    <span>v0.5.10+stop-validator</span>
     <span>Apache-2.0</span>
     <span>Codex Desktop App plugin</span>
   </div>
@@ -317,7 +317,7 @@
     </div>
 
     <aside class="hero-meta">
-      <div class="row"><span>Release</span><strong class="rust">0.5.9</strong></div>
+      <div class="row"><span>Release</span><strong class="rust">0.5.10</strong></div>
       <div class="row"><span>Stages</span><strong>11</strong></div>
       <div class="row"><span>Human gates</span><strong>3</strong></div>
       <div class="row"><span>Role files</span><strong>13</strong></div>
@@ -331,11 +331,11 @@
 
 <section class="diagram-wrap frame">
   <span class="frame-mark">Fig. 01 | Pipeline schematic</span>
-  <span class="frame-mark-right">v0.5.9 | feature.yaml</span>
+  <span class="frame-mark-right">v0.5.10 | feature.yaml</span>
 
   <div class="figcap">
-    <span class="label">Eleven stages | four phases | three human gates | three control gates</span>
-    <span class="title">A run, plus the stop-decision control plane.</span>
+    <span class="label">Eleven stages | four phases | three human gates | shared stop validator</span>
+    <span class="title">A run, plus the evidence-bound stop-decision control plane.</span>
   </div>
 
   <div class="diagram-scroll">
@@ -482,7 +482,7 @@
 
     <line class="hair-stroke" x1="50" y1="296" x2="1370" y2="296"/>
     <text class="lbl-mid" x="50" y="316">* On clean runs at v0.5, the manager gate auto-fires when the six structural conditions are met. Auto-promote reads parseable count lines from verify, critique, drift, policy, judge, and implementation.</text>
-    <text class="lbl-mid" x="50" y="336">Before any final, defer, skipped push, skipped CI, handoff-and-stop, or compact-and-stop: check_pipeline_control_loop, final_response_gate, agent_decision_gate, then pipeline_continue if blocked.</text>
+    <text class="lbl-mid" x="50" y="336">Before any final, defer, skipped push, skipped CI, handoff-and-stop, or compact-and-stop: shared stop_validator, final_response_gate, agent_decision_gate, then pipeline_continue if blocked.</text>
   </svg>
   </div>
 
@@ -637,12 +637,21 @@
           </div>
         </div>
 
-        <div class="layer current">
-          <div class="v">v0.5.9<strong>Canonical rung lock</strong><span class="badge">Current</span></div>
+        <div class="layer">
+          <div class="v">v0.5.9<strong>Canonical rung lock</strong></div>
           <div>
             <div class="l-title">The next rung is no longer inferred.</div>
             <p class="l-body">Every product run now carries a scope lock tied to the canonical release plan. Policy checks block missing locks, future-rung paths, contradictory docs, and commit subjects that do not belong to the locked rung. Prompt-plan conflicts stop before edits with <code>SCOPE_CONFLICT</code>.</p>
             <div class="l-catches"><strong>Fixes</strong> The agent working confidently on the wrong release rung because user wording and the canonical plan diverged.</div>
+          </div>
+        </div>
+
+        <div class="layer current">
+          <div class="v">v0.5.10<strong>Stop validation</strong><span class="badge">Current</span></div>
+          <div>
+            <div class="l-title">Valid-looking state is no longer trusted by itself.</div>
+            <p class="l-body">The final-response gate, continuation navigator, and agent-decision gate now share one validator that binds stop conditions to current stage evidence, run logs, scope receipts, and evidence files.</p>
+            <div class="l-catches"><strong>Fixes</strong> Stale active-control-state files and plausible blocker text becoming escape hatches during authorized work.</div>
           </div>
         </div>
       </div>
@@ -721,7 +730,7 @@
 <footer class="foot page">
   <span>(c) Scott Converse | Apache-2.0</span>
   <span><a href="https://github.com/scottconverse/agent-pipeline-codex">github</a> | <a href="https://github.com/scottconverse/agent-pipeline-codex/discussions">discussions</a></span>
-  <span>v0.5.9+scope-lock | 2026</span>
+  <span>v0.5.10+stop-validator | 2026</span>
 </footer>
 
 </body>

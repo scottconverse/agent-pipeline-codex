@@ -81,6 +81,7 @@ Once the project's working directory is identified and the orientation is settle
    - `final_response_gate.py`
    - `agent_decision_gate.py`
    - `pipeline_continue.py`
+   - `stop_validator.py`
 
 3. **`.gitignore`** - append `.agent-runs/` (create file if it doesn't exist; check for existing entry before appending to avoid duplicates).
 

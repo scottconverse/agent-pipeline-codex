@@ -105,7 +105,7 @@ def evaluate_scope_lock(run_id: str, run_dir: Path = RUN_DIR, root: Path = REPO_
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.9")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.10")
     parser.add_argument("--run", help="Pipeline run id under .agent-runs/.")
     args = parser.parse_args()
 

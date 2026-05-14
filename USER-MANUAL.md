@@ -2,7 +2,7 @@
 
 A Codex Desktop App plugin that orchestrates multi-stage agentic work with three human-approval gates. Built from real lessons across multi-week agent projects where autonomous runs go wrong silently and "manager-PROMOTE" failures slip past CI.
 
-**Version:** 0.5.9
+**Version:** 0.5.10
 **License:** Apache 2.0
 
 ---
@@ -79,6 +79,7 @@ Policy and control scripts (Python, stdlib only):
 - `final_response_gate.py` - blocks final responses while an authorized run must continue
 - `agent_decision_gate.py` - validates stop/defer/skip decisions and writes the decision ledger
 - `pipeline_continue.py` - prints the next executable action for an active run
+- `stop_validator.py` - v0.5.10 shared stop-condition truth validator used by the three continuation gates
 - `check_decision_ledger.py` - validates versioned `decision-ledger.ndjson` rows
 - `show_run_status.py` - prints a read-only run status summary
 - `auto_promote.py` - v0.5 six-condition machine-checkable promote
@@ -153,7 +154,7 @@ python scripts/policy/check_manifest_schema.py --version
 python scripts/policy/show_run_status.py --version
 ```
 
-Each prints `agent-pipeline-codex 0.5.9` and exits 0. The flag fires before any other argument validation, so it works on `auto_promote.py` without supplying `--run`. Use it to confirm a project actually has the v0.5 scripts and not stale copies from an earlier `pipeline-init`.
+Each prints `agent-pipeline-codex 0.5.10` and exits 0. The flag fires before any other argument validation, so it works on `auto_promote.py` without supplying `--run`. Use it to confirm a project actually has the v0.5 scripts and not stale copies from an earlier `pipeline-init`.
 
 If the script doesn't recognize `--version` (argparse prints a usage error and exits 2), the install is pre-v0.5. Re-run `pipeline-init` to refresh the scripts from the plugin source.
 
@@ -203,7 +204,7 @@ Once onboarded, every piece of agent work follows the same shape: define what yo
 
 ### Control-loop gate
 
-During an authorized run, `run-pipeline` keeps working until a valid stop condition is recorded in `.agent-runs/<run-id>/active-control-state.md`, `scripts/policy/check_pipeline_control_loop.py --run <run-id>` passes, `scripts/policy/final_response_gate.py --require-active-run` prints `final_response_gate: ALLOW`, and `scripts/policy/agent_decision_gate.py --intent <intent> --claimed-stop-condition <condition> --write-ledger` allows the specific stop, defer, skip, or final-response decision.
+During an authorized run, `run-pipeline` keeps working until a valid stop condition is recorded in `.agent-runs/<run-id>/active-control-state.md`, the shared `stop_validator.py` proves the stop from current stage/run evidence, `scripts/policy/check_pipeline_control_loop.py --run <run-id>` passes, `scripts/policy/final_response_gate.py --require-active-run` prints `final_response_gate: ALLOW`, and `scripts/policy/agent_decision_gate.py --intent <intent> --claimed-stop-condition <condition> --write-ledger` allows the specific stop, defer, skip, or final-response decision.
 
 Valid stop conditions are: `human_approval_gate`, `failed_gate_needs_user_direction`, `destructive_action`, `credential_or_secret_required`, `scope_conflict`, `external_system_unavailable_after_retry`, and `user_explicitly_paused_or_stopped`.
 

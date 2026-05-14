@@ -19,7 +19,9 @@ def _write_state(run_dir: Path, run_id: str, **overrides: str) -> Path:
     state.update(overrides)
     path = run_dir / run_id / "active-control-state.md"
     path.parent.mkdir(parents=True)
-    path.write_text("\n".join(f"{key}: {value}" for key, value in state.items()), encoding="utf-8")
+    path.write_text(
+        "\n".join(f"{key}: {value}" for key, value in state.items()), encoding="utf-8"
+    )
     return path
 
 
@@ -41,6 +43,7 @@ def test_unverified_actions_budget_risk_cannot_skip_push(tmp_path: Path) -> None
     _write_state(
         tmp_path,
         "run-1",
+        current_stage="manifest",
         stop_condition="human_approval_gate",
         final_response_allowed="true",
     )
@@ -60,6 +63,7 @@ def test_valid_recorded_stop_allows_decision(tmp_path: Path) -> None:
     _write_state(
         tmp_path,
         "run-1",
+        current_stage="manifest",
         stop_condition="human_approval_gate",
         final_response_allowed="true",
     )
@@ -78,6 +82,7 @@ def test_claimed_blocker_requires_evidence_when_not_recorded(tmp_path: Path) -> 
     _write_state(
         tmp_path,
         "run-1",
+        current_stage="manifest",
         stop_condition="human_approval_gate",
         final_response_allowed="true",
     )
@@ -90,13 +95,16 @@ def test_claimed_blocker_requires_evidence_when_not_recorded(tmp_path: Path) -> 
     )
 
     assert result.allowed is False
-    assert "no evidence" in result.reason
+    assert "evidence file" in result.reason
 
 
-def test_claimed_blocker_with_evidence_is_allowed(tmp_path: Path) -> None:
+def test_claimed_blocker_with_plain_text_evidence_is_not_allowed(
+    tmp_path: Path,
+) -> None:
     _write_state(
         tmp_path,
         "run-1",
+        current_stage="manifest",
         stop_condition="human_approval_gate",
         final_response_allowed="true",
     )
@@ -109,8 +117,36 @@ def test_claimed_blocker_with_evidence_is_allowed(tmp_path: Path) -> None:
         run_id="run-1",
     )
 
+    assert result.allowed is False
+    assert "evidence file" in result.reason
+
+
+def test_claimed_blocker_with_evidence_file_is_allowed(tmp_path: Path) -> None:
+    _write_state(
+        tmp_path,
+        "run-1",
+        current_stage="manifest",
+        stop_condition="human_approval_gate",
+        final_response_allowed="true",
+    )
+    evidence_file = tmp_path / "credential-proof.txt"
+    evidence_file.write_text(
+        "secret name required: GH_TOKEN_FOR_PRIVATE_REPO", encoding="utf-8"
+    )
+
+    result = evaluate_agent_decision(
+        tmp_path,
+        intent="stop",
+        claimed_stop_condition="credential_or_secret_required",
+        evidence_files=[str(evidence_file)],
+        run_id="run-1",
+    )
+
     assert result.allowed is True
-    assert result.reason == "decision allowed by evidence for `credential_or_secret_required`"
+    assert (
+        result.reason
+        == "decision allowed by evidence for `credential_or_secret_required`"
+    )
 
 
 def test_decision_ledger_records_blocked_decision(tmp_path: Path) -> None:
@@ -163,7 +199,9 @@ forbidden_feature_terms_without_replan:
     )
 
 
-def test_start_rung_work_blocks_prompt_that_conflicts_with_release_plan(tmp_path: Path) -> None:
+def test_start_rung_work_blocks_prompt_that_conflicts_with_release_plan(
+    tmp_path: Path,
+) -> None:
     _write_scope_fixture(tmp_path)
 
     result = evaluate_agent_decision(

@@ -233,7 +233,7 @@ any final response. That file records the current stage, last completed gate,
 next required action, stop condition, whether a final response is allowed, and
 the action the runner is continuing to.
 
-`scripts/policy/check_pipeline_control_loop.py --run <run-id>` validates the recorded control state for one run. `scripts/policy/final_response_gate.py --require-active-run` is the pre-final executable gate; it discovers active control-state files and blocks when any active run must continue. `scripts/policy/agent_decision_gate.py --write-ledger` validates the agent's specific stop, defer, skip, or final-response decision and records the result in `decision-ledger.ndjson`. `scripts/policy/check_decision_ledger.py --run <run-id>` validates that ledger as schema-v1 NDJSON. `scripts/policy/pipeline_continue.py` prints the next executable action when the agent is not allowed to stop. `scripts/policy/show_run_status.py --run <run-id>` is the read-only operator view over the same state.
+`scripts/policy/check_pipeline_control_loop.py --run <run-id>` validates the recorded control state for one run. `scripts/policy/stop_validator.py` is the shared truth layer that binds stop conditions to current run evidence instead of trusting valid-looking state text. `scripts/policy/final_response_gate.py --require-active-run` is the pre-final executable gate; it discovers active control-state files and blocks when any active run must continue or records a stale stop. `scripts/policy/agent_decision_gate.py --write-ledger` validates the agent's specific stop, defer, skip, or final-response decision and records the result in `decision-ledger.ndjson`. `scripts/policy/check_decision_ledger.py --run <run-id>` validates that ledger as schema-v1 NDJSON. `scripts/policy/pipeline_continue.py` prints the next executable action when the agent is not allowed to stop. `scripts/policy/show_run_status.py --run <run-id>` is the read-only operator view over the same state.
 The gates fail when the runner tries to stop on successful push, green CI, draft PR
 status, an unverified blocker, a recommended next action, unresolved caveats, or release/tag after all
 required gates have passed. `Open Caveats / Release Risks` blocks completion
@@ -626,6 +626,7 @@ agent-pipeline-codex/                        # the plugin
     |-- final_response_gate.py           # discovers active runs and blocks final responses
     |-- agent_decision_gate.py           # validates stop/defer/skip intent and writes ledger
     |-- pipeline_continue.py             # prints next required action
+    |-- stop_validator.py                # shared stop-condition truth validator
     `-- run_all.py                       # check runner
 ```
 
@@ -649,6 +650,7 @@ After `pipeline-init`, your project gets:
 |   |-- final_response_gate.py
 |   |-- agent_decision_gate.py
 |   |-- pipeline_continue.py
+|   |-- stop_validator.py
 |   `-- run_all.py
 `-- .agent-runs/                         # gitignored, created on first new-run
     `-- <run-id>/

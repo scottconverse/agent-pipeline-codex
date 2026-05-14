@@ -229,7 +229,7 @@ def _check_judge(run_dir: Path) -> ConditionResult:
     return ConditionResult(
         "judge-clean",
         True,
-        f"judge-metrics.yaml: judged_block=0, human_blocked=0.",
+        "judge-metrics.yaml: judged_block=0, human_blocked=0.",
     )
 
 
@@ -348,7 +348,7 @@ def _write_report(run_dir: Path, conditions: list[ConditionResult]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.9")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.10")
     parser.add_argument(
         "--run",
         required=True,

@@ -4,7 +4,7 @@
 
 A Codex Desktop App plugin that orchestrates multi-stage agentic work: **manifest -> research -> plan -> test-write -> execute -> policy -> verify -> drift-detect -> critique -> auto-promote -> manager**, with human-approval gates at manifest, plan, and manager-decision (the last auto-fires on clean runs at v0.5+). Built from real lessons across CivicCast, CivicSuite, AgentSuiteLocal and other projects where autonomous agent runs go wrong silently and "manager-PROMOTE" failures slip past CI.
 
-**Current release: v0.5.9** (canonical rung/scope authority and prompt-plan conflict gates). [CHANGELOG](CHANGELOG.md) | [User Manual](USER-MANUAL.md) | [Architecture](ARCHITECTURE.md) | [Landing page](https://scottconverse.github.io/agent-pipeline-codex/) | [Discussions](https://github.com/scottconverse/agent-pipeline-codex/discussions)
+**Current release: v0.5.10** (central stop validation and evidence-bound continuation gates). [CHANGELOG](CHANGELOG.md) | [User Manual](USER-MANUAL.md) | [Architecture](ARCHITECTURE.md) | [Landing page](https://scottconverse.github.io/agent-pipeline-codex/) | [Discussions](https://github.com/scottconverse/agent-pipeline-codex/discussions)
 
 ## Why this plugin exists
 
@@ -24,7 +24,7 @@ This plugin enforces a structural pattern that catches every one of those:
 5. **Verifier stage** - independent fresh-context check against every manifest exit criterion.
 6. **Manager gate** - final PROMOTE/BLOCK/REPLAN decision, must cite verifier evidence verbatim.
 
-7. **Control-loop gate** - before any final response, stop, deferral, or skipped action during an authorized run, `.agent-runs/<run-id>/active-control-state.md` must record a valid stop condition, `scripts/policy/check_pipeline_control_loop.py --run <run-id>` must pass, `scripts/policy/final_response_gate.py --require-active-run` must print `final_response_gate: ALLOW`, and `scripts/policy/agent_decision_gate.py` must allow the specific decision. Green CI, successful push, draft PR status, unverified blocker risk, and a recommended next action are not stop conditions.
+7. **Control-loop gate** - before any final response, stop, deferral, or skipped action during an authorized run, `.agent-runs/<run-id>/active-control-state.md` must record a valid stop condition, `scripts/policy/check_pipeline_control_loop.py --run <run-id>` must pass, `scripts/policy/final_response_gate.py --require-active-run` must print `final_response_gate: ALLOW`, and `scripts/policy/agent_decision_gate.py` must allow the specific decision through the shared `stop_validator.py`. Green CI, successful push, draft PR status, stale state, unverified blocker risk, and a recommended next action are not stop conditions.
 
 ## Install
 
@@ -116,6 +116,7 @@ scripts/policy/
 |-- final_response_gate.py          # pre-final continuation gate
 |-- agent_decision_gate.py          # stop/skip/defer decision gate + ledger
 |-- pipeline_continue.py            # executable next-action navigator
+|-- stop_validator.py               # v0.5.10 - shared stop-condition truth validator
 |-- check_decision_ledger.py        # schema validator for decision-ledger.ndjson
 |-- show_run_status.py              # read-only run state summary
 |-- check_no_todos.py               # generic, configurable scan dirs
@@ -282,6 +283,17 @@ Single-model-family blind spots correlate. If both the executor and the critic s
 The four stack. Most projects run v0.4 + v0.5 by default and reach for v0.3 when they have two model families available.
 
 **Operator reference:** USER-MANUAL.md Section "v0.5 single-AI hardening" + ARCHITECTURE.md Section 8 "Single-AI hardening (v0.5)".
+
+## v0.5.10: Evidence-bound stop validation
+
+v0.5.10 closes the stale-control-state escape hatch by centralizing stop
+truth in `stop_validator.py`. `final_response_gate.py`,
+`pipeline_continue.py`, and `agent_decision_gate.py` now call the same validator
+instead of each trusting `active-control-state.md` independently. Human gates
+are valid only at manifest, plan, or manager stages; failed-gate stops must be
+backed by current `run.log` evidence when a log exists; stale scope-repair
+states cannot authorize stopping after a passing `scope-lock-receipt.txt`; and
+unrecorded blocker claims require an evidence file, not just plausible text.
 
 ## v0.5.9: Canonical rung authority
 

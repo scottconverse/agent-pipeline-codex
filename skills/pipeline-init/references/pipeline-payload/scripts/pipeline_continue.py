@@ -10,48 +10,44 @@ from pathlib import Path
 
 try:
     from scripts.policy_utils import find_repo_root
-    from scripts.check_pipeline_control_loop import parse_control_state, validate_control_state
-    from scripts.final_response_gate import discover_state_files
+    from scripts.stop_validator import active_state_files, validate_state_file
 except ModuleNotFoundError:  # pragma: no cover - direct script execution from scripts/
-    from policy_utils import find_repo_root  # type: ignore
-    from check_pipeline_control_loop import parse_control_state, validate_control_state  # type: ignore
-    from final_response_gate import discover_state_files  # type: ignore
-
-
-def _active_states(run_dir: Path) -> list[tuple[Path, dict[str, str]]]:
-    states: list[tuple[Path, dict[str, str]]] = []
-    for path in discover_state_files(run_dir):
-        fields = parse_control_state(path.read_text(encoding="utf-8-sig"))
-        if fields.get("active_run", "").lower() == "true":
-            states.append((path, fields))
-    return states
+    try:
+        from policy_utils import find_repo_root  # type: ignore
+        from stop_validator import active_state_files, validate_state_file  # type: ignore
+    except ModuleNotFoundError:  # pragma: no cover - copied project package import
+        from scripts.policy.policy_utils import find_repo_root  # type: ignore
+        from scripts.policy.stop_validator import (  # type: ignore
+            active_state_files,
+            validate_state_file,
+        )
 
 
 def next_action(run_dir: Path) -> tuple[int, str]:
-    states = _active_states(run_dir)
+    states = active_state_files(run_dir)
     if not states:
-        return 1, f"pipeline_continue: BLOCK\n  reason: no active run found under {run_dir}"
+        return (
+            1,
+            f"pipeline_continue: BLOCK\n  reason: no active run found under {run_dir}",
+        )
 
     blocked = []
     allowed = []
-    for path, fields in states:
-        violations = validate_control_state(fields)
-        if violations:
-            blocked.append((path, "control-state validation failed: " + "; ".join(violations)))
-            continue
-
-        if fields.get("final_response_allowed", "").lower() == "false":
+    for path in states:
+        result = validate_state_file(path)
+        if not result.allowed:
             blocked.append(
                 (
                     path,
-                    "continue_to="
-                    + fields.get("continuing_to", "")
+                    result.reason
+                    + "; continue_to="
+                    + result.continuing_to
                     + "; next_required_action="
-                    + fields.get("next_required_action", ""),
+                    + result.next_required_action,
                 )
             )
         else:
-            allowed.append((path, fields.get("stop_condition", "")))
+            allowed.append((path, result.stop_condition))
 
     if blocked:
         lines = ["pipeline_continue: CONTINUE"]
@@ -67,7 +63,9 @@ def next_action(run_dir: Path) -> tuple[int, str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.9")
+    parser.add_argument(
+        "--version", action="version", version="agent-pipeline-codex 0.5.10"
+    )
     parser.add_argument(
         "--run-dir",
         default=str(find_repo_root(__file__) / ".agent-runs"),

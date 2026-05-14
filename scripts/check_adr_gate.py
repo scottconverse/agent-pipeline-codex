@@ -22,7 +22,6 @@ from __future__ import annotations
 
 import subprocess
 import sys
-from pathlib import Path
 
 try:
     from policy_utils import find_repo_root
