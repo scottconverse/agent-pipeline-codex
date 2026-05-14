@@ -1,5 +1,7 @@
 # Contributing
 
+[![CI](https://github.com/scottconverse/agent-pipeline-codex/actions/workflows/ci.yml/badge.svg)](https://github.com/scottconverse/agent-pipeline-codex/actions/workflows/ci.yml)
+
 Thanks for helping improve Agent Pipeline for Codex.
 
 ## Development Rules

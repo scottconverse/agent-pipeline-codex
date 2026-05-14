@@ -348,7 +348,7 @@ def _write_report(run_dir: Path, conditions: list[ConditionResult]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.7")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.8")
     parser.add_argument(
         "--run",
         required=True,

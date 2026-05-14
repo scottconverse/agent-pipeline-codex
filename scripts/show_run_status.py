@@ -29,21 +29,30 @@ class LogEntry:
     note: str
 
 
-def parse_run_log(path: Path) -> list[LogEntry]:
+@dataclass(frozen=True)
+class RunLogParseResult:
+    entries: list[LogEntry]
+    skipped_lines: int
+
+
+def parse_run_log(path: Path) -> RunLogParseResult:
     if not path.exists():
-        return []
+        return RunLogParseResult([], 0)
     entries: list[LogEntry] = []
+    skipped_lines = 0
     for raw in path.read_text(encoding="utf-8-sig").splitlines():
         parts = [part.strip() for part in raw.split("|", 3)]
         if len(parts) != 4:
+            skipped_lines += 1
             continue
         entries.append(LogEntry(parts[0], parts[1], parts[2], parts[3]))
-    return entries
+    return RunLogParseResult(entries, skipped_lines)
 
 
 def summarize_run(run_dir: Path) -> list[str]:
     lines = [f"show-run-status: {run_dir.name}"]
-    entries = parse_run_log(run_dir / "run.log")
+    parsed_log = parse_run_log(run_dir / "run.log")
+    entries = parsed_log.entries
     if entries:
         completed = [entry for entry in entries if entry.status.upper() == "COMPLETE"]
         incomplete = [entry for entry in entries if entry.status.upper() != "COMPLETE"]
@@ -57,6 +66,10 @@ def summarize_run(run_dir: Path) -> list[str]:
             )
     else:
         lines.append("  run_log: missing or empty")
+    if parsed_log.skipped_lines:
+        lines.append(
+            f"  run_log_warning: skipped {parsed_log.skipped_lines} malformed line(s)"
+        )
 
     state_path = run_dir / "active-control-state.md"
     if state_path.exists():
@@ -81,7 +94,7 @@ def summarize_run(run_dir: Path) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.7")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.8")
     parser.add_argument("--run", required=True, help="Pipeline run id under .agent-runs/.")
     args = parser.parse_args()
 

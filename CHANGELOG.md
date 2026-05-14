@@ -10,6 +10,25 @@ release; the `CHANGELOG` will call them out.
 
 ## [Unreleased]
 
+## [0.5.8] - 2026-05-13
+
+Patch release. Adds promotion polish after the v0.5.7 re-evaluation: clearer
+status output, a production ledger writer-to-validator test, tighter git
+classification regressions, and public CI badges.
+
+### Added
+
+- **Run-log transparency.** `show-run-status` now reports how many malformed
+  `run.log` lines it skipped, so crash-recovery status reads cannot silently
+  hide partial writes.
+- **Ledger writer-to-validator coverage.** Added a regression test that writes
+  a real `decision-ledger.ndjson` row through `agent_decision_gate.py` and then
+  validates it with `check_decision_ledger.py`.
+- **Focused git-classification negatives.** Added tests proving the feature
+  branch push rule does not catch read-only git commands, main pushes, or
+  force pushes, and that the force-push rule catches both argument orders.
+- **CI visibility.** Added source-only CI badges to README and CONTRIBUTING.
+
 ## [0.5.7] - 2026-05-13
 
 Patch release. Closes the v0.5.6 audit punch list by hardening action

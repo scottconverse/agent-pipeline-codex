@@ -2,7 +2,7 @@
 
 A Codex Desktop App plugin that orchestrates multi-stage agentic work with three human-approval gates. Built from real lessons across multi-week agent projects where autonomous runs go wrong silently and "manager-PROMOTE" failures slip past CI.
 
-**Version:** 0.5.7
+**Version:** 0.5.8
 **License:** Apache 2.0
 
 ---
@@ -150,7 +150,7 @@ python scripts/policy/check_manifest_schema.py --version
 python scripts/policy/show_run_status.py --version
 ```
 
-Each prints `agent-pipeline-codex 0.5.7` and exits 0. The flag fires before any other argument validation, so it works on `auto_promote.py` without supplying `--run`. Use it to confirm a project actually has the v0.5 scripts and not stale copies from an earlier `pipeline-init`.
+Each prints `agent-pipeline-codex 0.5.8` and exits 0. The flag fires before any other argument validation, so it works on `auto_promote.py` without supplying `--run`. Use it to confirm a project actually has the v0.5 scripts and not stale copies from an earlier `pipeline-init`.
 
 If the script doesn't recognize `--version` (argparse prints a usage error and exits 2), the install is pre-v0.5. Re-run `pipeline-init` to refresh the scripts from the plugin source.
 

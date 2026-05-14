@@ -85,7 +85,7 @@ def validate_ledger(path: Path) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.7")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.8")
     parser.add_argument("--run", help="Pipeline run id under .agent-runs/.")
     parser.add_argument("--ledger", help="Direct path to decision-ledger.ndjson.")
     args = parser.parse_args()

@@ -112,3 +112,22 @@ def test_every_action_classification_regex_matches_its_fixture_only() -> None:
         compiled = re.compile(pattern)
         assert compiled.search(MATCH_CASES[pattern]), pattern
         assert not compiled.search(safe_noop), pattern
+
+
+def test_feature_branch_push_rule_does_not_capture_read_only_or_force_push_commands() -> None:
+    pattern = re.compile(r"git\s+push\b(?!.*\b(main|master)\b)(?!.*--force\b)")
+
+    assert pattern.search("git push origin feature")
+    assert not pattern.search("git push --force origin feature")
+    assert not pattern.search("git push origin main")
+    assert not pattern.search("git log --oneline")
+    assert not pattern.search("git status")
+    assert not pattern.search("git diff")
+
+
+def test_force_push_rule_catches_common_force_forms() -> None:
+    force_long = re.compile(r"git\s+push\b.*--force\b")
+
+    assert force_long.search("git push --force origin feature")
+    assert force_long.search("git push origin feature --force")
+    assert not force_long.search("git push origin feature")
