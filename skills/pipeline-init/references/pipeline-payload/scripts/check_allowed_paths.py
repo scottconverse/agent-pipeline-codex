@@ -10,9 +10,9 @@ import sys
 from pathlib import Path
 
 try:
-    from policy_utils import find_repo_root, strip_yaml_comment
+    from policy_utils import find_repo_root, strip_yaml_comment, unsupported_yaml_constructs
 except ModuleNotFoundError:  # pragma: no cover - source-tree test import
-    from scripts.policy_utils import find_repo_root, strip_yaml_comment
+    from scripts.policy_utils import find_repo_root, strip_yaml_comment, unsupported_yaml_constructs
 
 
 REPO_ROOT = find_repo_root(__file__)
@@ -48,6 +48,12 @@ def _load_manifest_lists(manifest_path: Path) -> tuple[list[str], list[str]]:
         sys.exit(1)
 
     text = manifest_path.read_text(encoding="utf-8")
+    unsupported = unsupported_yaml_constructs(text)
+    if unsupported:
+        print("FAIL: manifest uses YAML syntax outside the supported Agent Pipeline subset:", file=sys.stderr)
+        for item in unsupported:
+            print(f"  - {item}", file=sys.stderr)
+        sys.exit(1)
     allowed: list[str] = []
     forbidden: list[str] = []
     current_key: str | None = None

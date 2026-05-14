@@ -40,9 +40,9 @@ import sys
 from pathlib import Path
 
 try:
-    from policy_utils import find_repo_root, strip_yaml_comment
+    from policy_utils import find_repo_root, strip_yaml_comment, unsupported_yaml_constructs
 except ModuleNotFoundError:  # pragma: no cover - source-tree test import
-    from scripts.policy_utils import find_repo_root, strip_yaml_comment
+    from scripts.policy_utils import find_repo_root, strip_yaml_comment, unsupported_yaml_constructs
 
 FORBIDDEN_STATUS_WORDS = {"done", "complete", "ready", "shippable", "taggable"}
 MIN_GOAL_CHARS = 30
@@ -73,7 +73,10 @@ def _read_manifest(manifest_path: Path) -> dict[str, object]:
         sys.exit(1)
 
     text = manifest_path.read_text(encoding="utf-8")
+    unsupported = unsupported_yaml_constructs(text)
     fields: dict[str, object] = {}
+    if unsupported:
+        fields["__unsupported_yaml__"] = unsupported
     current_list_key: str | None = None
 
     for raw in text.splitlines():
@@ -142,6 +145,14 @@ def _check(fields: dict[str, object]) -> list[str]:
     """Apply schema rules. Return a list of violation strings (empty = pass)."""
     violations: list[str] = []
 
+    unsupported = fields.get("__unsupported_yaml__")
+    if isinstance(unsupported, list):
+        for item in unsupported:
+            violations.append(
+                "manifest uses YAML syntax outside the supported Agent Pipeline subset: "
+                f"{item}"
+            )
+
     goal = fields.get("goal")
     if not isinstance(goal, str) or len(goal.strip()) < MIN_GOAL_CHARS:
         violations.append(
@@ -204,7 +215,7 @@ def _check(fields: dict[str, object]) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.6")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.7")
     parser.add_argument(
         "--run",
         help="Pipeline run id (directory under .agent-runs/). Without this, the check is a no-op.",

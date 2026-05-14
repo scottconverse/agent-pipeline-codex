@@ -244,12 +244,17 @@ def _check_tests(run_dir: Path) -> ConditionResult:
         return ConditionResult("tests-passed", False, f"{path.name} missing")
     text = path.read_text(encoding="utf-8", errors="replace")
 
-    if re.search(r"\b\d+\s+failed\b", text):
-        # But allow "0 failed" specifically.
-        if not re.search(r"\b0\s+failed\b", text):
-            return ConditionResult(
-                "tests-passed", False, "implementation-report.md contains a non-zero failure count."
-            )
+    failure_counts = [
+        int(match.group(1))
+        for match in re.finditer(r"\b(\d+)\s+failed\b", text, re.IGNORECASE)
+    ]
+    nonzero_failures = [count for count in failure_counts if count != 0]
+    if nonzero_failures:
+        return ConditionResult(
+            "tests-passed",
+            False,
+            "implementation-report.md contains a non-zero failure count.",
+        )
 
     for pattern in TEST_PASS_PATTERNS:
         if pattern.search(text):
@@ -343,7 +348,7 @@ def _write_report(run_dir: Path, conditions: list[ConditionResult]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.6")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.7")
     parser.add_argument(
         "--run",
         required=True,

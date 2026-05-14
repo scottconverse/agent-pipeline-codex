@@ -230,7 +230,7 @@ any final response. That file records the current stage, last completed gate,
 next required action, stop condition, whether a final response is allowed, and
 the action the runner is continuing to.
 
-`scripts/policy/check_pipeline_control_loop.py --run <run-id>` validates the recorded control state for one run. `scripts/policy/final_response_gate.py --require-active-run` is the pre-final executable gate; it discovers active control-state files and blocks when any active run must continue. `scripts/policy/agent_decision_gate.py --write-ledger` validates the agent's specific stop, defer, skip, or final-response decision and records the result in `decision-ledger.ndjson`. `scripts/policy/pipeline_continue.py` prints the next executable action when the agent is not allowed to stop.
+`scripts/policy/check_pipeline_control_loop.py --run <run-id>` validates the recorded control state for one run. `scripts/policy/final_response_gate.py --require-active-run` is the pre-final executable gate; it discovers active control-state files and blocks when any active run must continue. `scripts/policy/agent_decision_gate.py --write-ledger` validates the agent's specific stop, defer, skip, or final-response decision and records the result in `decision-ledger.ndjson`. `scripts/policy/check_decision_ledger.py --run <run-id>` validates that ledger as schema-v1 NDJSON. `scripts/policy/pipeline_continue.py` prints the next executable action when the agent is not allowed to stop. `scripts/policy/show_run_status.py --run <run-id>` is the read-only operator view over the same state.
 The gates fail when the runner tries to stop on successful push, green CI, draft PR
 status, an unverified blocker, a recommended next action, unresolved caveats, or release/tag after all
 required gates have passed. `Open Caveats / Release Risks` blocks completion
@@ -255,6 +255,13 @@ flowchart TB
     class Stop stop
     class Work work
 ```
+
+Decision ledger rows are newline-delimited JSON objects with `schema_version: 1`.
+Required keys are `allowed` (boolean), `intent` (string),
+`claimed_stop_condition` (string), `reason` (string), and `timestamp` (string).
+Optional string keys are `required_next_action`, `continuing_to`, and
+`state_path`. The validator rejects blank lines, malformed JSON, missing
+required keys, wrong primitive types, and unknown schema versions.
 
 ---
 
@@ -722,46 +729,46 @@ sequenceDiagram
     participant CC as "Codex Desktop App"
     participant Plugin as "agent-pipeline-codex plugin"
     participant Proj as "your project"
-    participant Runs as ".agent-runs/run-id/"
+    participant Runs as "agent run directory"
 
     U->>CC: pipeline-init
-    CC->>Plugin: read commandspipeline-init.md
-    CC->>U: ask: PRD / repo / description?
-    U->>CC: PRD path or repo URL or description
-    CC->>Proj: scaffold .pipelines/, scripts/policy/, AGENTS.md
-    CC->>U: orientation summary; suggest new-run
+    CC->>Plugin: read pipeline-init command
+    CC->>U: ask for PRD, repo, or description
+    U->>CC: provide project source
+    CC->>Proj: scaffold pipeline files
+    CC->>U: summarize orientation
 
     U->>CC: new-run feature my-task
-    CC->>Plugin: read commandsnew-run.md
-    CC->>Runs: create dir + manifest.yaml skeleton
-    CC->>U: display manifest; instruct to fill in
+    CC->>Plugin: read new-run command
+    CC->>Runs: create manifest skeleton
+    CC->>U: ask user to fill manifest
     U->>Runs: edit manifest.yaml
 
-    U->>CC: run-pipeline feature 2026-05-09-my-task
-    CC->>Plugin: read commandsrun-pipeline.md
+    U->>CC: run-pipeline feature run-id
+    CC->>Plugin: read run-pipeline command
     loop for each stage
         CC->>Runs: read run.log to find resume point
         alt human gate
-            CC->>U: a structured user question: APPROVE?
+            CC->>U: ask for approval
             U->>CC: APPROVE or block
         else policy stage
-            CC->>Proj: bash scripts/policy/run_all.py
+            CC->>Proj: run policy checks
         else agent stage
             CC->>Plugin: read role file
-            CC->>CC: spawn subagent with role + context
+            CC->>CC: spawn scoped subagent
             CC->>Runs: subagent writes artifact
         end
         CC->>Runs: append run.log line
         CC->>Runs: update active-control-state.md
-        CC->>Proj: run final_response_gate / agent_decision_gate before any stop
+        CC->>Proj: run final and decision gates
         alt decision gate blocks
             CC->>Proj: run pipeline_continue.py
-            CC->>CC: continue to required next action
+            CC->>CC: continue to next action
         else valid stop condition
             CC->>Runs: append decision-ledger.ndjson
         end
     end
-    CC->>U: pipeline complete; show manager decision
+    CC->>U: pipeline complete and manager decision shown
 ```
 
 ---

@@ -10,6 +10,48 @@ release; the `CHANGELOG` will call them out.
 
 ## [Unreleased]
 
+## [0.5.7] - 2026-05-13
+
+Patch release. Closes the v0.5.6 audit punch list by hardening action
+classification tests, manifest parser failure modes, run-state visibility, and
+ledger validation.
+
+### Added
+
+- **Action-classification regex tests.** Added fixtures that compile and
+  exercise every shipped `action-classification.yaml` regex against matching
+  and non-matching commands.
+- **Run status command.** Added `scripts/show_run_status.py`,
+  `commands/show-run-status.md`, and the `show-run-status` skill so operators
+  can inspect a run without resuming it.
+- **Decision-ledger validator.** Added `scripts/check_decision_ledger.py` and
+  schema-v1 rows for `decision-ledger.ndjson`.
+- **Pipeline fixture integration test.** Added a deterministic fixture that
+  exercises auto-promote, control-state validation, final-response blocking,
+  decision gating, run-status output, and ledger validation together.
+
+### Changed
+
+- **Manifest parser fail-closed behavior.** The constrained stdlib manifest
+  parser now explicitly rejects unsupported YAML block scalars, anchors,
+  aliases, and merge keys instead of silently misreading them.
+- **Judge tuning visibility.** The run-pipeline handler now requires a
+  checkpoint summary of judge action counts, blocks, revisions, and
+  escalation rate after executor runs with the judge layer active.
+- **First-use workflow.** README and USER-MANUAL now place
+  `validate-manifest` between `new-run` and `run-pipeline`, and list
+  `show-run-status` as the read-only status path.
+
+### Fixed
+
+- **Ambiguous test report parsing.** `auto_promote.py` now blocks if any
+  non-zero failure count appears anywhere in `implementation-report.md`, even
+  when another suite line says `0 failed`.
+- **Version-test brittleness.** Release tests now derive expected version
+  strings from plugin metadata instead of hard-coding a release number.
+- **Mermaid reliability.** Architecture diagrams were simplified and kept to
+  GitHub-safe Mermaid syntax.
+
 ## [0.5.6] - 2026-05-13
 
 Patch release. Finishes the shared policy-helper migration, hardens

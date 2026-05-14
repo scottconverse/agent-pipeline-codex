@@ -2,7 +2,7 @@
 
 A Codex Desktop App plugin that orchestrates multi-stage agentic work: **manifest -> research -> plan -> test-write -> execute -> policy -> verify -> drift-detect -> critique -> auto-promote -> manager**, with human-approval gates at manifest, plan, and manager-decision (the last auto-fires on clean runs at v0.5+). Built from real lessons across CivicCast, CivicSuite, AgentSuiteLocal and other projects where autonomous agent runs go wrong silently and "manager-PROMOTE" failures slip past CI.
 
-**Current release: v0.5.6** (policy helper consolidation and namespaced install proof). [CHANGELOG](CHANGELOG.md) | [User Manual](USER-MANUAL.md) | [Architecture](ARCHITECTURE.md) | [Landing page](https://scottconverse.github.io/agent-pipeline-codex/) | [Discussions](https://github.com/scottconverse/agent-pipeline-codex/discussions)
+**Current release: v0.5.7** (audit punch-list hardening, run status, and ledger validation). [CHANGELOG](CHANGELOG.md) | [User Manual](USER-MANUAL.md) | [Architecture](ARCHITECTURE.md) | [Landing page](https://scottconverse.github.io/agent-pipeline-codex/) | [Discussions](https://github.com/scottconverse/agent-pipeline-codex/discussions)
 
 ## Why this plugin exists
 
@@ -51,6 +51,7 @@ standalone skill names. The expected names are:
 - `agent-pipeline-codex:new-run`
 - `agent-pipeline-codex:run-pipeline`
 - `agent-pipeline-codex:audit-init`
+- `agent-pipeline-codex:show-run-status`
 - `agent-pipeline-codex:validate-manifest`
 
 If a session only sees `agent-pipeline`, `pipeline-init`, or `run-pipeline`
@@ -109,6 +110,8 @@ scripts/policy/
 |-- final_response_gate.py          # pre-final continuation gate
 |-- agent_decision_gate.py          # stop/skip/defer decision gate + ledger
 |-- pipeline_continue.py            # executable next-action navigator
+|-- check_decision_ledger.py        # schema validator for decision-ledger.ndjson
+|-- show_run_status.py              # read-only run state summary
 |-- check_no_todos.py               # generic, configurable scan dirs
 |-- check_adr_gate.py               # generic, ADRs are append-only
 |-- auto_promote.py                 # v0.5 - six-condition machine-checkable promote
@@ -123,10 +126,14 @@ Once a project is initialized:
 ```
 Use new-run for feature my-task-slug.      # initialize a manifest skeleton
                                            # (you fill in the manifest, then:)
+Use validate-manifest for 2026-05-09-my-task-slug.
+                                           # fix schema issues before agent work starts
 Use run-pipeline for feature 2026-05-09-my-task-slug.
                                            # orchestrates the full sequence,
                                            # stops at human gates and on failure,
                                            # resumable from .agent-runs/<run-id>/run.log
+Use show-run-status for 2026-05-09-my-task-slug.
+                                           # read-only status when you need orientation
 ```
 
 Three human-approval gates per run: manifest, plan, manager-decision. Each is a one-question prompt: APPROVE or describe what should change.
@@ -282,16 +289,20 @@ After `pipeline-init`, the files installed in your repo are yours to edit. Add p
 
 ## Documentation
 
-- `skills/*.md` - Codex skill entrypoints for onboarding, new-run, run-pipeline, and audit-init
-- `commandspipeline-init.md` - the full onboarding workflow logic
-- `commandsnew-run.md` - the run-init workflow logic
-- `commandsrun-pipeline.md` - the orchestrator workflow logic (includes v0.4 Handler 3a judge interception and v0.5 Handler 4 auto-promote-aware manager)
-- `commandsaudit-init.md` - scaffolds the v0.3 dual-AI audit-handoff infrastructure
+- `skills/*/SKILL.md` - Codex skill entrypoints for onboarding, new-run, validation, run-pipeline, status, and audit-init
+- `commands/pipeline-init.md` - the full onboarding workflow logic
+- `commands/new-run.md` - the run-init workflow logic
+- `commands/validate-manifest.md` - manifest schema preflight
+- `commands/run-pipeline.md` - the orchestrator workflow logic (includes v0.4 Handler 3a judge interception and v0.5 Handler 4 auto-promote-aware manager)
+- `commands/show-run-status.md` - read-only run status workflow
+- `commands/audit-init.md` - scaffolds the v0.3 dual-AI audit-handoff infrastructure
 - `pipelines/roles/*.md` - what each role does, what's forbidden
 - `pipelines/manifest-template.yaml` - every manifest field with inline docs
 - `scripts/auto_promote.py` - v0.5 six-condition promote-eligibility checker (`--version` to confirm release)
 - `scripts/check_manifest_schema.py` - v0.5 manifest validator (`--version` to confirm release)
 - `scripts/validate_manifest.py` - standalone manifest preflight wrapper for source and scaffolded projects
+- `scripts/check_decision_ledger.py` - schema-v1 decision-ledger validator
+- `scripts/show_run_status.py` - read-only status summary over run.log and active-control-state
 - `.pipelines/templates/workflow-cost-directives.md` - canonical GitHub Actions cost-discipline contract
 - `USER-MANUAL.md` - end-to-end operator reference, every command + gate + troubleshooting case
 - `ARCHITECTURE.md` - diagrams, file layout, artifact data flow, extension points

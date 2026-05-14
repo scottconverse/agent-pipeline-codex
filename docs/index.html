@@ -282,7 +282,7 @@
 <header class="masthead">
   <div class="mark">agent-pipeline-codex</div>
   <div class="meta">
-    <span>v0.5.6+install-proof</span>
+    <span>v0.5.7+install-proof</span>
     <span>Apache-2.0</span>
     <span>Codex Desktop App plugin</span>
   </div>
@@ -317,7 +317,7 @@
     </div>
 
     <aside class="hero-meta">
-      <div class="row"><span>Release</span><strong class="rust">0.5.6</strong></div>
+      <div class="row"><span>Release</span><strong class="rust">0.5.7</strong></div>
       <div class="row"><span>Stages</span><strong>11</strong></div>
       <div class="row"><span>Human gates</span><strong>3</strong></div>
       <div class="row"><span>Role files</span><strong>13</strong></div>
@@ -331,7 +331,7 @@
 
 <section class="diagram-wrap frame">
   <span class="frame-mark">Fig. 01 | Pipeline schematic</span>
-  <span class="frame-mark-right">v0.5.6 | feature.yaml</span>
+  <span class="frame-mark-right">v0.5.7 | feature.yaml</span>
 
   <div class="figcap">
     <span class="label">Eleven stages | four phases | three human gates | three control gates</span>
@@ -563,12 +563,14 @@
 <span class="prompt">></span> Use pipeline-init for this project.
 <span class="prompt">></span> Use new-run for feature <span style="color:#8e8a80;">&lt;task-slug&gt;</span>.
 <span class="comment">>  ... fill in the manifest the plugin scaffolds ...</span>
-<span class="prompt">></span> Use run-pipeline for feature <span style="color:#8e8a80;">&lt;run-id&gt;</span>.</pre></div>
+<span class="prompt">></span> Use validate-manifest for <span style="color:#8e8a80;">&lt;run-id&gt;</span>.
+<span class="prompt">></span> Use run-pipeline for feature <span style="color:#8e8a80;">&lt;run-id&gt;</span>.
+<span class="prompt">></span> Use show-run-status for <span style="color:#8e8a80;">&lt;run-id&gt;</span>.</pre></div>
 
       <div class="runtimes">
         <div>
           <h4>Codex skills</h4>
-          <p>Six Codex skills cover the full surface: <code>agent-pipeline</code> orients and routes; <code>pipeline-init</code> onboards a project, <code>new-run</code> initializes a run manifest, <code>validate-manifest</code> preflights the manifest schema, <code>run-pipeline</code> orchestrates the eleven stages with resume-from-log, and <code>audit-init</code> scaffolds the v0.3 dual-AI audit-handoff discipline.</p>
+          <p>Seven Codex skills cover the full surface: <code>agent-pipeline</code> orients and routes; <code>pipeline-init</code> onboards a project, <code>new-run</code> initializes a run manifest, <code>validate-manifest</code> preflights the manifest schema, <code>run-pipeline</code> orchestrates the eleven stages with resume-from-log, <code>show-run-status</code> gives read-only run orientation, and <code>audit-init</code> scaffolds the v0.3 dual-AI audit-handoff discipline.</p>
         </div>
         <div>
           <h4>Subagent isolation</h4>
@@ -627,10 +629,10 @@
         </div>
 
         <div class="layer current">
-          <div class="v">v0.5.6<strong>Install proof</strong><span class="badge">Current</span></div>
+          <div class="v">v0.5.7<strong>Run status and ledger proof</strong><span class="badge">Current</span></div>
           <div>
             <div class="l-title">The install surface has one truth.</div>
-            <p class="l-body">Policy scripts now share one repo-root helper, auto-promote parser tests cover malformed and whitespace-varied count lines, and fresh-session prompts must verify the namespaced <code>agent-pipeline-codex:*</code> skills instead of stale standalone skill names.</p>
+            <p class="l-body">Action-classification regexes now have fixtures, unsupported manifest YAML fails loudly, auto-promote blocks any non-zero failure count, and operators get read-only run status plus schema-v1 decision-ledger validation.</p>
             <div class="l-catches"><strong>Fixes</strong> Helper drift, brittle parser confidence, stale standalone skill ambiguity, and incomplete restart prompts.</div>
           </div>
         </div>
@@ -710,7 +712,7 @@
 <footer class="foot page">
   <span>(c) Scott Converse | Apache-2.0</span>
   <span><a href="https://github.com/scottconverse/agent-pipeline-codex">github</a> | <a href="https://github.com/scottconverse/agent-pipeline-codex/discussions">discussions</a></span>
-  <span>v0.5.6+install-proof | 2026</span>
+  <span>v0.5.7+install-proof | 2026</span>
 </footer>
 
 </body>

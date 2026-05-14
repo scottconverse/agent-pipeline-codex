@@ -37,6 +37,7 @@ EXPECTED_SKILLS = [
     "new-run",
     "pipeline-init",
     "run-pipeline",
+    "show-run-status",
     "validate-manifest",
 ]
 

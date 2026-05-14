@@ -296,11 +296,21 @@ When the executor subagent finishes (whether by writing its artifact normally OR
    revision_cycles: 1
    ```
 
-3. Verify the executor's expected artifact (`implementation-report.md`) exists and is non-empty, exactly as in Handler 3 step 4.
+3. Print a judge tuning summary in the checkpoint report before continuing:
 
-4. If the executor was halted mid-loop (by judge BLOCK or human block), the implementation-report.md may be incomplete or missing. In that case the executor stage is marked BLOCKED in the run log per the verdict-routing rules in Step 5 above; `judge-log.yaml` and `judge-metrics.yaml` are still written so the verifier and manager can see what happened.
+   ```text
+   Judge summary: <total_actions> action(s), <judge_invocations> judged, escalation_rate=<rate>, blocks=<judged_block + human_blocked>, revisions=<judged_revise>.
+   ```
 
-5. If the executor completed normally and the artifact exists: append `<TS> | execute | COMPLETE | implementation-report.md written; judge intercepted <N> action(s)` to `run.log` and continue to the next stage.
+   If `escalation_rate` is below `0.02`, add: `Tuning note: judge rules may be too permissive or the run was mostly read-only.`
+   If `escalation_rate` is above `0.10`, add: `Tuning note: judge rules may be too broad; review action-classification.yaml before the next run.`
+   This is an operator signal only; it does not change gate status.
+
+4. Verify the executor's expected artifact (`implementation-report.md`) exists and is non-empty, exactly as in Handler 3 step 4.
+
+5. If the executor was halted mid-loop (by judge BLOCK or human block), the implementation-report.md may be incomplete or missing. In that case the executor stage is marked BLOCKED in the run log per the verdict-routing rules in Step 5 above; `judge-log.yaml` and `judge-metrics.yaml` are still written so the verifier and manager can see what happened.
+
+6. If the executor completed normally and the artifact exists: append `<TS> | execute | COMPLETE | implementation-report.md written; judge intercepted <N> action(s)` to `run.log` and continue to the next stage.
 
 ### Handler 4 - `role: manager` with `auto_promote_aware: true` (v0.5)
 

@@ -43,6 +43,20 @@ def test_check_tests_rejects_mixed_pass_fail_output(tmp_path) -> None:
     assert "non-zero failure count" in result.evidence
 
 
+def test_check_tests_rejects_nonzero_failure_even_when_zero_failure_appears_elsewhere(tmp_path) -> None:
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    (run_dir / "implementation-report.md").write_text(
+        "legacy suite: 5 passed, 2 failed\nnew suite: 12 passed, 0 failed",
+        encoding="utf-8",
+    )
+
+    result = _check_tests(run_dir)
+
+    assert not result.passed
+    assert "non-zero failure count" in result.evidence
+
+
 def test_auto_promote_writes_decision_for_full_green_artifact_set(tmp_path, monkeypatch) -> None:
     run_id = "green-run"
     run_base = tmp_path / ".agent-runs"

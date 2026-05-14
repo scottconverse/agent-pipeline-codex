@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import subprocess
+import pytest
 
 from scripts import check_allowed_paths
 from scripts.check_allowed_paths import _is_under, _load_manifest_lists
@@ -43,4 +44,22 @@ def test_git_changed_files_includes_untracked(monkeypatch) -> None:
     monkeypatch.setattr(check_allowed_paths.subprocess, "run", fake_run)
 
     assert check_allowed_paths._git_changed_files() == ["docs/new.md", "scripts/a.py"]
+
+
+def test_allowed_paths_rejects_unsupported_manifest_yaml(tmp_path) -> None:
+    manifest = tmp_path / "manifest.yaml"
+    manifest.write_text(
+        """
+pipeline_run:
+  allowed_paths: &paths
+    - "scripts/"
+  forbidden_paths: *paths
+""",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(SystemExit) as exc:
+        _load_manifest_lists(manifest)
+
+    assert exc.value.code == 1
 

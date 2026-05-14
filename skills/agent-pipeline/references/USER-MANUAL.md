@@ -2,7 +2,7 @@
 
 A Codex Desktop App plugin that orchestrates multi-stage agentic work with three human-approval gates. Built from real lessons across multi-week agent projects where autonomous runs go wrong silently and "manager-PROMOTE" failures slip past CI.
 
-**Version:** 0.5.6
+**Version:** 0.5.7
 **License:** Apache 2.0
 
 ---
@@ -45,7 +45,7 @@ If you don't have those yet, `pipeline-init` helps you scaffold them.
 
 ## What you get
 
-Six Codex skills: one overview/router plus five concrete workflow skills.
+Seven Codex skills: one overview/router plus six concrete workflow skills.
 
 | Skill | Purpose |
 | :--- | :--- |
@@ -54,6 +54,7 @@ Six Codex skills: one overview/router plus five concrete workflow skills.
 | `new-run <type> <slug>` | Initialize a new pipeline run. Creates `.agent-runs/<run-id>/manifest.yaml` from the template and asks you to fill it in. |
 | `validate-manifest` | Preflight a run manifest against the same schema used by the policy stage. |
 | `run-pipeline <type> <run-id>` | Orchestrate a pipeline run end-to-end. Stops at human gates and on failure. Resumable. |
+| `show-run-status <run-id>` | Read-only summary of a run's current stage, stop condition, next action, and artifacts. |
 | `audit-init` | (v0.3) Scaffold dual-AI audit-handoff infrastructure for projects where one AI implements and another audits. |
 
 Three default pipeline definitions:
@@ -75,6 +76,8 @@ Policy and control scripts (Python, stdlib only):
 - `final_response_gate.py` - blocks final responses while an authorized run must continue
 - `agent_decision_gate.py` - validates stop/defer/skip decisions and writes the decision ledger
 - `pipeline_continue.py` - prints the next executable action for an active run
+- `check_decision_ledger.py` - validates versioned `decision-ledger.ndjson` rows
+- `show_run_status.py` - prints a read-only run status summary
 - `auto_promote.py` - v0.5 six-condition machine-checkable promote
 - `validate_manifest.py` - standalone manifest preflight wrapper
 - `run_all.py` - combined runner
@@ -107,7 +110,7 @@ python scripts/verify_plugin_release.py --live
 
 The required success lines are `PLUGIN-RELEASE-VERIFY: PASSED` and the nested
 `PLUGIN-INSTALL-ACCEPTANCE: PASSED`. The live check verifies that
-`agent-pipeline-codex` appears under Available plugins, that all six expected
+`agent-pipeline-codex` appears under Available plugins, that all seven expected
 namespaced skills load, and that no plugin-specific loader warnings were
 emitted.
 
@@ -120,6 +123,7 @@ agent-pipeline-codex:pipeline-init
 agent-pipeline-codex:new-run
 agent-pipeline-codex:run-pipeline
 agent-pipeline-codex:audit-init
+agent-pipeline-codex:show-run-status
 agent-pipeline-codex:validate-manifest
 ```
 
@@ -138,14 +142,15 @@ python scripts/verify_plugin_release.py --source-only
 This proves tests, source skill packaging, and source plugin layout without
 claiming the local Desktop plugin is installed.
 
-Two of the v0.5 policy scripts ship a `--version` flag for sanity-checking the install:
+Several v0.5 policy scripts ship a `--version` flag for sanity-checking the install:
 
 ```bash
 python scripts/policy/auto_promote.py --version
 python scripts/policy/check_manifest_schema.py --version
+python scripts/policy/show_run_status.py --version
 ```
 
-Each prints `agent-pipeline-codex 0.5.6` and exits 0. The flag fires before any other argument validation, so it works on `auto_promote.py` without supplying `--run`. Use it to confirm a project actually has the v0.5 scripts and not stale copies from an earlier `pipeline-init`.
+Each prints `agent-pipeline-codex 0.5.7` and exits 0. The flag fires before any other argument validation, so it works on `auto_promote.py` without supplying `--run`. Use it to confirm a project actually has the v0.5 scripts and not stale copies from an earlier `pipeline-init`.
 
 If the script doesn't recognize `--version` (argparse prints a usage error and exits 2), the install is pre-v0.5. Re-run `pipeline-init` to refresh the scripts from the plugin source.
 
@@ -228,7 +233,17 @@ Open `.agent-runs/2026-05-09-add-search-endpoint/manifest.yaml` in your editor. 
 
 The manifest template has inline comments explaining every field.
 
-### Step 3 - Run the pipeline
+### Step 3 - Validate the manifest
+
+```
+validate-manifest --run 2026-05-09-add-search-endpoint
+```
+
+Fix every reported violation before starting the pipeline. This uses the same
+strict schema gate as the policy stage, including unsupported YAML syntax,
+minimum contract length, forbidden status words, and broad-path warnings.
+
+### Step 4 - Run the pipeline
 
 ```
 run-pipeline feature 2026-05-09-add-search-endpoint
@@ -251,7 +266,18 @@ manager         -> manager subagent -> manager-decision.md
 
 Each stage outcome appends to `.agent-runs/<run-id>/run.log`.
 
-### Step 4 - Approve or send back at each gate
+### Read-only status
+
+When you need orientation without resuming a run, use:
+
+```
+show-run-status 2026-05-09-add-search-endpoint
+```
+
+It reports the last run-log event, active control state, stop condition, next
+required action, and artifact list without mutating the project.
+
+### Step 5 - Approve or send back at each gate
 
 Three explicit human-approval moments:
 

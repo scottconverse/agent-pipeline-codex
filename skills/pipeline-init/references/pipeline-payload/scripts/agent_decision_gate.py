@@ -54,6 +54,7 @@ INTENTS = {
     "compact",
     "handoff",
 }
+LEDGER_SCHEMA_VERSION = "1"
 
 
 @dataclass(frozen=True)
@@ -194,7 +195,10 @@ def write_decision_ledger(run_dir: Path, result: DecisionResult, run_id: str | N
         ledger_path = run_dir / "decision-ledger.ndjson"
 
     ledger_path.parent.mkdir(parents=True, exist_ok=True)
-    row = asdict(result) | {"timestamp": datetime.now(timezone.utc).isoformat()}
+    row = asdict(result) | {
+        "schema_version": LEDGER_SCHEMA_VERSION,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
     with ledger_path.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(row, sort_keys=True) + "\n")
     return ledger_path
@@ -202,7 +206,7 @@ def write_decision_ledger(run_dir: Path, result: DecisionResult, run_id: str | N
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.6")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.7")
     parser.add_argument(
         "--run-dir",
         default=str(find_repo_root(__file__) / ".agent-runs"),
