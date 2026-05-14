@@ -67,7 +67,7 @@ def next_action(run_dir: Path) -> tuple[int, str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.8")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.9")
     parser.add_argument(
         "--run-dir",
         default=str(find_repo_root(__file__) / ".agent-runs"),

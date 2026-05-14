@@ -15,6 +15,7 @@ These are source-controlled because:
 | [`announcements-v0.4.md`](announcements-v0.4.md) | Announcements | Pinned post announcing v0.4 |
 | [`announcements-v0.5-control-loop.md`](announcements-v0.5-control-loop.md) | Announcements | Pinned post announcing v0.5 control-loop enforcement |
 | [`announcements-v0.5.8-status-polish.md`](announcements-v0.5.8-status-polish.md) | Announcements | Pinned post announcing v0.5.8 status polish |
+| [`announcements-v0.5.9-scope-lock.md`](announcements-v0.5.9-scope-lock.md) | Announcements | Pinned post announcing v0.5.9 canonical rung lock |
 | [`q-and-a-seed.md`](q-and-a-seed.md) | Q&A | Seed FAQ thread |
 | [`show-and-tell-seed.md`](show-and-tell-seed.md) | Show and tell | Seed post inviting case studies |
 | [`ideas-seed.md`](ideas-seed.md) | Ideas | Seed post for v0.5+ proposals |

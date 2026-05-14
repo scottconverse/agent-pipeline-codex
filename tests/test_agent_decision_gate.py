@@ -127,3 +127,84 @@ def test_decision_ledger_records_blocked_decision(tmp_path: Path) -> None:
     row = json.loads(ledger.read_text(encoding="utf-8").splitlines()[0])
     assert row["allowed"] is False
     assert row["continuing_to"] == "slice gap audit"
+
+
+def _write_scope_fixture(root: Path) -> None:
+    plan = root / "docs" / "spec" / "release-plan.md"
+    plan.parent.mkdir(parents=True)
+    plan.write_text(
+        """
+## 0.6 - Summary + signed records
+Proves: an AI summary of a meeting passes operator review and exports as a signed PDF/A legal record
+
+## 0.7 - Publish dashboard
+Proves: publish dashboard work reaches internet archive, local NAS, and YouTube.
+""",
+        encoding="utf-8",
+    )
+    run = root / ".agent-runs" / "run-1"
+    run.mkdir(parents=True)
+    (run / "scope-lock.yaml").write_text(
+        """
+current_rung: "0.6"
+canonical_source: "docs/spec/release-plan.md"
+rung_title: "Summary + signed records"
+proves: "an AI summary of a meeting passes operator review and exports as a signed PDF/A legal record"
+allowed_feature_terms:
+  - summary
+  - signed records
+forbidden_feature_terms_without_replan:
+  - publish dashboard
+  - internet archive
+  - local NAS
+  - YouTube
+""",
+        encoding="utf-8",
+    )
+
+
+def test_start_rung_work_blocks_prompt_that_conflicts_with_release_plan(tmp_path: Path) -> None:
+    _write_scope_fixture(tmp_path)
+
+    result = evaluate_agent_decision(
+        tmp_path / ".agent-runs",
+        intent="start_rung_work",
+        claimed_stop_condition="scope_conflict",
+        run_id="run-1",
+        claimed_rung="0.6",
+        prompt_text="Begin v0.6 publish-dashboard work",
+    )
+
+    assert result.allowed is False
+    assert "SCOPE_CONFLICT" in result.reason
+    assert "v0.6 is Summary + signed records" in result.reason
+
+
+def test_start_rung_work_allows_matching_prompt(tmp_path: Path) -> None:
+    _write_scope_fixture(tmp_path)
+
+    result = evaluate_agent_decision(
+        tmp_path / ".agent-runs",
+        intent="start_rung_work",
+        claimed_stop_condition="scope_conflict",
+        run_id="run-1",
+        claimed_rung="0.6",
+        prompt_text="Begin v0.6 Summary + signed records work",
+    )
+
+    assert result.allowed is True
+
+
+def test_start_rung_work_requires_prompt_or_explicit_amendment(tmp_path: Path) -> None:
+    _write_scope_fixture(tmp_path)
+
+    result = evaluate_agent_decision(
+        tmp_path / ".agent-runs",
+        intent="start_rung_work",
+        claimed_stop_condition="scope_conflict",
+        run_id="run-1",
+        claimed_rung="0.6",
+    )
+
+    assert result.allowed is False
+    assert "requires --prompt-text" in result.reason

@@ -4,7 +4,7 @@
 
 A Codex Desktop App plugin that orchestrates multi-stage agentic work: **manifest -> research -> plan -> test-write -> execute -> policy -> verify -> drift-detect -> critique -> auto-promote -> manager**, with human-approval gates at manifest, plan, and manager-decision (the last auto-fires on clean runs at v0.5+). Built from real lessons across CivicCast, CivicSuite, AgentSuiteLocal and other projects where autonomous agent runs go wrong silently and "manager-PROMOTE" failures slip past CI.
 
-**Current release: v0.5.8** (promotion polish, status transparency, and tighter regression coverage). [CHANGELOG](CHANGELOG.md) | [User Manual](USER-MANUAL.md) | [Architecture](ARCHITECTURE.md) | [Landing page](https://scottconverse.github.io/agent-pipeline-codex/) | [Discussions](https://github.com/scottconverse/agent-pipeline-codex/discussions)
+**Current release: v0.5.9** (canonical rung/scope authority and prompt-plan conflict gates). [CHANGELOG](CHANGELOG.md) | [User Manual](USER-MANUAL.md) | [Architecture](ARCHITECTURE.md) | [Landing page](https://scottconverse.github.io/agent-pipeline-codex/) | [Discussions](https://github.com/scottconverse/agent-pipeline-codex/discussions)
 
 ## Why this plugin exists
 
@@ -17,10 +17,10 @@ Agentic work fails in predictable ways:
 
 This plugin enforces a structural pattern that catches every one of those:
 
-1. **Manifest gate** - every run starts with an explicit, human-approved manifest naming the goal, allowed paths, forbidden paths, non-goals, expected outputs, and definition-of-done.
+1. **Manifest + scope-lock gate** - every run starts with an explicit, human-approved manifest plus a scope lock naming the canonical release-plan rung, proof statement, allowed terms, and forbidden future-rung terms.
 2. **Director-decisions gate** - the researcher surfaces open questions; the human picks; choices are recorded as binding constraints before the planner runs.
 3. **Plan gate** - the planner produces a plan; the human approves or sends back.
-4. **Policy stage** - automated checks block the run if the manifest fails strict schema validation (v0.5), any change falls outside `allowed_paths`, the diff contains TODO/FIXME/HACK markers, or an existing ADR was modified.
+4. **Policy stage** - automated checks block the run if the manifest fails strict schema validation (v0.5), the scope lock disagrees with the canonical release plan (v0.5.9), any change falls outside `allowed_paths`, edited paths or commit messages belong to another rung, docs contradict the locked rung, the diff contains TODO/FIXME/HACK markers, or an existing ADR was modified.
 5. **Verifier stage** - independent fresh-context check against every manifest exit criterion.
 6. **Manager gate** - final PROMOTE/BLOCK/REPLAN decision, must cite verifier evidence verbatim.
 
@@ -90,6 +90,7 @@ After init, your project has:
 |-- bugfix.yaml                     # stage sequence for bug fixes
 |-- module-release.yaml             # six-phase release pipeline (v0.2+)
 |-- manifest-template.yaml          # blank template with field docs
+|-- scope-lock-template.yaml        # blank canonical rung/scope lock
 |-- action-classification.yaml      # opt-in: enables the v0.4 judge layer
 |-- self-classification-rules.md    # pre-authorized cases the executor handles solo
 `-- roles/
@@ -108,7 +109,10 @@ After init, your project has:
     `-- implementer-pre-push.md     # v0.3 audit-handoff
 scripts/policy/
 |-- check_manifest_schema.py        # v0.5 - strict manifest contract validator
+|-- check_scope_lock.py             # v0.5.9 - canonical rung lock validator
 |-- check_allowed_paths.py          # generic, manifest-driven
+|-- check_rung_file_ownership.py    # v0.5.9 - future-rung path/commit blocker
+|-- check_release_docs_consistency.py # v0.5.9 - docs vs release-plan consistency
 |-- final_response_gate.py          # pre-final continuation gate
 |-- agent_decision_gate.py          # stop/skip/defer decision gate + ledger
 |-- pipeline_continue.py            # executable next-action navigator
@@ -126,8 +130,8 @@ scripts/policy/
 Once a project is initialized:
 
 ```
-Use new-run for feature my-task-slug.      # initialize a manifest skeleton
-                                           # (you fill in the manifest, then:)
+Use new-run for feature my-task-slug.      # initialize manifest + scope-lock skeletons
+                                           # (you fill in both, then:)
 Use validate-manifest for 2026-05-09-my-task-slug.
                                            # fix schema issues before agent work starts
 Use run-pipeline for feature 2026-05-09-my-task-slug.
@@ -140,15 +144,16 @@ Use show-run-status for 2026-05-09-my-task-slug.
 
 Three human-approval gates per run: manifest, plan, manager-decision. Each is a one-question prompt: APPROVE or describe what should change.
 
-Before starting a run, validate the manifest with the same schema used by the
-policy stage:
+Before starting a run, validate the manifest and scope lock with the same
+checks used by the policy stage:
 
 ```bash
 python scripts/policy/validate_manifest.py --run 2026-05-09-my-task-slug
+python scripts/policy/check_scope_lock.py --run 2026-05-09-my-task-slug
 ```
 
-The validator reports exact violations and the fix path before the pipeline
-spends agent time on a fuzzy manifest.
+The validators report exact violations and the fix path before the pipeline
+spends agent time on a fuzzy manifest or the wrong canonical rung.
 
 ## v0.2: The `module-release` pipeline
 
@@ -278,10 +283,31 @@ The four stack. Most projects run v0.4 + v0.5 by default and reach for v0.3 when
 
 **Operator reference:** USER-MANUAL.md Section "v0.5 single-AI hardening" + ARCHITECTURE.md Section 8 "Single-AI hardening (v0.5)".
 
+## v0.5.9: Canonical rung authority
+
+v0.5.9 adds the missing guard between "the agent is authorized to continue"
+and "the agent is working on the right thing." A run now carries
+`.agent-runs/<run-id>/scope-lock.yaml`, which binds the work to a specific
+section of the canonical release plan. The policy stage blocks missing locks,
+release-plan mismatches, future-rung paths, contradictory docs, and commit
+subjects that belong to another rung.
+
+Before starting rung work from a prompt, the orchestrator runs:
+
+```bash
+python scripts/policy/agent_decision_gate.py --run <run-id> --intent start_rung_work --claimed-rung <rung> --prompt-text "<user wording>"
+```
+
+If the user says "Begin v0.6 publish-dashboard work" while the release plan
+says v0.6 is "Summary + signed records," the gate returns `SCOPE_CONFLICT`.
+The agent stops before edits and requires an explicit scope amendment. It may
+not infer that the release ladder changed.
+
 ## What this plugin will NOT do
 
 - It will not propose autonomous mode. Every gate is explicit.
 - It will not silently expand scope. The policy stage blocks any change outside `allowed_paths`.
+- It will not silently change rungs. The scope-lock gates block prompt, path, docs, and commit-message conflicts with the canonical release plan.
 - It will not skip tests. AGENTS.md hard-rule "never skip tests" is enforced as a project default.
 - It will not promote a run if the verifier marked any criterion NOT MET. Manager hard rule.
 
@@ -300,8 +326,12 @@ After `pipeline-init`, the files installed in your repo are yours to edit. Add p
 - `commands/audit-init.md` - scaffolds the v0.3 dual-AI audit-handoff infrastructure
 - `pipelines/roles/*.md` - what each role does, what's forbidden
 - `pipelines/manifest-template.yaml` - every manifest field with inline docs
+- `pipelines/scope-lock-template.yaml` - canonical rung/scope lock template
 - `scripts/auto_promote.py` - v0.5 six-condition promote-eligibility checker (`--version` to confirm release)
 - `scripts/check_manifest_schema.py` - v0.5 manifest validator (`--version` to confirm release)
+- `scripts/check_scope_lock.py` - canonical release-plan rung validator
+- `scripts/check_rung_file_ownership.py` - future-rung path and commit-subject blocker
+- `scripts/check_release_docs_consistency.py` - docs vs locked rung consistency gate
 - `scripts/validate_manifest.py` - standalone manifest preflight wrapper for source and scaffolded projects
 - `scripts/check_decision_ledger.py` - schema-v1 decision-ledger validator
 - `scripts/show_run_status.py` - read-only status summary over run.log and active-control-state

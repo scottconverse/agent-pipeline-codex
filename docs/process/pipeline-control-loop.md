@@ -56,6 +56,34 @@ After every authorized push, the runner monitors CI for the exact pushed SHA. If
 
 Green CI is evidence. It is not a stop condition.
 
+## Rung / Scope Authority Rule
+
+Before product work starts, `.agent-runs/<run-id>/scope-lock.yaml` must exist and pass `python scripts/policy/check_scope_lock.py --run <run-id>`.
+
+The scope lock names the canonical release-plan source, current rung, rung title, proof statement, required modules, allowed feature terms, forbidden future-rung terms, and replan triggers. The policy stage also runs:
+
+- `check_rung_file_ownership.py --run <run-id>` to block edited paths or commit messages that belong to another rung.
+- `check_release_docs_consistency.py --run <run-id>` to block README, CHANGELOG, docs index, or other docs that name the current rung with future-rung work.
+
+If user wording conflicts with the canonical release plan, the pipeline must stop before edits with `scope_conflict` and require an explicit scope amendment. The agent may not infer that the release ladder changed.
+
+Before starting rung work from a user prompt, run:
+
+```bash
+python scripts/policy/agent_decision_gate.py --run <run-id> --intent start_rung_work --claimed-rung <current-rung> --prompt-text "<user wording>"
+```
+
+No product commit is valid without a durable `.agent-runs/<run-id>/scope-lock-receipt.txt` containing:
+
+```text
+scope_lock: PASS
+canonical_rung: <rung> <title>
+edited_paths_match_rung: PASS
+docs_consistency: PASS
+```
+
+No push is valid if the commit message or docs contradict the locked rung.
+
 ## Pre-Final Gate
 
 Before every final response in an authorized pipeline run, run:

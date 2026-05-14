@@ -23,6 +23,14 @@ try:
         parse_control_state,
     )
     from scripts.final_response_gate import discover_state_files, evaluate_final_response_gate
+    from scripts.scope_lock_utils import (
+        find_term_owner,
+        list_value,
+        load_scope_lock,
+        normalize_text,
+        parse_release_plan,
+        scalar_value,
+    )
 except ModuleNotFoundError:  # pragma: no cover - direct script execution from scripts/
     from policy_utils import find_repo_root  # type: ignore
     from check_pipeline_control_loop import (  # type: ignore
@@ -31,6 +39,14 @@ except ModuleNotFoundError:  # pragma: no cover - direct script execution from s
         parse_control_state,
     )
     from final_response_gate import discover_state_files, evaluate_final_response_gate  # type: ignore
+    from scope_lock_utils import (  # type: ignore
+        find_term_owner,
+        list_value,
+        load_scope_lock,
+        normalize_text,
+        parse_release_plan,
+        scalar_value,
+    )
 
 
 INVALID_DECISION_REASONS = INVALID_STOP_CONDITIONS | {
@@ -53,6 +69,7 @@ INTENTS = {
     "ask_user",
     "compact",
     "handoff",
+    "start_rung_work",
 }
 LEDGER_SCHEMA_VERSION = "1"
 
@@ -101,6 +118,103 @@ def _has_evidence(evidence: list[str], evidence_files: list[str]) -> bool:
     return any(item.strip() for item in evidence) or bool(evidence_files)
 
 
+def _evaluate_start_rung_work(
+    run_dir: Path,
+    run_id: str | None,
+    claimed_rung: str,
+    prompt_text: str,
+    scope_amendment: str,
+) -> DecisionResult:
+    if not run_id:
+        return DecisionResult(
+            False,
+            "start_rung_work",
+            "scope_conflict",
+            "`start_rung_work` requires --run so the scope-lock can be checked",
+        )
+    if not claimed_rung:
+        return DecisionResult(
+            False,
+            "start_rung_work",
+            "scope_conflict",
+            "`start_rung_work` requires --claimed-rung",
+        )
+    try:
+        _, lock = load_scope_lock(run_dir, run_id)
+    except FileNotFoundError as exc:
+        return DecisionResult(
+            False,
+            "start_rung_work",
+            "scope_conflict",
+            f"scope-lock.yaml missing at {exc.args[0]}",
+        )
+
+    current_rung = scalar_value(lock, "current_rung")
+    title = scalar_value(lock, "rung_title")
+    if claimed_rung != current_rung:
+        return DecisionResult(
+            False,
+            "start_rung_work",
+            "scope_conflict",
+            f"SCOPE_CONFLICT: claimed rung v{claimed_rung} does not match scope-lock v{current_rung} {title}. Replan or get explicit scope amendment before editing.",
+        )
+
+    if scope_amendment and "scott explicitly amends" in normalize_text(scope_amendment):
+        return DecisionResult(
+            True,
+            "start_rung_work",
+            "scope_conflict",
+            "start allowed by explicit recorded Scott scope amendment",
+        )
+
+    if not prompt_text:
+        return DecisionResult(
+            False,
+            "start_rung_work",
+            "scope_conflict",
+            "`start_rung_work` requires --prompt-text or an explicit recorded Scott scope amendment",
+        )
+
+    canonical_source = scalar_value(lock, "canonical_source")
+    plan_path = run_dir.parent / canonical_source
+    plan = parse_release_plan(plan_path) if plan_path.exists() else {}
+    normalized_prompt = normalize_text(prompt_text)
+    expanded_prompt = normalize_text(prompt_text.replace("-", " ").replace("_", " "))
+    for term in list_value(lock, "forbidden_feature_terms_without_replan"):
+        normalized_term = normalize_text(term)
+        expanded_term = normalize_text(term.replace("-", " ").replace("_", " "))
+        if (
+            normalized_term not in normalized_prompt
+            and expanded_term not in normalized_prompt
+            and expanded_term not in expanded_prompt
+        ):
+            continue
+        owner = find_term_owner(plan, term)
+        owner_text = f"; {term} belongs to v{owner}" if owner and owner != current_rung else ""
+        return DecisionResult(
+            False,
+            "start_rung_work",
+            "scope_conflict",
+            f"SCOPE_CONFLICT: release-plan.md says v{current_rung} is {title}{owner_text}. Replan or get explicit scope amendment before editing.",
+        )
+
+    canonical_terms = [title, scalar_value(lock, "proves"), *list_value(lock, "allowed_feature_terms")]
+    if prompt_text and not any(normalize_text(term) in normalized_prompt for term in canonical_terms if term):
+        return DecisionResult(
+            False,
+            "start_rung_work",
+            "scope_conflict",
+            f"SCOPE_CONFLICT: prompt does not match canonical v{current_rung} scope `{title}`. Replan or record an explicit Scott scope amendment before editing.",
+        )
+
+    return DecisionResult(
+        True,
+        "start_rung_work",
+        "scope_conflict",
+        f"start allowed by scope-lock v{current_rung} {title}",
+    )
+
+
 def evaluate_agent_decision(
     run_dir: Path,
     intent: str,
@@ -109,12 +223,24 @@ def evaluate_agent_decision(
     evidence_files: list[str] | None = None,
     run_id: str | None = None,
     require_active_run: bool = True,
+    claimed_rung: str = "",
+    prompt_text: str = "",
+    scope_amendment: str = "",
 ) -> DecisionResult:
     evidence = evidence or []
     evidence_files = evidence_files or []
 
     if intent not in INTENTS:
         return DecisionResult(False, intent, claimed_stop_condition, f"invalid intent `{intent}`")
+
+    if intent == "start_rung_work":
+        return _evaluate_start_rung_work(
+            run_dir,
+            run_id,
+            claimed_rung=claimed_rung,
+            prompt_text=prompt_text,
+            scope_amendment=scope_amendment,
+        )
 
     final_results = evaluate_final_response_gate(run_dir, require_active_run=require_active_run)
     blocked_final = [result for result in final_results if not result.allowed]
@@ -206,7 +332,7 @@ def write_decision_ledger(run_dir: Path, result: DecisionResult, run_id: str | N
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.8")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.9")
     parser.add_argument(
         "--run-dir",
         default=str(find_repo_root(__file__) / ".agent-runs"),
@@ -214,7 +340,10 @@ def main() -> int:
     )
     parser.add_argument("--run", help="Run id under .agent-runs/.")
     parser.add_argument("--intent", required=True, choices=sorted(INTENTS))
-    parser.add_argument("--claimed-stop-condition", required=True)
+    parser.add_argument("--claimed-stop-condition", default="scope_conflict")
+    parser.add_argument("--claimed-rung", default="")
+    parser.add_argument("--prompt-text", default="")
+    parser.add_argument("--scope-amendment", default="")
     parser.add_argument("--evidence", action="append", default=[])
     parser.add_argument("--evidence-file", action="append", default=[])
     parser.add_argument("--write-ledger", action="store_true")
@@ -229,6 +358,9 @@ def main() -> int:
         evidence_files=args.evidence_file,
         run_id=args.run,
         require_active_run=not args.allow_no_active_run,
+        claimed_rung=args.claimed_rung,
+        prompt_text=args.prompt_text,
+        scope_amendment=args.scope_amendment,
     )
 
     ledger_path = None

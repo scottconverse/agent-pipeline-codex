@@ -22,13 +22,22 @@ import subprocess
 import sys
 from pathlib import Path
 
+try:
+    from policy_utils import find_repo_root
+except ModuleNotFoundError:  # pragma: no cover - source-tree test import
+    from scripts.policy_utils import find_repo_root
+
 THIS_DIR = Path(__file__).resolve().parent
+REPO_ROOT = find_repo_root(__file__)
 
 # Order matters only for human readability of the combined report.
 # Add project-specific checks here (e.g., a custom check_module_boundaries.py).
 CHECKS: list[tuple[str, list[str]]] = [
     ("check_manifest_schema", ["check_manifest_schema.py"]),
+    ("check_scope_lock", ["check_scope_lock.py"]),
     ("check_allowed_paths", ["check_allowed_paths.py"]),
+    ("check_rung_file_ownership", ["check_rung_file_ownership.py"]),
+    ("check_release_docs_consistency", ["check_release_docs_consistency.py"]),
     ("check_actions_budget", ["check_actions_budget.py"]),
     ("check_no_todos", ["check_no_todos.py"]),
     ("check_adr_gate", ["check_adr_gate.py"]),
@@ -42,6 +51,36 @@ def _run(check_name: str, script_args: list[str], extra_args: list[str]) -> tupl
     return proc.returncode == 0, output.rstrip()
 
 
+def _write_scope_receipt(run_id: str, results: list[tuple[str, bool, str]]) -> None:
+    scope_checks = {
+        "check_scope_lock",
+        "check_rung_file_ownership",
+        "check_release_docs_consistency",
+    }
+    status = {name: passed for name, passed, _ in results if name in scope_checks}
+    if set(status) != scope_checks or not all(status.values()):
+        return
+
+    receipt = REPO_ROOT / ".agent-runs" / run_id / "scope-lock-receipt.txt"
+    receipt.parent.mkdir(parents=True, exist_ok=True)
+    scope_output = next(output for name, _, output in results if name == "check_scope_lock")
+    canonical = "unknown"
+    if "canonical_rung:" in scope_output:
+        canonical = scope_output.split("canonical_rung:", 1)[1].strip()
+    receipt.write_text(
+        "\n".join(
+            [
+                "scope_lock: PASS",
+                f"canonical_rung: {canonical}",
+                "edited_paths_match_rung: PASS",
+                "docs_consistency: PASS",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -52,7 +91,14 @@ def main() -> int:
 
     extra_for_run_consumers = ["--run", args.run] if args.run else []
     # Checks that consume the run id or need pipeline-mode enforcement.
-    run_consumers = {"check_allowed_paths", "check_manifest_schema", "check_actions_budget"}
+    run_consumers = {
+        "check_allowed_paths",
+        "check_manifest_schema",
+        "check_scope_lock",
+        "check_rung_file_ownership",
+        "check_release_docs_consistency",
+        "check_actions_budget",
+    }
 
     results: list[tuple[str, bool, str]] = []
     for name, script_args in CHECKS:
@@ -78,6 +124,9 @@ def main() -> int:
         for name in failed:
             print(f"  - {name}")
         return 1
+
+    if args.run:
+        _write_scope_receipt(args.run, results)
 
     print("POLICY: ALL CHECKS PASSED")
     return 0

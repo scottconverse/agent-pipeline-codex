@@ -2,7 +2,7 @@
 
 A Codex Desktop App plugin that orchestrates multi-stage agentic work with three human-approval gates. Built from real lessons across multi-week agent projects where autonomous runs go wrong silently and "manager-PROMOTE" failures slip past CI.
 
-**Version:** 0.5.8
+**Version:** 0.5.9
 **License:** Apache 2.0
 
 ---
@@ -51,7 +51,7 @@ Seven Codex skills: one overview/router plus six concrete workflow skills.
 | :--- | :--- |
 | `agent-pipeline` | Overview and routing. Explains the plugin and points to the specific workflow skill. |
 | `pipeline-init` | Onboard a project. Accepts a PRD path, a repo URL, or a description paragraph. Scaffolds `.pipelines/`, `scripts/policy/`, and `AGENTS.md` if missing. |
-| `new-run <type> <slug>` | Initialize a new pipeline run. Creates `.agent-runs/<run-id>/manifest.yaml` from the template and asks you to fill it in. |
+| `new-run <type> <slug>` | Initialize a new pipeline run. Creates `.agent-runs/<run-id>/manifest.yaml` and `scope-lock.yaml` from templates and asks you to fill them in. |
 | `validate-manifest` | Preflight a run manifest against the same schema used by the policy stage. |
 | `run-pipeline <type> <run-id>` | Orchestrate a pipeline run end-to-end. Stops at human gates and on failure. Resumable. |
 | `show-run-status <run-id>` | Read-only summary of a run's current stage, stop condition, next action, and artifacts. |
@@ -68,6 +68,9 @@ Thirteen self-contained role files (markdown) - each tells a fresh Codex session
 Policy and control scripts (Python, stdlib only):
 
 - `check_manifest_schema.py` - v0.5 strict manifest contract validator
+- `check_scope_lock.py` - v0.5.9 canonical release-plan rung validator
+- `check_rung_file_ownership.py` - v0.5.9 future-rung path and commit-subject blocker
+- `check_release_docs_consistency.py` - v0.5.9 docs vs locked rung consistency gate
 - `check_allowed_paths.py` - manifest-driven path enforcement
 - `check_no_todos.py` - no TODO/FIXME/HACK in source
 - `check_adr_gate.py` - ADRs are append-only
@@ -150,7 +153,7 @@ python scripts/policy/check_manifest_schema.py --version
 python scripts/policy/show_run_status.py --version
 ```
 
-Each prints `agent-pipeline-codex 0.5.8` and exits 0. The flag fires before any other argument validation, so it works on `auto_promote.py` without supplying `--run`. Use it to confirm a project actually has the v0.5 scripts and not stale copies from an earlier `pipeline-init`.
+Each prints `agent-pipeline-codex 0.5.9` and exits 0. The flag fires before any other argument validation, so it works on `auto_promote.py` without supplying `--run`. Use it to confirm a project actually has the v0.5 scripts and not stale copies from an earlier `pipeline-init`.
 
 If the script doesn't recognize `--version` (argparse prints a usage error and exits 2), the install is pre-v0.5. Re-run `pipeline-init` to refresh the scripts from the plugin source.
 
@@ -212,9 +215,9 @@ Successful push, green CI, draft PR status, recommended next action, open caveat
 new-run feature add-search-endpoint
 ```
 
-This creates `.agent-runs/2026-05-09-add-search-endpoint/manifest.yaml` from the template. The manifest is the **contract for the entire run** - every downstream agent reads it.
+This creates `.agent-runs/2026-05-09-add-search-endpoint/manifest.yaml` and `.agent-runs/2026-05-09-add-search-endpoint/scope-lock.yaml` from templates. The manifest is the **work contract**; the scope lock is the **canonical rung contract**.
 
-### Step 2 - Fill in the manifest
+### Step 2 - Fill in the manifest and scope lock
 
 Open `.agent-runs/2026-05-09-add-search-endpoint/manifest.yaml` in your editor. The fields you fill in:
 
@@ -233,15 +236,34 @@ Open `.agent-runs/2026-05-09-add-search-endpoint/manifest.yaml` in your editor. 
 
 The manifest template has inline comments explaining every field.
 
-### Step 3 - Validate the manifest
+Then open `.agent-runs/2026-05-09-add-search-endpoint/scope-lock.yaml` and copy the current rung facts from the canonical release plan:
+
+| Field | What goes here |
+| :--- | :--- |
+| `current_rung` | The exact rung number, e.g. `0.6`. |
+| `canonical_source` | The release-plan path, e.g. `docs/spec/release-plan.md`. |
+| `rung_title` | The exact title from the release plan. |
+| `proves` | The exact proof statement for the rung. |
+| `required_modules` | Modules/package areas named by the rung. |
+| `allowed_feature_terms` | Terms that belong to this rung. |
+| `forbidden_feature_terms_without_replan` | Future-rung or out-of-scope terms that require replan if they appear in prompt, paths, docs, or commit message. |
+| `scope_bullets` / `exit_criteria` | Optional exact bullets copied from the release plan. |
+
+### Step 3 - Validate the manifest and scope lock
 
 ```
 validate-manifest --run 2026-05-09-add-search-endpoint
+python scripts/policy/check_scope_lock.py --run 2026-05-09-add-search-endpoint
 ```
 
 Fix every reported violation before starting the pipeline. This uses the same
 strict schema gate as the policy stage, including unsupported YAML syntax,
 minimum contract length, forbidden status words, and broad-path warnings.
+
+`check_scope_lock.py` catches the other cheap-but-expensive failure: starting
+the wrong rung. If v0.6 is "Summary + signed records" in the release plan, a
+scope lock or prompt claiming v0.6 publish-dashboard work fails with
+`SCOPE_CONFLICT`.
 
 ### Step 4 - Run the pipeline
 

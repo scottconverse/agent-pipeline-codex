@@ -10,6 +10,42 @@ release; the `CHANGELOG` will call them out.
 
 ## [Unreleased]
 
+## [0.5.9] - 2026-05-14
+
+Patch release. Adds mechanical rung/scope authority so the pipeline proves it
+is working on the canonical release-plan rung before product edits begin.
+
+### Added
+
+- **Canonical scope lock.** `new-run` now creates
+  `.agent-runs/<run-id>/scope-lock.yaml` from
+  `.pipelines/scope-lock-template.yaml`. Product work must name the canonical
+  source, current rung, title, proof statement, required modules, allowed
+  feature terms, forbidden future-rung terms, scope bullets, and exit criteria.
+- **Scope-lock policy check.** Added `check_scope_lock.py`, which fails when
+  the run lacks a scope lock or when the lock does not match the declared rung
+  in the canonical release plan.
+- **Rung ownership policy check.** Added `check_rung_file_ownership.py`, which
+  blocks edited paths and commit subjects that contain future-rung terms such
+  as publish-dashboard work under a summary-records rung.
+- **Release-doc consistency policy check.** Added
+  `check_release_docs_consistency.py`, which blocks docs that describe the
+  current rung using terms owned by another rung.
+- **Start-rung decision gate.** `agent_decision_gate.py` now supports
+  `--intent start_rung_work --claimed-rung <rung> --prompt-text "<prompt>"`
+  and blocks prompt/plan conflicts with `SCOPE_CONFLICT`.
+- **Scope-lock receipt.** `run_all.py` writes
+  `.agent-runs/<run-id>/scope-lock-receipt.txt` after scope lock, rung
+  ownership, and docs consistency checks pass.
+
+### Changed
+
+- **Control-loop contract.** The documented control loop now states that the
+  agent may not infer the release ladder changed. Conflicting user wording
+  requires `scope_conflict` and an explicit scope amendment before edits.
+- **Policy stage.** The combined policy runner now includes the three scope
+  authority checks as hard gates for run-aware policy execution.
+
 ## [0.5.8] - 2026-05-13
 
 Patch release. Adds promotion polish after the v0.5.7 re-evaluation: clearer

@@ -215,7 +215,7 @@ def _check(fields: dict[str, object]) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.8")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.9")
     parser.add_argument(
         "--run",
         help="Pipeline run id (directory under .agent-runs/). Without this, the check is a no-op.",

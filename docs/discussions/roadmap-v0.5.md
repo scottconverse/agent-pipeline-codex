@@ -10,6 +10,7 @@ This is a living document. The v0.5 candidate set crystallized from project rece
 - Workflow-cost discipline and `check_actions_budget.py`.
 - Control-loop enforcement: `active-control-state.md`, `final_response_gate.py`, `agent_decision_gate.py`, `decision-ledger.ndjson`, and `pipeline_continue.py`.
 - Status polish: `show-run-status`, skipped malformed `run.log` line reporting, production ledger writer-to-validator coverage, and focused git action-classification regression tests.
+- Canonical rung authority: `scope-lock.yaml`, `check_scope_lock.py`, `check_rung_file_ownership.py`, `check_release_docs_consistency.py`, `start_rung_work` decision gating, and `scope-lock-receipt.txt`.
 
 ## What's plausible for v0.6
 

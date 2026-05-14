@@ -27,8 +27,8 @@ The plugin orchestrates work across **three layers**:
    definitions, role files, and policy scripts that `pipeline-init`
    scaffolded into your project. Yours to customize.
 3. **Run layer** (`<your-project>/.agent-runs/<run-id>/`) - one directory
-   per pipeline run, containing the manifest, every produced artifact,
-   and the append-only `run.log`. Gitignored by default.
+   per pipeline run, containing the manifest, scope lock, every produced
+   artifact, and the append-only `run.log`. Gitignored by default.
 
 ```mermaid
 flowchart TB
@@ -50,7 +50,7 @@ flowchart TB
 
     subgraph RunLayer["Run layer (per pipeline invocation)"]
         direction LR
-        C1[".agent-runs/&lt;run-id&gt;/<br/>manifest.yaml<br/>research.md<br/>plan.md<br/>...<br/>manager-decision.md<br/>active-control-state.md<br/>decision-ledger.ndjson<br/>run.log"]
+        C1[".agent-runs/&lt;run-id&gt;/<br/>manifest.yaml<br/>scope-lock.yaml<br/>research.md<br/>plan.md<br/>...<br/>manager-decision.md<br/>active-control-state.md<br/>decision-ledger.ndjson<br/>scope-lock-receipt.txt<br/>run.log"]
     end
 
     PluginLayer -- "pipeline-init copies into" --> ProjectLayer
@@ -115,9 +115,12 @@ directory is the complete state.
 flowchart LR
     subgraph Inputs["Stage inputs"]
         I0["manifest.yaml<br/>(human)"]
+        I1["scope-lock.yaml<br/>(canonical rung)"]
     end
 
+    I1 --> SL["scope-lock checks<br/>(policy)<br/>canonical rung,<br/>path ownership,<br/>docs consistency"]
     I0 --> R["research.md<br/>(researcher)<br/>+ surfaces director<br/>decisions"]
+    SL --> R
     I0 --> P["plan.md<br/>(planner)<br/>uses research +<br/>director choices"]
     R --> P
     I0 --> TW["failing-tests-report.md<br/>(test-writer)<br/>tests written, all RED"]
@@ -128,7 +131,7 @@ flowchart LR
     P --> E
     TW --> E
     E --> JL["judge-log.yaml<br/>judge-metrics.yaml<br/>(orchestrator, v0.4)<br/>per-action records<br/>(only when judge<br/>layer is enabled)"]
-    E --> POL["policy-report.md<br/>(automated)<br/>allowed_paths,<br/>no TODOs, ADRs"]
+    E --> POL["policy-report.md<br/>(automated)<br/>scope lock,<br/>allowed_paths,<br/>no TODOs, ADRs"]
     POL --> V["verifier-report.md<br/>(verifier)<br/>independent check vs.<br/>manifest exit criteria"]
     I0 --> V
     R --> V
@@ -149,7 +152,7 @@ flowchart LR
     classDef judge fill:#ccf2cc,stroke:#339933,color:#000
     class I0 human
     class R,P,TW,E,V,MGR agent
-    class POL policy
+    class SL,POL policy
     class JL judge
     class ACS,DG policy
 ```

@@ -44,6 +44,20 @@ Inspect the manifest text. The `goal:` line must contain a non-empty quoted stri
 
 **v0.5 strict schema validation:** before any stage runs, invoke `python scripts/policy/check_manifest_schema.py --run <run-id>` via the shell tool. If it exits non-zero, append `<TS> | manifest-schema | FAILED | see stdout` to `run.log`, display the violation output to the user, and STOP the pipeline. This catches fuzzy manifests at the start of the run rather than letting them cascade through researcher/planner/executor before the policy stage discovers them.
 
+### A2.5. Read and validate the scope lock
+
+Read `.agent-runs/<run-id>/scope-lock.yaml`. If it does not exist, stop before product work starts and tell the user to fill it in from `.pipelines/scope-lock-template.yaml`.
+
+Invoke `python scripts/policy/check_scope_lock.py --run <run-id>` via the shell tool. If it exits non-zero, append `<TS> | scope-lock | FAILED | see stdout` to `run.log`, display the violation output to the user, and STOP the pipeline with `scope_conflict`.
+
+Before interpreting user wording as authorization to start or redirect rung work, invoke:
+
+```bash
+python scripts/policy/agent_decision_gate.py --run <run-id> --intent start_rung_work --claimed-rung <current-rung> --prompt-text "<user wording>"
+```
+
+If it prints `agent_decision_gate: BLOCK`, do not edit. The user wording conflicts with the canonical release plan. Stop with `scope_conflict` and require an explicit scope amendment. The agent may not infer that the release ladder changed.
+
 ### A3. Read the run log (resume state)
 
 Read `.agent-runs/<run-id>/run.log` if it exists. The log format is one event per line:

@@ -22,6 +22,7 @@ These are ideas under active consideration. None are committed. Some have been d
 - Workflow-cost discipline: `check_actions_budget.py` plus role guidance for Actions cost hygiene.
 - Control-loop enforcement: `final_response_gate.py`, `agent_decision_gate.py`, `decision-ledger.ndjson`, and `pipeline_continue.py`.
 - Status polish: `show-run-status`, malformed `run.log` line visibility, production ledger writer-to-validator coverage, and git action-classification regression tests.
+- Canonical rung authority: `scope-lock.yaml`, release-plan matching, future-rung path/docs/commit blockers, and start-rung prompt conflict detection.
 
 ### Project memory layer
 

@@ -38,6 +38,10 @@ Because green CI is evidence, not a stop condition. During an authorized run, st
 
 It must verify the blocker before treating it as real. `unverified_blocker_or_risk` is an invalid stop condition. For example, "a push could trigger CI" is not enough; the agent must inspect workflows or repo settings, record evidence, and then run `agent_decision_gate.py --write-ledger`.
 
+### Q: What if my prompt names one rung but describes another?
+
+The scope lock wins. `agent_decision_gate.py --intent start_rung_work` checks the prompt against `.agent-runs/<run-id>/scope-lock.yaml` and the canonical release plan. If the prompt says "v0.6 publish dashboard" but the plan says v0.6 is "Summary + signed records" and publish dashboard belongs to v0.7, the gate returns `SCOPE_CONFLICT`. The agent must stop before edits until Scott explicitly amends the scope or the prompt is corrected.
+
 ### Q: The verifier marked a criterion NOT MET but I think it's fine. Can I override?
 
 No. The manager hard rule forbids PROMOTE on any NOT MET criterion. The only exception is PARTIAL with explicit director-decisions deferral, and that requires both halves cited verbatim. If you genuinely disagree with the verifier, the fix is to amend the manifest (clearer `expected_outputs`, clearer `definition_of_done`) and re-run - not to override the verdict. The whole point of the verifier is that it cannot be talked out of NOT MET.
