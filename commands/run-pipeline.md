@@ -67,6 +67,40 @@ python scripts/policy/agent_decision_gate.py --run <run-id> --intent start_rung_
 
 If it prints `agent_decision_gate: BLOCK`, do not edit. The user wording conflicts with the canonical release plan. Stop with `scope_conflict` and require an explicit scope amendment. The agent may not infer that the release ladder changed.
 
+### A2.6. Directive contract auto-approval gate (optional)
+
+Directive contracts are opt-in by file presence at `.agent-runs/<run-id>/directive.yaml`.
+If no directive exists, preserve the existing interactive behavior exactly.
+
+When a directive exists, invoke:
+
+```bash
+python scripts/policy/check_directive_conformance.py --run <run-id> --bind
+```
+
+Interpret results conservatively:
+
+- Exit `0`: the directive is well-formed, the directive hash is bound in
+  `run.log`, and the on-disk `manifest.yaml` plus `scope-lock.yaml` exactly
+  match the directive's pre-approved content. Treat the manifest human gate as
+  mechanically satisfied: append `<TS> | manifest | COMPLETE | auto-approved
+  against directive <hash>; author=<author>; authority=<authority>` to
+  `run.log` if the manifest stage is not already complete. Do NOT ask the
+  manifest approval question.
+- Exit `1`: no directive, malformed directive, or conformance mismatch. Fall
+  through to Handler 1 unchanged. If stdout contains a unified diff, include
+  that diff verbatim in the human gate question so the operator sees exactly
+  what diverged from the directive.
+- Exit `2`: the directive hash changed after the run was bound, or the
+  run-log binding mismatches the current directive. STOP before resuming and
+  ask for explicit operator acknowledgment. This is an integrity failure, not a
+  normal approval prompt.
+
+The directive does not authorize any judge-layer high-risk action, external
+side effect, credential use, or destructive command. It only replaces the
+manifest and plan approval prompts when the on-disk artifacts mechanically
+match pre-declared acceptance criteria.
+
 ### A3. Read the run log (resume state)
 
 Read `.agent-runs/<run-id>/run.log` if it exists. The log format is one event per line:
@@ -153,6 +187,11 @@ These stages exist at the start of the pipeline (the `manifest` stage). They rep
 
 Steps:
 
+0. If the stage is `manifest`, first consult the directive contract result from
+   Phase A2.6. A successful directive conformance check satisfies this handler
+   without asking a structured user question. A failed conformance check keeps
+   this handler interactive and must include the conformance stdout/diff in the
+   question text. A directive hash mismatch stops the run before the gate.
 1. If the stage has a previously-produced artifact (look at the prior stages for the artifact filename), instruct the user to review it: `Review .agent-runs/<run-id>/<artifact_filename> before continuing.`
 2. Use `a structured user question` with:
    - Question: `Gate: <stage_name> - type APPROVE to proceed, or describe what needs to change to stop the pipeline.`
@@ -196,7 +235,21 @@ Steps:
    - **Prompt:** the role file content verbatim, followed by `\n\n---\n\nRUN CONTEXT:\n` followed by the run-context block, followed by `\n\nRUN ID: <run-id>\nWORKING DIR: .agent-runs/<run-id>/\nWrite your output to .agent-runs/<run-id>/<expected_artifact_filename> and stop.`
 4. After the Codex subagent completes, verify the expected artifact exists. The expected filename is the stage's `artifact` field. Use the shell tool: `test -s .agent-runs/<run-id>/<artifact>` (the `-s` flag also catches empty files).
 5. If the artifact file is missing or empty: append `<TS> | <stage_name> | FAILED | artifact not produced (or empty)` to `run.log`. Report the failure with the agent's last message. STOP the pipeline.
-6. If the artifact exists and is non-empty: append `<TS> | <stage_name> | COMPLETE | <artifact_filename> written` to `run.log`. Briefly report the stage completed and continue to the next stage.
+6. If the artifact exists and is non-empty and the stage is `plan` with
+   `gate: human_approval`, invoke:
+
+   ```bash
+   python scripts/policy/check_plan_against_directive.py --run <run-id>
+   ```
+
+   - Exit `0`: append `<TS> | plan | COMPLETE | auto-approved against
+     directive <hash>, N/N criteria green` to `run.log`. Do NOT ask the plan
+     approval question.
+   - Exit `1`: fall through to Handler 1's structured human approval gate and
+     include the failing criteria output in the question text.
+   - Exit `2`: directive hash mismatch. STOP before resuming and ask for
+     explicit operator acknowledgment.
+7. If the artifact exists and is non-empty for all other agent stages: append `<TS> | <stage_name> | COMPLETE | <artifact_filename> written` to `run.log`. Briefly report the stage completed and continue to the next stage.
 
 ### Handler 3a - executor with judge interceptor (opt-in via action-classification.yaml)
 
@@ -348,7 +401,7 @@ Steps:
 
 The runner uses Handler 4 ONLY when the stage's YAML sets `auto_promote_aware: true`. The pre-v0.5 feature.yaml and bugfix.yaml that don't have this flag continue to route the manager stage through Handler 3 + Handler 1 unchanged.
 
-**Auto-promote eligibility is per-run, not per-pipeline.** Even when `auto_promote_aware: true` is set on the YAML, the eligibility check fires only when `auto_promote.py` produced the preset. If any of the six conditions failed, the human gate fires as usual.
+**Auto-promote eligibility is per-run, not per-pipeline.** Even when `auto_promote_aware: true` is set on the YAML, the eligibility check fires only when `auto_promote.py` produced the preset. If any of the six base conditions, directive hash integrity, or directive-declared manager assertions fail, the human gate fires as usual. When a directive is present, `manager-decision.md` must cite the directive hash, author, authority source, and every satisfied directive manager assertion in the evidence block.
 
 ### Stop conditions
 
@@ -455,7 +508,10 @@ Rules:
 - **Never run agent stages with the same Agent slot you're using.** Always use the Codex `spawn_agent` tool to spawn isolated subagents - they must not see this orchestrator's conversation history.
 - **Never invent stages not in the YAML.** The pipeline schema is the source of truth.
 - **Never assume tool availability.** If `a structured user question`, `Agent`, or any other tool is in the deferred list, load it via `ToolSearch` before invoking.
-- **Never propose autonomous mode.** Every gate is explicit. If the user wants autonomous, they explicitly raise it; the runner does not suggest it.
+- **Never propose broad autonomous mode.** Directive contracts are explicit,
+  file-based pre-authorization for machine-checkable gates only. The runner may
+  auto-approve manifest, plan, and clean manager gates only when directive
+  checks prove conformance; otherwise every gate remains interactive.
 - **Never end an authorized run without both control-loop gates.** `.agent-runs/<run-id>/active-control-state.md` must exist, `python scripts/policy/check_pipeline_control_loop.py --run <run-id>` must pass, and `python scripts/policy/final_response_gate.py --require-active-run` must print `final_response_gate: ALLOW` before any final response.
 - **Never stop on an unverified blocker.** Claimed blockers must pass `python scripts/policy/agent_decision_gate.py --intent <intent> --claimed-stop-condition <condition> --write-ledger`. If the gate blocks, run `python scripts/policy/pipeline_continue.py` and continue.
 - **Never treat completion evidence as a stop condition.** Successful push, green CI, draft PR status, and a recommended next action all require continued execution when the next action is authorized.
