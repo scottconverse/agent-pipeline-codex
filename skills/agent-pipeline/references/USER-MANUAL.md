@@ -2,7 +2,7 @@
 
 A Codex Desktop App plugin that orchestrates multi-stage agentic work with three human-approval gates. Built from real lessons across multi-week agent projects where autonomous runs go wrong silently and "manager-PROMOTE" failures slip past CI.
 
-**Version:** 0.5.10
+**Version:** 0.6.0
 **License:** Apache 2.0
 
 ---
@@ -161,7 +161,10 @@ python scripts/policy/check_manifest_schema.py --version
 python scripts/policy/show_run_status.py --version
 ```
 
-Each prints `agent-pipeline-codex 0.5.10` and exits 0. The flag fires before any other argument validation, so it works on `auto_promote.py` without supplying `--run`. Use it to confirm a project actually has the v0.5 scripts and not stale copies from an earlier `pipeline-init`.
+Each prints the bundled `agent-pipeline-codex` version and exits 0. The flag
+fires before any other argument validation, so it works on `auto_promote.py`
+without supplying `--run`. Use it to confirm a project actually has the current
+scripts and not stale copies from an earlier `pipeline-init`.
 
 If the script doesn't recognize `--version` (argparse prints a usage error and exits 2), the install is pre-v0.5. Re-run `pipeline-init` to refresh the scripts from the plugin source.
 
@@ -317,6 +320,158 @@ Three explicit human-approval moments:
 3. **Manager gate** (after the manager produces a verdict) - you confirm PROMOTE or reject.
 
 Each gate is a one-question prompt: type **APPROVE** or describe what should change. Describing changes halts the pipeline.
+
+## Directive contracts (v0.6)
+
+Directive contracts are an opt-in way to replace reflexive gate clicking with
+machine-checked pre-approval. Copy `pipelines/directive-template.yaml` to
+`.agent-runs/<run-id>/directive.yaml` before starting a run.
+
+When the directive is present at run start, the runner:
+
+1. Hashes `directive.yaml` and binds the hash into `run.log`.
+2. Compares `manifest.yaml` and `scope-lock.yaml` against the directive's
+   `preapproved` copies.
+3. Auto-approves the manifest gate only on exact parsed-YAML match.
+4. Checks `plan.md` against `acceptance.plan` assertions after the planner
+   writes it.
+5. Extends `auto_promote.py` with `acceptance.manager` assertions in addition
+   to the six existing conditions.
+
+Fallback behavior is conservative. If the directive is absent, malformed,
+non-conformant, unsupported, or tampered with after the run starts, the old
+interactive gate fires. For manifest/scope mismatch, the prompt includes a
+unified diff so you see exactly what diverged. For hash mismatch, resume halts
+until you explicitly acknowledge the integrity change.
+
+Supported assertions:
+
+- `regex` over an artifact.
+- `contains` exact text.
+- `section` with minimum Markdown section body length.
+- `artifact_exists`.
+- `callable`, limited to registered local Python functions.
+
+### Authoring a directive
+
+The safe path is to hand-author the directive and the run artifacts together
+before `run-pipeline` starts. `new-run` generates `manifest.yaml` from
+`pipelines/manifest-template.yaml`, so `preapproved.manifest` must match the
+actual generated manifest shape exactly. If you write `directive.yaml` only
+after `new-run` has already produced a manifest, the directive can still be
+useful as a mechanical contract, but it is retroactive documentation rather
+than true pre-authorization.
+
+Recommended workflow:
+
+1. Draft `directive.yaml` first from `pipelines/directive-template.yaml`.
+2. Copy the exact `preapproved.manifest` object into
+   `.agent-runs/<run-id>/manifest.yaml`.
+3. Copy the exact `preapproved.scope_lock` object into
+   `.agent-runs/<run-id>/scope-lock.yaml`.
+4. Run `run-pipeline`; the conformance gate compares parsed YAML objects, so
+   comments and key order do not matter, but values and structure do.
+
+Example directive excerpt and matching manifest:
+
+```yaml
+# .agent-runs/2026-05-16-directive/manifest.yaml
+pipeline_run:
+  goal: "Ship directive auto approval safely."
+  expected_outputs:
+    - "Directive auto approval is documented"
+  definition_of_done: "Docs, tests, and policy checks pass."
+  non_goals:
+    - "No platform approval bypass"
+  rollback_plan: "Remove directive.yaml"
+  allowed_paths:
+    - "scripts/"
+    - "tests/"
+    - "docs/"
+  forbidden_paths: []
+```
+
+```yaml
+# .agent-runs/2026-05-16-directive/directive.yaml excerpt
+preapproved:
+  manifest:
+    pipeline_run:
+      goal: "Ship directive auto approval safely."
+      expected_outputs:
+        - "Directive auto approval is documented"
+      definition_of_done: "Docs, tests, and policy checks pass."
+      non_goals:
+        - "No platform approval bypass"
+      rollback_plan: "Remove directive.yaml"
+      allowed_paths:
+        - "scripts/"
+        - "tests/"
+        - "docs/"
+      forbidden_paths: []
+```
+
+### Source and scaffold paths
+
+In this plugin source repo, policy scripts live under `scripts/`. When
+`pipeline-init` installs the pipeline into a project, it copies those scripts to
+`scripts/policy/`. Orchestrator examples such as
+`python scripts/policy/check_directive_conformance.py --run <run-id>` refer to
+the installed project layout; source-tree tests import the canonical `scripts/`
+modules directly.
+
+Worked example:
+
+```yaml
+version: 1
+author:
+  name: "Scott Converse"
+authority:
+  type: "design_doc"
+  reference: "docs/design/v-next-directive-contract.md"
+preapproved:
+  manifest:
+    pipeline_run:
+      goal: "Ship directive auto approval safely."
+      expected_outputs:
+        - "Directive auto approval is documented"
+      definition_of_done: "Docs, tests, and policy checks pass."
+      non_goals:
+        - "No platform approval bypass"
+      rollback_plan: "Remove directive.yaml"
+      allowed_paths: ["scripts/", "tests/", "docs/"]
+      forbidden_paths: []
+  scope_lock:
+    canonical_source: "docs/design/v-next-directive-contract.md"
+    current_rung: "directive-contract"
+    proof_statement: "Only directive contract work is in scope."
+    allowed_feature_terms: ["directive"]
+    forbidden_future_rung_terms: []
+    scope_bullets: ["Implement deterministic directive checks."]
+    exit_criteria: ["Directive checks pass."]
+acceptance:
+  plan:
+    - id: "plan-has-implementation"
+      type: "section"
+      artifact: "plan.md"
+      heading: "Implementation"
+      min_chars: 120
+    - id: "plan-names-tests"
+      type: "regex"
+      artifact: "plan.md"
+      pattern: "(pytest|failing-tests-report\\.md)"
+  manager:
+    - id: "verifier-covers-outputs"
+      type: "callable"
+      name: "verifier_covers_manifest_expected_outputs"
+```
+
+This does not weaken the judge layer. A directive cannot pre-authorize a
+future high-risk tool call, a judge `escalate`, a credential request, or a
+platform approval prompt. Those remain in-run human surfaces.
+
+Migration: existing projects do nothing. Adopting projects add
+`directive.yaml` to a run directory. Bisecting is safe because removing the
+file restores the prior behavior.
 
 ## The three human gates
 
@@ -569,7 +724,14 @@ You don't opt into v0.5 - every new run on a project initialized with v0.5 plumb
 5. Judge-clean: zero `judged_block` and zero `human_blocked` (vacuous when judge layer is off).
 6. Tests-passed: a recognizable `N passed[, 0 failed]` in `implementation-report.md`.
 
-When all six pass, the script writes `manager-decision.md` with `**Decision: PROMOTE**` and a citation block. The manager stage detects the preset and short-circuits the human gate - you only see the manager gate when something needs your attention. When any condition fails, the script writes `auto-promote-report.md` naming the failing conditions and the manager stage runs normally with the human gate active.
+When all six pass, and when every directive-declared manager assertion also
+passes for directive-bound runs, the script writes `manager-decision.md` with
+`**Decision: PROMOTE**` and a citation block. The manager stage detects the
+preset and short-circuits the human gate - you only see the manager gate when
+something needs your attention. When any condition fails, including directive
+hash integrity or a directive manager assertion, the script writes
+`auto-promote-report.md` naming the failing conditions and the manager stage
+runs normally with the human gate active.
 
 ### Pre-edit fact-forcing in executor
 

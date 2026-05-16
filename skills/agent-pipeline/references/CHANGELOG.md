@@ -10,8 +10,36 @@ release; the `CHANGELOG` will call them out.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-05-16
+
+### Added
+
+- **Directive contract auto-approval.** Added optional
+  `.agent-runs/<run-id>/directive.yaml` support so directive-conformant runs
+  can auto-approve manifest and plan gates without weakening the gate model.
+  The directive pre-approves exact manifest and scope-lock content, declares
+  plan assertions, declares additional manager assertions, names author and
+  authority source, and binds a SHA-256 hash into `run.log` at run start.
+- **Directive policy scripts.** Added `check_directive_conformance.py`,
+  `check_plan_against_directive.py`, and shared directive utilities. Mismatch,
+  malformed directives, absent directives, and hash tampering all fail closed
+  to the existing interactive path, with manifest/scope mismatch reported as a
+  unified diff.
+- **Directive template and design memo.** Added `pipelines/directive-template.yaml`
+  and `docs/design/v-next-directive-contract.md` with platform citations,
+  schema, preserved protections, new protections, migration notes, and honest
+  limits.
+- **Directive regression tests.** Added coverage for conformant auto-approval,
+  non-conformant fallback with diff output, absent-directive prior behavior,
+  mid-run directive tampering, run-log hash mismatch on resume, and manager
+  assertion extension through `auto_promote.py`.
+
 ### Changed
 
+- **Auto-promote is six plus N.** `auto_promote.py` still requires the six
+  v0.5 conditions, then adds every directive-declared manager assertion when a
+  directive is present. `manager-decision.md` cites the directive hash, author,
+  authority source, and satisfied directive assertions.
 - **Execute-stage DoD readiness gate.** Executor and runner instructions now
   forbid advancing a partial slice to policy/verify. `implementation-report.md`
   must declare `**DoD readiness: READY**` with a parseable zero-blocker DoD
@@ -23,6 +51,17 @@ release; the `CHANGELOG` will call them out.
   installed-cache/source checks are correct.
 - **Main-branch CI coverage.** The source-only release verifier now runs on
   pushes to `main`, not only pull requests and manual dispatches.
+
+### Security / Safety
+
+- **Failure mode closed.** Directive-conformant runs no longer force operators
+  to re-type APPROVE for manifest and plan content they already authored
+  verbatim, reducing reflexive approval training while preserving every prior
+  gate's catchable failure mode.
+- **Honest limit.** Directive contracts can encode machine-checkable assertions
+  over artifacts. They cannot encode taste, novel judgment, future high-risk
+  tool calls, credentials, destructive actions, or Codex platform approvals; any
+  such case keeps the human gate cost.
 
 ## [0.5.10] - 2026-05-14
 

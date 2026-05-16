@@ -282,7 +282,7 @@
 <header class="masthead">
   <div class="mark">agent-pipeline-codex</div>
   <div class="meta">
-    <span>v0.5.10+stop-validator</span>
+    <span>v0.6.0+directive-contract</span>
     <span>Apache-2.0</span>
     <span>Codex Desktop App plugin</span>
   </div>
@@ -317,7 +317,7 @@
     </div>
 
     <aside class="hero-meta">
-      <div class="row"><span>Release</span><strong class="rust">0.5.10</strong></div>
+      <div class="row"><span>Release</span><strong class="rust">0.6.0</strong></div>
       <div class="row"><span>Stages</span><strong>11</strong></div>
       <div class="row"><span>Human gates</span><strong>3</strong></div>
       <div class="row"><span>Role files</span><strong>13</strong></div>
@@ -331,7 +331,7 @@
 
 <section class="diagram-wrap frame">
   <span class="frame-mark">Fig. 01 | Pipeline schematic</span>
-  <span class="frame-mark-right">v0.5.10 | feature.yaml</span>
+  <span class="frame-mark-right">v0.6.0 | feature.yaml</span>
 
   <div class="figcap">
     <span class="label">Eleven stages | four phases | three human gates | shared stop validator</span>
@@ -648,10 +648,10 @@
         </div>
 
         <div class="layer current">
-          <div class="v">v0.5.10<strong>Stop validation</strong><span class="badge">Current</span></div>
+          <div class="v">v0.6.0<strong>Directive contracts</strong><span class="badge">Current</span></div>
           <div>
-            <div class="l-title">Valid-looking state is no longer trusted by itself.</div>
-            <p class="l-body">The final-response gate, continuation navigator, and agent-decision gate now share one validator that binds stop conditions to current stage evidence, run logs, scope receipts, and evidence files.</p>
+            <div class="l-title">Directive-conformant gates can auto-fire without training reflexive approval.</div>
+            <p class="l-body">A run-local directive binds exact manifest and scope-lock content, plan assertions, manager assertions, author provenance, and a SHA-256 hash into run.log; mismatch or tampering falls back to human review.</p>
             <div class="l-catches"><strong>Fixes</strong> Stale active-control-state files and plausible blocker text becoming escape hatches during authorized work.</div>
           </div>
         </div>
@@ -731,7 +731,7 @@
 <footer class="foot page">
   <span>(c) Scott Converse | Apache-2.0</span>
   <span><a href="https://github.com/scottconverse/agent-pipeline-codex">github</a> | <a href="https://github.com/scottconverse/agent-pipeline-codex/discussions">discussions</a></span>
-  <span>v0.5.10+stop-validator | 2026</span>
+  <span>v0.6.0+directive-contract | 2026</span>
 </footer>
 
 </body>

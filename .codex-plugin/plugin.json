@@ -1,7 +1,7 @@
 {
   "name": "agent-pipeline-codex",
-  "version": "0.5.10",
-  "description": "Multi-stage agentic pipeline runner for Codex Desktop App projects. Orchestrates manifest -> research -> plan -> test-write -> execute -> policy -> verify -> drift-detect -> critique -> auto-promote -> manager. v0.2 adds the module-release pipeline. v0.3 adds the dual-AI audit-handoff discipline. v0.4 adds the judge layer. v0.5 adds single-AI hardening: critic + drift-detector stages, pre-edit fact-forcing in the executor, expanded judge classification, machine-checkable auto-promote, and strict manifest schema validation.",
+  "version": "0.6.0",
+  "description": "Multi-stage agentic pipeline runner for Codex Desktop App projects. Orchestrates manifest -> research -> plan -> test-write -> execute -> policy -> verify -> drift-detect -> critique -> auto-promote -> manager. v0.6 adds directive contracts for deterministic auto-approval of directive-conformant manifest, plan, and manager gates while preserving human fallback and judge protections.",
   "author": {
     "name": "Scott Converse",
     "email": "sconverse@gmail.com",

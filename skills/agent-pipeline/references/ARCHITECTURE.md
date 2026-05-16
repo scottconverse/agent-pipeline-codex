@@ -168,11 +168,39 @@ Two important properties of this flow:
 
 ---
 
+### Directive contract data flow
+
+When `.agent-runs/<run-id>/directive.yaml` exists, it becomes an input to the
+manifest, plan, and auto-promote gates:
+
+```mermaid
+flowchart LR
+    D["directive.yaml"] --> H["SHA-256 hash"]
+    H --> L["run.log directive-bound line"]
+    D --> C1["check_directive_conformance.py"]
+    M["manifest.yaml"] --> C1
+    S["scope-lock.yaml"] --> C1
+    C1 -->|"exact match"| MG["manifest gate auto-complete"]
+    C1 -->|"mismatch/diff"| MI["manifest gate stays interactive"]
+    D --> C2["check_plan_against_directive.py"]
+    P["plan.md"] --> C2
+    C2 -->|"all assertions pass"| PG["plan gate auto-complete"]
+    C2 -->|"any assertion fails"| PI["plan gate stays interactive"]
+    D --> AP["auto_promote.py"]
+    Stack["verifier + critic + drift + policy + judge + tests"] --> AP
+    AP -->|"six plus N green"| MD["manager-decision.md PROMOTE with directive evidence"]
+```
+
+The hash line is append-only evidence. Every later directive-aware script
+compares the current directive hash against the bound hash. A mismatch halts
+resume because the pre-approval contract changed after the run started.
+
 ## 4. The three human gates
 
-Every gate uses the same pattern: the prior stage produces an artifact,
-the orchestrator pauses, and the human types `APPROVE` or describes a
-block. There is no "approve with caveats" - caveats become a block, the
+Every gate uses the same pattern unless a directive contract mechanically
+satisfies it: the prior stage produces an artifact, the orchestrator pauses,
+and the human types `APPROVE` or describes a block. There is no "approve with
+caveats" - caveats become a block, the
 caveats become the next manifest.
 
 ```mermaid
@@ -517,7 +545,7 @@ The critic is the structural substitute for the v0.3 cross-agent auditor when ru
 
 ### auto-promote
 
-A `role: pipeline` stage that runs `scripts/auto_promote.py`. It reads the artifacts produced by verifier, critic, drift-detector, policy, judge (when active), and executor, then checks six conditions:
+A `role: pipeline` stage that runs `scripts/auto_promote.py`. It reads the artifacts produced by verifier, critic, drift-detector, policy, judge (when active), and executor, then checks six base conditions:
 
 1. Verifier-clean: zero `NOT MET` and zero `PARTIAL` criteria.
 2. Critic-clean: zero blocker findings and zero critical findings.
@@ -526,7 +554,19 @@ A `role: pipeline` stage that runs `scripts/auto_promote.py`. It reads the artif
 5. Judge-clean: zero `judged_block` and zero `human_blocked` dispositions (vacuous when the v0.4 judge layer is inactive).
 6. Tests-passed: a recognizable `N passed[, 0 failed]` or `all tests passed` signal in `implementation-report.md`.
 
-When all six pass, the script writes a preset `manager-decision.md` with `**Decision: PROMOTE**` and a citation block naming the evidence for each condition. The manager stage detects the preset (per Handler 4 in `commandsrun-pipeline.md`) and short-circuits the human-approval gate, advancing the pipeline automatically.
+When no directive is present, those six conditions are sufficient. When a
+directive is bound to the run, `auto_promote.py` adds every
+`acceptance.manager` assertion from `directive.yaml`, plus directive hash
+integrity, to the condition list. The manager gate auto-fires only when all six
+plus N are green.
+
+When all required conditions pass, the script writes a preset
+`manager-decision.md` with `**Decision: PROMOTE**` and a citation block naming
+the evidence for each condition. Directive-bound decisions also cite the
+directive hash, author, authority source, and each satisfied directive
+assertion. The manager stage detects the preset (per Handler 4 in
+`commands/run-pipeline.md`) and short-circuits the human-approval gate,
+advancing the pipeline automatically.
 
 When any condition fails, the script writes `auto-promote-report.md` naming which conditions failed and exits 1. The manager stage runs normally with the human-approval gate active.
 

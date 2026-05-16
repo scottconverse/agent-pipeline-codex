@@ -4,7 +4,7 @@
 
 A Codex Desktop App plugin that orchestrates multi-stage agentic work: **manifest -> research -> plan -> test-write -> execute -> policy -> verify -> drift-detect -> critique -> auto-promote -> manager**, with human-approval gates at manifest, plan, and manager-decision (the last auto-fires on clean runs at v0.5+). Built from real lessons across CivicCast, CivicSuite, AgentSuiteLocal and other projects where autonomous agent runs go wrong silently and "manager-PROMOTE" failures slip past CI.
 
-**Current release: v0.5.10** (central stop validation and evidence-bound continuation gates). [CHANGELOG](CHANGELOG.md) | [User Manual](USER-MANUAL.md) | [Architecture](ARCHITECTURE.md) | [Landing page](https://scottconverse.github.io/agent-pipeline-codex/) | [Discussions](https://github.com/scottconverse/agent-pipeline-codex/discussions)
+**Current release: v0.6.0** (directive contracts for deterministic auto-approval with hash-bound fallback). [CHANGELOG](CHANGELOG.md) | [User Manual](USER-MANUAL.md) | [Architecture](ARCHITECTURE.md) | [Landing page](https://scottconverse.github.io/agent-pipeline-codex/) | [Discussions](https://github.com/scottconverse/agent-pipeline-codex/discussions)
 
 ## Why this plugin exists
 
@@ -98,6 +98,7 @@ After init, your project has:
 |-- module-release.yaml             # six-phase release pipeline (v0.2+)
 |-- manifest-template.yaml          # blank template with field docs
 |-- scope-lock-template.yaml        # blank canonical rung/scope lock
+|-- directive-template.yaml         # optional v0.6 directive contract template
 |-- action-classification.yaml      # opt-in: enables the v0.4 judge layer
 |-- self-classification-rules.md    # pre-authorized cases the executor handles solo
 `-- roles/
@@ -117,6 +118,8 @@ After init, your project has:
 scripts/policy/
 |-- check_manifest_schema.py        # v0.5 - strict manifest contract validator
 |-- check_scope_lock.py             # v0.5.9 - canonical rung lock validator
+|-- check_directive_conformance.py  # v0.6 - manifest/scope directive conformance
+|-- check_plan_against_directive.py # v0.6 - plan assertion auto-approval gate
 |-- check_allowed_paths.py          # generic, manifest-driven
 |-- check_rung_file_ownership.py    # v0.5.9 - future-rung path/commit blocker
 |-- check_release_docs_consistency.py # v0.5.9 - docs vs release-plan consistency
@@ -290,6 +293,21 @@ Single-model-family blind spots correlate. If both the executor and the critic s
 The four stack. Most projects run v0.4 + v0.5 by default and reach for v0.3 when they have two model families available.
 
 **Operator reference:** USER-MANUAL.md Section "v0.5 single-AI hardening" + ARCHITECTURE.md Section 8 "Single-AI hardening (v0.5)".
+
+## v0.6.0: Directive contracts
+
+v0.6.0 closes the directive-conformant re-approval loop. Operators can add
+`.agent-runs/<run-id>/directive.yaml` before a run to pre-declare the exact
+manifest, exact scope lock, plan acceptance assertions, and manager acceptance
+assertions. The runner binds the directive hash into `run.log`, auto-approves
+the manifest and plan gates only when on-disk artifacts mechanically conform,
+and extends auto-promote from six conditions to six plus the directive's
+manager assertions.
+
+Manual fallback is preserved: absent directives, malformed directives,
+mismatches, failed assertions, and hash tampering keep or restore the existing
+interactive gate. Judge-layer high-risk confirmations and `escalate` prompts
+remain human surfaces because a directive cannot know future tool calls.
 
 ## v0.5.10: Evidence-bound stop validation
 
