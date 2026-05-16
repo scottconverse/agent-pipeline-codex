@@ -127,6 +127,21 @@ def test_directive_nonconformance_falls_back_with_unified_diff(tmp_path, monkeyp
     assert "+++ manifest.yaml" in out
 
 
+def test_directive_bound_line_written_only_on_successful_conformance(tmp_path, monkeypatch, capsys) -> None:
+    run_id = "directive-run"
+    run_dir = _write_run(tmp_path, run_id)
+    changed = dict(MANIFEST)
+    changed["pipeline_run"] = dict(MANIFEST["pipeline_run"])
+    changed["pipeline_run"]["goal"] = "Diverged goal"
+    _write_yaml(run_dir / "manifest.yaml", changed)
+    monkeypatch.setattr(check_directive_conformance, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr("sys.argv", ["check_directive_conformance.py", "--run", run_id, "--bind"])
+
+    assert check_directive_conformance.main() == 1
+    assert "MISMATCH" in capsys.readouterr().out
+    assert not (run_dir / "run.log").exists()
+
+
 def test_absent_directive_preserves_interactive_behavior(tmp_path, monkeypatch, capsys) -> None:
     run_id = "no-directive"
     run_dir = tmp_path / ".agent-runs" / run_id
@@ -212,3 +227,58 @@ def test_auto_promote_blocks_when_directive_bound_hash_mismatches_on_resume(tmp_
     assert auto_promote.main() == 1
     report = (run_dir / "auto-promote-report.md").read_text(encoding="utf-8")
     assert "directive-manager:integrity" in report
+
+
+def test_downstream_auto_promote_re_verifies_manifest_conformance(tmp_path, monkeypatch) -> None:
+    run_id = "green-run"
+    run_base = tmp_path / ".agent-runs"
+    run_dir = run_base / run_id
+    write_green_run(run_dir)
+    _write_yaml(run_dir / "manifest.yaml", MANIFEST)
+    _write_yaml(run_dir / "scope-lock.yaml", SCOPE_LOCK)
+    _write_directive(run_dir)
+    digest = sha256_file(run_dir / "directive.yaml")
+    (run_dir / "run.log").write_text(f"2026-05-16T00:00:00Z | directive-bound | COMPLETE | hash={digest}\n", encoding="utf-8")
+    changed = dict(MANIFEST)
+    changed["pipeline_run"] = dict(MANIFEST["pipeline_run"])
+    changed["pipeline_run"]["goal"] = "Diverged goal"
+    _write_yaml(run_dir / "manifest.yaml", changed)
+    monkeypatch.setattr(auto_promote, "RUN_DIR_BASE", run_base)
+    monkeypatch.setattr(auto_promote, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr("sys.argv", ["auto_promote.py", "--run", run_id])
+
+    assert auto_promote.main() == 1
+    report = (run_dir / "auto-promote-report.md").read_text(encoding="utf-8")
+    assert "directive-manifest-conformance" in report
+
+
+def test_resume_with_bound_directive_and_diverged_manifest_returns_exit_3(tmp_path, monkeypatch, capsys) -> None:
+    run_id = "directive-run"
+    run_dir = _write_run(tmp_path, run_id)
+    digest = sha256_file(run_dir / "directive.yaml")
+    (run_dir / "run.log").write_text(f"2026-05-16T00:00:00Z | directive-bound | COMPLETE | hash={digest}\n", encoding="utf-8")
+    changed = dict(MANIFEST)
+    changed["pipeline_run"] = dict(MANIFEST["pipeline_run"])
+    changed["pipeline_run"]["goal"] = "Diverged goal"
+    _write_yaml(run_dir / "manifest.yaml", changed)
+    monkeypatch.setattr(check_directive_conformance, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr("sys.argv", ["check_directive_conformance.py", "--run", run_id, "--bind"])
+
+    assert check_directive_conformance.main() == 3
+    out = capsys.readouterr().out
+    assert "CONTRACT_DIVERGED" in out
+    assert "explicit operator acknowledgment" in out
+
+
+def test_bind_into_existing_run_log_appends_and_preserves_prior_content(tmp_path, monkeypatch) -> None:
+    run_id = "directive-run"
+    run_dir = _write_run(tmp_path, run_id)
+    prior = "2026-05-16T00:00:00Z | preflight | COMPLETE | prior event\n"
+    (run_dir / "run.log").write_text(prior, encoding="utf-8")
+    monkeypatch.setattr(check_directive_conformance, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr("sys.argv", ["check_directive_conformance.py", "--run", run_id, "--bind"])
+
+    assert check_directive_conformance.main() == 0
+    lines = (run_dir / "run.log").read_text(encoding="utf-8").splitlines()
+    assert lines[0] == prior.strip()
+    assert "directive-bound | COMPLETE | hash=" in lines[1]

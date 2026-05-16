@@ -321,7 +321,7 @@ Three explicit human-approval moments:
 
 Each gate is a one-question prompt: type **APPROVE** or describe what should change. Describing changes halts the pipeline.
 
-## Directive contracts (vNext)
+## Directive contracts (v0.6)
 
 Directive contracts are an opt-in way to replace reflexive gate clicking with
 machine-checked pre-approval. Copy `pipelines/directive-template.yaml` to
@@ -351,6 +351,73 @@ Supported assertions:
 - `section` with minimum Markdown section body length.
 - `artifact_exists`.
 - `callable`, limited to registered local Python functions.
+
+### Authoring a directive
+
+The safe path is to hand-author the directive and the run artifacts together
+before `run-pipeline` starts. `new-run` generates `manifest.yaml` from
+`pipelines/manifest-template.yaml`, so `preapproved.manifest` must match the
+actual generated manifest shape exactly. If you write `directive.yaml` only
+after `new-run` has already produced a manifest, the directive can still be
+useful as a mechanical contract, but it is retroactive documentation rather
+than true pre-authorization.
+
+Recommended workflow:
+
+1. Draft `directive.yaml` first from `pipelines/directive-template.yaml`.
+2. Copy the exact `preapproved.manifest` object into
+   `.agent-runs/<run-id>/manifest.yaml`.
+3. Copy the exact `preapproved.scope_lock` object into
+   `.agent-runs/<run-id>/scope-lock.yaml`.
+4. Run `run-pipeline`; the conformance gate compares parsed YAML objects, so
+   comments and key order do not matter, but values and structure do.
+
+Example directive excerpt and matching manifest:
+
+```yaml
+# .agent-runs/2026-05-16-directive/manifest.yaml
+pipeline_run:
+  goal: "Ship directive auto approval safely."
+  expected_outputs:
+    - "Directive auto approval is documented"
+  definition_of_done: "Docs, tests, and policy checks pass."
+  non_goals:
+    - "No platform approval bypass"
+  rollback_plan: "Remove directive.yaml"
+  allowed_paths:
+    - "scripts/"
+    - "tests/"
+    - "docs/"
+  forbidden_paths: []
+```
+
+```yaml
+# .agent-runs/2026-05-16-directive/directive.yaml excerpt
+preapproved:
+  manifest:
+    pipeline_run:
+      goal: "Ship directive auto approval safely."
+      expected_outputs:
+        - "Directive auto approval is documented"
+      definition_of_done: "Docs, tests, and policy checks pass."
+      non_goals:
+        - "No platform approval bypass"
+      rollback_plan: "Remove directive.yaml"
+      allowed_paths:
+        - "scripts/"
+        - "tests/"
+        - "docs/"
+      forbidden_paths: []
+```
+
+### Source and scaffold paths
+
+In this plugin source repo, policy scripts live under `scripts/`. When
+`pipeline-init` installs the pipeline into a project, it copies those scripts to
+`scripts/policy/`. Orchestrator examples such as
+`python scripts/policy/check_directive_conformance.py --run <run-id>` refer to
+the installed project layout; source-tree tests import the canonical `scripts/`
+modules directly.
 
 Worked example:
 

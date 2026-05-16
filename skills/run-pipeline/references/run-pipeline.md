@@ -95,6 +95,10 @@ Interpret results conservatively:
   run-log binding mismatches the current directive. STOP before resuming and
   ask for explicit operator acknowledgment. This is an integrity failure, not a
   normal approval prompt.
+- Exit `3`: the directive was bound to this run and now the manifest or
+  scope-lock diverges from the pre-approved directive content. STOP before
+  resuming and require explicit operator acknowledgment. This is an
+  integrity-of-contract failure, not a normal approval prompt.
 
 The directive does not authorize any judge-layer high-risk action, external
 side effect, credential use, or destructive command. It only replaces the
@@ -395,8 +399,8 @@ This handler replaces both Handler 1 (human gate) and Handler 3 (agent role) for
 Steps:
 
 1. **Check for preset.** Use the Read tool: read `.agent-runs/<run-id>/manager-decision.md`. If the read succeeds AND the file's first non-empty line is exactly `**Decision: PROMOTE**`, the auto-promote stage already wrote the verdict. Proceed to step 2. Otherwise, jump to step 4.
-2. **Spawn manager subagent in validate-and-append mode.** Use the standard Handler 3 spawn (role file + run context + working directory), but the prompt's tail instructs the agent: "An auto-promote preset already wrote `**Decision: PROMOTE**`. Validate the six citations in the existing file match the artifacts (verifier-report.md, critic-report.md, drift-report.md, policy-report.md, judge-metrics.yaml or 'judge not active', implementation-report.md). Append a `## Manager confirmation` section listing what you validated. DO NOT REWRITE the first line. DO NOT change the verdict."
-3. **Skip the human gate.** When the preset is present and the manager subagent appends confirmation cleanly, append `<TS> | manager | COMPLETE | auto-promoted by scripts/policy/auto_promote.py, manager confirmed` to `run.log`. Do NOT use `a structured user question`. The pipeline advances. Report to the user: "Manager stage auto-promoted; the six v0.5 conditions all passed. See `.agent-runs/<run-id>/manager-decision.md` for the citation block."
+2. **Spawn manager subagent in validate-and-append mode.** Use the standard Handler 3 spawn (role file + run context + working directory), but the prompt's tail instructs the agent: "An auto-promote preset already wrote `**Decision: PROMOTE**`. Validate the auto-promote citations (six base conditions plus any directive-declared manager assertions when a directive is bound) in the existing file match the artifacts (verifier-report.md, critic-report.md, drift-report.md, policy-report.md, judge-metrics.yaml or 'judge not active', implementation-report.md, and directive.yaml when present). Append a `## Manager confirmation` section listing what you validated. DO NOT REWRITE the first line. DO NOT change the verdict."
+3. **Skip the human gate.** When the preset is present and the manager subagent appends confirmation cleanly, append `<TS> | manager | COMPLETE | auto-promoted by scripts/policy/auto_promote.py, manager confirmed` to `run.log`. Do NOT use `a structured user question`. The pipeline advances. Report to the user: "Manager stage auto-promoted; the auto-promote conditions passed. See `.agent-runs/<run-id>/manager-decision.md` for the citation block."
 4. **No preset - fall through to standard handling.** Run Handler 3 (spawn the manager subagent normally) followed by Handler 1's human-approval gate logic (`a structured user question` with APPROVE / Block). If the auto-promote stage wrote `auto-promote-report.md`, include its contents in the manager subagent's context so the manager can see which conditions failed.
 
 The runner uses Handler 4 ONLY when the stage's YAML sets `auto_promote_aware: true`. The pre-v0.5 feature.yaml and bugfix.yaml that don't have this flag continue to route the manager stage through Handler 3 + Handler 1 unchanged.

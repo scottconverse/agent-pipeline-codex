@@ -103,6 +103,11 @@ rejected so a directive cannot import arbitrary modules.
 7. `manager-decision.md` cites the directive hash, author, authority source,
    and satisfied directive assertions.
 
+Source layout note: in this plugin repository the canonical policy scripts live
+under `scripts/`. `pipeline-init` copies them into initialized projects under
+`scripts/policy/`, so orchestrator commands using `scripts/policy/...` refer to
+the installed project layout, not the source-tree layout.
+
 ## Integrity
 
 `check_directive_conformance.py --bind` writes the directive hash into

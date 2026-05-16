@@ -8,10 +8,22 @@ import argparse
 import sys
 
 try:
-    from directive_utils import DirectiveError, ensure_hash_integrity, evaluate_assertions, load_directive
+    from directive_utils import (
+        DirectiveError,
+        compare_preapproved,
+        ensure_hash_integrity,
+        evaluate_assertions,
+        load_directive,
+    )
     from policy_utils import find_repo_root
 except ModuleNotFoundError:  # pragma: no cover
-    from scripts.directive_utils import DirectiveError, ensure_hash_integrity, evaluate_assertions, load_directive
+    from scripts.directive_utils import (
+        DirectiveError,
+        compare_preapproved,
+        ensure_hash_integrity,
+        evaluate_assertions,
+        load_directive,
+    )
     from scripts.policy_utils import find_repo_root
 
 
@@ -44,7 +56,7 @@ def mentions_manifest_expected_outputs(ctx, args):
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.6.0-directive")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.6.0")
     parser.add_argument("--run", required=True)
     args = parser.parse_args()
 
@@ -54,6 +66,21 @@ def main() -> int:
             print("plan_directive: NO_DIRECTIVE - use existing interactive plan gate.")
             return 1
         ensure_hash_integrity(ctx)
+        conformance_failures: list[str] = []
+        for label, artifact, key in (
+            ("directive-manifest-conformance", "manifest.yaml", "manifest"),
+            ("directive-scope-lock-conformance", "scope-lock.yaml", "scope_lock"),
+        ):
+            matched, diff = compare_preapproved(ctx, artifact, key)
+            if not matched:
+                conformance_failures.append(f"[FAIL] {label} - {artifact} diverges from directive\n{diff}")
+        if conformance_failures:
+            print(
+                "plan_directive: CONTRACT_DIVERGED - directive hash is intact but "
+                "preapproved manifest/scope-lock conformance failed."
+            )
+            print("".join(conformance_failures))
+            return 2
         plan_path = ctx.run_dir / "plan.md"
         if not plan_path.exists():
             raise DirectiveError("plan.md missing")

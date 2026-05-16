@@ -37,7 +37,7 @@ def _timestamp() -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.6.0-directive")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.6.0")
     parser.add_argument("--run", required=True)
     parser.add_argument(
         "--bind",
@@ -52,15 +52,6 @@ def main() -> int:
             print("directive_conformance: NO_DIRECTIVE - use existing interactive manifest gate.")
             return 1
         ensure_hash_integrity(ctx)
-        if ctx.bound_hash is None:
-            if not args.bind:
-                raise DirectiveError("directive is not bound in run.log yet")
-            line = directive_bound_line(ctx, _timestamp())
-            run_log = ctx.run_dir / "run.log"
-            existing = run_log.read_text(encoding="utf-8", errors="replace") if run_log.exists() else ""
-            run_log.write_text(line + "\n" + existing, encoding="utf-8")
-            print(f"directive_conformance: BOUND hash={ctx.current_hash}")
-
         checks = [
             ("manifest", "manifest.yaml", "manifest"),
             ("scope-lock", "scope-lock.yaml", "scope_lock"),
@@ -72,9 +63,26 @@ def main() -> int:
                 diffs.append(f"--- {label} mismatch ---\n{diff}")
 
         if diffs:
+            if ctx.bound_hash is not None:
+                print(
+                    "directive_conformance: CONTRACT_DIVERGED - directive was bound to this run "
+                    "but manifest/scope-lock no longer match the preapproved contract. "
+                    "STOP and require explicit operator acknowledgment."
+                )
+                print("".join(diffs))
+                return 3
             print("directive_conformance: MISMATCH - interactive manifest gate required.")
             print("".join(diffs))
             return 1
+
+        if ctx.bound_hash is None:
+            if not args.bind:
+                raise DirectiveError("directive is not bound in run.log yet")
+            line = directive_bound_line(ctx, _timestamp())
+            run_log = ctx.run_dir / "run.log"
+            with run_log.open("a", encoding="utf-8") as handle:
+                handle.write(line + "\n")
+            print(f"directive_conformance: BOUND hash={ctx.current_hash}")
 
         print(
             "directive_conformance: AUTO_APPROVE manifest/scope-lock "

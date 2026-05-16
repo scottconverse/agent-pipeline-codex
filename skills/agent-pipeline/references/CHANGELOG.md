@@ -10,6 +10,8 @@ release; the `CHANGELOG` will call them out.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-05-16
+
 ### Added
 
 - **Directive contract auto-approval.** Added optional
