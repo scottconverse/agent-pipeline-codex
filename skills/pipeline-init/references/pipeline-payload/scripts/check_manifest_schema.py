@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 """Policy: the run manifest must satisfy a strict schema.
 
@@ -215,7 +215,7 @@ def _check(fields: dict[str, object]) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.10")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.7.0")
     parser.add_argument(
         "--run",
         help="Pipeline run id (directory under .agent-runs/). Without this, the check is a no-op.",

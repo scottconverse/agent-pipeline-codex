@@ -43,6 +43,10 @@ EXPECTED_SKILLS = [
 EXPECTED_INSTALLED_FILES = [
     ".codex-plugin/plugin.json",
     "commands/run-pipeline.md",
+    "hooks/__init__.py",
+    "hooks/hook_runner.py",
+    "hooks/hook_utils.py",
+    "hooks/hooks.json",
     "pipelines/roles/executor.md",
     "pipelines/directive-template.yaml",
     "scripts/check_directive_conformance.py",
@@ -115,6 +119,13 @@ def check_source_layout(root: Path) -> list[Check]:
             "source plugin skills path",
             metadata.get("skills") == "./skills/",
             f"skills={metadata.get('skills')!r}",
+        )
+    )
+    checks.append(
+        Check(
+            "source plugin hooks path",
+            metadata.get("hooks") == "./hooks/hooks.json",
+            f"hooks={metadata.get('hooks')!r}",
         )
     )
 

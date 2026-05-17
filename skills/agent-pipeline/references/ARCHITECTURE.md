@@ -22,7 +22,8 @@ The plugin orchestrates work across **three layers**:
 
 1. **Plugin layer** (`agent-pipeline-codex/`) - the Codex skills, workflow specs, the
    stage definitions, the role files, and the policy scripts. Versioned,
-   shared across all your projects.
+    shared across all your projects. Optional plugin hooks also live here and
+   run in Codex's lifecycle when `[features].plugin_hooks = true`.
 2. **Project layer** (`<your-project>/`) - copies of the pipeline
    definitions, role files, and policy scripts that `pipeline-init`
    scaffolded into your project. Yours to customize.
@@ -38,6 +39,7 @@ flowchart TB
         A2["skills + commands/<br/>pipeline-init<br/>new-run<br/>run-pipeline"]
         A3["pipelines/<br/>feature.yaml<br/>bugfix.yaml<br/>roles/*.md"]
         A4["scripts/<br/>check_*.py<br/>final_response_gate.py<br/>agent_decision_gate.py<br/>pipeline_continue.py<br/>run_all.py"]
+        A5["hooks/<br/>hooks.json<br/>hook_runner.py"]
     end
 
     subgraph ProjectLayer["Project layer (per repo, after pipeline-init)"]
@@ -54,12 +56,30 @@ flowchart TB
     end
 
     PluginLayer -- "pipeline-init copies into" --> ProjectLayer
-    ProjectLayer -- "new-run + run-pipeline produce" --> RunLayer
+ProjectLayer -- "new-run + run-pipeline produce" --> RunLayer
 ```
 
 The strict separation matters: when an agent stage runs, it only sees the
 project layer and the run layer. The plugin layer is read-only template
 material; once scaffolded, your project's behavior is yours.
+
+Optional v0.7 hooks do not scaffold into the project. They stay in the plugin
+layer, read the project/run artifacts, and return Codex hook JSON responses.
+
+### Hook data flow (v0.7)
+
+```mermaid
+flowchart LR
+    H0["Codex lifecycle event<br/>SessionStart / PreToolUse / Stop"] --> H1["hooks/hook_runner.py"]
+    H1 --> H2["hook_utils.py<br/>active run + scope + directive discovery"]
+    H2 --> H3["Existing policy truth<br/>final_response_gate.py<br/>stop_validator.py<br/>manifest allowed_paths"]
+    H3 --> H4["Codex hook JSON<br/>additionalContext / deny / continue"]
+    H2 --> H5[".agent-runs/&lt;run-id&gt;/hook-events.jsonl<br/>audit receipt"]
+```
+
+Hooks are runtime guardrails, not a replacement for pipeline evidence. The
+promotion contract still comes from `run.log`, verifier, drift-detector,
+critic, policy, judge, directive, and manager artifacts.
 
 ---
 

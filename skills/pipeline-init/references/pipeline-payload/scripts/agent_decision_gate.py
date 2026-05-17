@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 """Validate agent stop, defer, skip, and final-response decisions.
 
@@ -366,7 +366,7 @@ def write_decision_ledger(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--version", action="version", version="agent-pipeline-codex 0.5.10"
+        "--version", action="version", version="agent-pipeline-codex 0.7.0"
     )
     parser.add_argument(
         "--run-dir",

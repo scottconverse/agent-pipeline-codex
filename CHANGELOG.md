@@ -10,6 +10,43 @@ release; the `CHANGELOG` will call them out.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-05-16
+
+### Added
+
+- **Optional Codex lifecycle hooks.** Added plugin-bundled hooks for
+  `SessionStart`, `UserPromptSubmit`, `PreToolUse`, `PermissionRequest`,
+  `PostToolUse`, and `Stop`. They load active run context, warn on stale
+  standalone skill names, guard risky tool calls, deny clearly unsafe approval
+  requests, add corrective context after failed tools, and continue invalid
+  pipeline stops.
+- **Hook utilities and tests.** Added a small read-only hook runtime plus tests
+  for active-run discovery, directive-bound detection, hook JSON output,
+  prompt warnings, risky tool-call denial, post-tool corrective context, and
+  stop-condition continuation.
+- **Hook design memo.** Added `docs/design/v-next-hooks.md` with official Codex
+  documentation citations, platform limits, and the relationship between hooks,
+  directive contracts, the judge layer, and human fallback gates.
+
+### Changed
+
+- **Plugin metadata.** Bumped the plugin to `0.7.0` and declared
+  `hooks/hooks.json` in `.codex-plugin/plugin.json`.
+- **Install verification.** The plugin install acceptance surface now verifies
+  hook files are present and installed alongside skills, commands, pipelines,
+  and policy scripts.
+
+### Security / Safety
+
+- **Failure mode closed.** Pipeline discipline no longer depends only on the
+  model remembering the orchestrator markdown during long sessions. Codex
+  runtime events can now re-inject active run context, block invalid stops, and
+  catch obvious unsafe actions before they execute.
+- **Honest limit.** Hooks are guardrails, not a full sandbox or replacement for
+  the judge layer, directive contracts, policy scripts, or Codex platform
+  approvals. Codex access tokens remain optional Business/Enterprise CI
+  plumbing and are not required for local Max/Pro-style use.
+
 ## [0.6.0] - 2026-05-16
 
 ### Added

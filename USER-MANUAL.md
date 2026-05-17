@@ -2,7 +2,7 @@
 
 A Codex Desktop App plugin that orchestrates multi-stage agentic work with three human-approval gates. Built from real lessons across multi-week agent projects where autonomous runs go wrong silently and "manager-PROMOTE" failures slip past CI.
 
-**Version:** 0.6.0
+**Version:** 0.7.0
 **License:** Apache 2.0
 
 ---
@@ -19,8 +19,9 @@ A Codex Desktop App plugin that orchestrates multi-stage agentic work with three
 8. [Resuming a halted run](#resuming-a-halted-run)
 9. [The judge layer (v0.4)](#the-judge-layer-v04)
 10. [Single-AI hardening (v0.5)](#single-ai-hardening-v05)
-11. [Troubleshooting](#troubleshooting)
-12. [Glossary](#glossary)
+11. [Hooked pipeline autonomy (v0.7)](#hooked-pipeline-autonomy-v07)
+12. [Troubleshooting](#troubleshooting)
+13. [Glossary](#glossary)
 
 ---
 
@@ -86,6 +87,15 @@ Policy and control scripts (Python, stdlib only):
 - `auto_promote.py` - v0.5 six-condition machine-checkable promote
 - `validate_manifest.py` - standalone manifest preflight wrapper
 - `run_all.py` - combined runner
+
+Optional Codex lifecycle hooks (v0.7):
+
+- `SessionStart` - adds active run context when a Codex session starts or resumes.
+- `UserPromptSubmit` - warns on stale standalone skill names and blocks explicit gate-bypass prompts during active runs.
+- `PreToolUse` - warns or blocks risky tool calls before execution.
+- `PermissionRequest` - denies vague/destructive approval requests and otherwise leaves normal approvals to Codex.
+- `PostToolUse` - adds corrective context after failed commands or changed pipeline contract artifacts.
+- `Stop` - continues the session when an active run is not at a valid stop condition.
 
 ## Installation
 
@@ -803,6 +813,59 @@ Single-model-family blind spots correlate. If both the executor and the critic s
 - **Tests-passed fails:** the implementation-report.md doesn't have a recognizable test-passing signal. Re-run tests, paste output, re-run executor stage with the fix.
 
 Re-running `run-pipeline <type> <run-id>` after fixing the underlying issue picks up at the failing stage thanks to the append-only `run.log`.
+
+---
+
+## Hooked pipeline autonomy (v0.7)
+
+v0.7 ships optional Codex lifecycle hooks. They are plugin-bundled hooks, so
+Codex only loads them when the local Codex config enables plugin hooks:
+
+```toml
+[features]
+plugin_hooks = true
+```
+
+After changing the config, restart Codex and review/trust the plugin hooks if
+Codex prompts you through `/hooks`. This is an opt-in runtime guardrail. It
+works in a normal signed-in local Codex session, including Max/Pro-style local
+use, and does not require a Codex access token. Codex access tokens are
+documented by OpenAI for ChatGPT Business and Enterprise workspaces; this plugin
+documents them only as optional CI plumbing for those workspace types.
+
+### What the hooks do
+
+- `SessionStart` adds active run context on startup/resume: run id, stage, next
+  action, directive-bound status, and judge status.
+- `UserPromptSubmit` warns when a prompt names stale standalone skills such as
+  `run-pipeline` instead of `agent-pipeline-codex:run-pipeline`, and blocks
+  explicit gate-bypass prompts during an active run.
+- `PreToolUse` warns on reviewable risk and denies clearly unsafe actions:
+  destructive commands, force pushes, publishing/deploy operations, credential
+  exposure, and active-run writes outside manifest `allowed_paths`.
+- `PermissionRequest` denies overbroad or unsafe approval requests. Normal
+  approvals are left to Codex's platform approval flow.
+- `PostToolUse` adds corrective context after failed commands, test failures,
+  or changes to manifest/scope/directive artifacts.
+- `Stop` reuses the final-response gate. If an active run is not at a valid
+  stop condition, Codex receives a continuation instruction instead of ending.
+
+The default behavior is warn/context mode. Hard blocking is reserved for
+concrete safety violations. The existing directive contract, judge layer,
+policy scripts, and human gates remain authoritative; hooks strengthen those
+protections but do not replace them.
+
+### Hook audit log
+
+When a hook can identify an active run, it appends a small JSONL receipt at:
+
+```text
+.agent-runs/<run-id>/hook-events.jsonl
+```
+
+This file is an audit trail, not a gate artifact. The pipeline still uses
+`run.log`, policy reports, verifier/critic/drift reports, and
+`manager-decision.md` as the authoritative promotion evidence.
 
 ---
 

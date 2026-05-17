@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 """Fail closed when an authorized Agent Pipeline run must continue.
 
@@ -44,7 +44,7 @@ def evaluate_final_response_gate(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--version", action="version", version="agent-pipeline-codex 0.5.10"
+        "--version", action="version", version="agent-pipeline-codex 0.7.0"
     )
     parser.add_argument(
         "--run-dir",
