@@ -242,25 +242,45 @@ def permission_decision(event: dict[str, Any], runs: list[ActiveRun]) -> dict[st
 
 def tool_failure_context(event: dict[str, Any]) -> str:
     response = event.get("tool_response")
-    text = json.dumps(response, sort_keys=True) if isinstance(response, (dict, list)) else str(response or "")
-    lowered = text.lower()
     pieces: list[str] = []
-    if "exit code" in lowered or "traceback" in lowered or "failed" in lowered or "error" in lowered:
+    failed = _tool_response_failed(response)
+    if failed:
         pieces.append("The last tool result appears to contain a failure. Inspect the command output, fix the root cause, and rerun the relevant verification before advancing the pipeline.")
     command = tool_command(event).lower()
     if any(name in command for name in ("manifest.yaml", "scope-lock.yaml", "directive.yaml")):
         pieces.append("A pipeline contract artifact was touched. Re-run directive/scope/manifest policy checks before relying on any auto-approval.")
-    if "pytest" in command and ("failed" in lowered or "error" in lowered):
+    if "pytest" in command and failed:
         pieces.append("Tests failed. Do not mark the stage complete until pytest is green or the failing gate records a valid human stop condition.")
     return "\n".join(pieces)
 
 
+def _tool_response_failed(response: Any) -> bool:
+    if not isinstance(response, dict):
+        return False
+    for name in ("exit_code", "exitCode", "returncode", "return_code", "status"):
+        if name not in response:
+            continue
+        value = response.get(name)
+        if isinstance(value, int):
+            return value != 0
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            if normalized.isdigit():
+                return int(normalized) != 0
+            if normalized in {"failed", "failure", "error"}:
+                return True
+            if normalized in {"ok", "success", "passed", "pass"}:
+                return False
+    stderr = str(response.get("stderr") or "")
+    return bool(stderr.strip() and any(marker in stderr.lower() for marker in ("traceback", "error:", "exception")))
+
 def stop_continuation(repo_root: Path) -> str:
-    try:
-        from scripts.final_response_gate import evaluate_final_response_gate
-    except ModuleNotFoundError:
-        sys.path.insert(0, str(repo_root))
-        from scripts.final_response_gate import evaluate_final_response_gate
+    plugin_root = Path(__file__).resolve().parents[1]
+    for import_root in (repo_root, plugin_root):
+        root_text = str(import_root)
+        if root_text not in sys.path:
+            sys.path.insert(0, root_text)
+    from scripts.final_response_gate import evaluate_final_response_gate
 
     results = evaluate_final_response_gate(repo_root / ".agent-runs", require_active_run=False)
     blocked = [result for result in results if not result.allowed]

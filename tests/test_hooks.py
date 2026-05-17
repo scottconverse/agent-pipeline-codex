@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 from hooks import hook_runner
@@ -138,6 +140,17 @@ def test_post_tool_use_adds_corrective_context_after_failed_tests(tmp_path: Path
     assert "Tests failed" in payload["hookSpecificOutput"]["additionalContext"]
 
 
+def test_post_tool_use_ignores_successful_output_that_mentions_failures(tmp_path: Path, capsys) -> None:
+    event = {
+        "cwd": str(tmp_path),
+        "tool_input": {"command": "Get-Content docs/discussions/announcements.md"},
+        "tool_response": {"exit_code": 0, "stdout": "This document discusses historical failure receipts."},
+    }
+
+    assert hook_runner.handle_post_tool_use(event) == 0
+    assert capsys.readouterr().out == ""
+
+
 def test_stop_continues_invalid_active_run_and_allows_valid_human_gate(tmp_path: Path, capsys) -> None:
     _write_active_run(tmp_path)
 
@@ -163,3 +176,23 @@ def test_stop_continues_invalid_active_run_and_allows_valid_human_gate(tmp_path:
     )
     assert hook_runner.handle_stop({"cwd": str(tmp_path), "stop_hook_active": False}) == 0
     assert capsys.readouterr().out == ""
+
+
+def test_stop_hook_subprocess_imports_bundled_policy_from_hooks_dir(tmp_path: Path) -> None:
+    _write_active_run(tmp_path)
+    repo_root = Path(__file__).resolve().parents[1]
+    runner = repo_root / "hooks" / "hook_runner.py"
+
+    completed = subprocess.run(
+        [sys.executable, str(runner), "Stop"],
+        input=json.dumps({"cwd": str(tmp_path), "stop_hook_active": False}),
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert completed.returncode == 0
+    assert completed.stderr == ""
+    payload = json.loads(completed.stdout)
+    assert payload["decision"] == "block"
+    assert "not at a valid stop condition" in payload["reason"]

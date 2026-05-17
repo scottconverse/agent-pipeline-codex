@@ -85,10 +85,10 @@ critic, policy, judge, directive, and manager artifacts.
 
 ## 2. Stage flow - feature pipeline
 
-The default `feature` pipeline runs eight stages in order. Three of them
+The default `feature` pipeline runs eleven stages in order. Three of them
 are **human-approval gates** (orange). One is an **automated policy
-gate** (yellow). The rest are agent stages (blue) that delegate to a
-fresh subagent per stage.
+gate** (yellow), and auto-promote is a machine decision stage. The rest are
+agent stages (blue) that delegate to a fresh subagent per stage.
 
 ```mermaid
 flowchart TB
@@ -99,7 +99,10 @@ flowchart TB
     TW --> E[execute<br/>role: executor<br/>artifact: implementation-report.md]
     E --> POL[policy<br/>role: pipeline<br/>command: scripts/policy/run_all.py<br/>artifact: policy-report.md]
     POL -- exit 0 --> V[verify<br/>role: verifier<br/>artifact: verifier-report.md]
-    V --> MGR[manager<br/>role: manager<br/>artifact: manager-decision.md]
+    V --> DD[drift-detect<br/>role: drift-detector<br/>artifact: drift-report.md]
+    DD --> C[critique<br/>role: critic<br/>artifact: critic-report.md]
+    C --> AP[auto-promote<br/>role: pipeline<br/>artifact: manager-decision.md or auto-promote-report.md]
+    AP --> MGR[manager<br/>role: manager<br/>artifact: manager-decision.md]
     MGR -- APPROVE --> Done([Pipeline complete])
 
     M -. BLOCKED .-> Stop1([Stop])
@@ -113,8 +116,8 @@ flowchart TB
     classDef stop fill:#ffb3b3,stroke:#cc0000,color:#000
 
     class M,P,MGR human
-    class R,TW,E,V agent
-    class POL policy
+    class R,TW,E,V,DD,C agent
+    class POL,AP policy
     class Stop1,Stop2,Stop3,Stop4 stop
 ```
 
@@ -159,8 +162,13 @@ flowchart LR
     TW --> V
     E --> V
     JL --> V
-    V --> MGR["manager-decision.md<br/>(manager)<br/>PROMOTE / BLOCK / REPLAN<br/>cites verifier verbatim"]
+    V --> DD["drift-report.md<br/>(drift-detector)<br/>manifest contract vs.<br/>assembled state"]
+    DD --> CR["critic-report.md<br/>(critic)<br/>adversarial cold read<br/>across six lenses"]
+    CR --> AP["manager-decision.md or<br/>auto-promote-report.md<br/>(auto_promote.py)<br/>six base + directive assertions"]
+    AP --> MGR["manager-decision.md<br/>(manager)<br/>PROMOTE / BLOCK / REPLAN<br/>cites verifier verbatim"]
     POL --> MGR
+    DD --> MGR
+    CR --> MGR
     JL --> MGR
     I0 --> MGR
     MGR --> ACS["active-control-state.md<br/>(orchestrator)<br/>stop condition + next action"]
@@ -171,8 +179,8 @@ flowchart LR
     classDef policy fill:#fff3b3,stroke:#999900,color:#000
     classDef judge fill:#ccf2cc,stroke:#339933,color:#000
     class I0 human
-    class R,P,TW,E,V,MGR agent
-    class SL,POL policy
+    class R,P,TW,E,V,DD,CR,MGR agent
+    class SL,POL,AP policy
     class JL judge
     class ACS,DG policy
 ```

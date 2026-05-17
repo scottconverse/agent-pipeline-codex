@@ -50,7 +50,15 @@ These are example summaries from projects that shipped with the plugin. Use them
 **Task:** v1.0.0 release prep across three sprints (Sprint A, Sprint B, sprint-end re-audit).
 **Wall-clock:** Multi-week, across many runs.
 **What caught:** The audit-team skill called from the verifier role surfaced a V4 root-cause issue that careful-coding had missed at altitude 1. The mid-rung overflow rule (Blocker stops rung, Critical only if it fits) prevented sprint scope creep when a Critical surfaced in week 2.
-**Next time:** v0.4 judge layer adopted retroactively for v1.1 work - `npm publish` and `git push --force` now ride the high_risk path with explicit human confirm even when the judge ALLOWs.
+**Next time:** v0.4 judge layer adopted retroactively for v1.1 work - high-risk publish and forced-remote-update operations now ride the high_risk path with explicit human confirm even when the judge ALLOWs.
+
+### agent-pipeline-codex - v0.7 hook dogfood (`feature`)
+
+**Project:** agent-pipeline-codex itself.
+**Pipeline:** `feature`.
+**Task:** Add optional Codex lifecycle hooks for active-run context, risky tool-call guardrails, approval denial, post-tool corrective context, and invalid-stop continuation.
+**What caught:** Enabling hooks during the release pass immediately found an overbroad `PostToolUse` rule: successful documentation reads that mentioned historical failure receipts were treated as failed tool output. The fix changed the hook to trust explicit tool result status metadata instead of scanning successful stdout prose.
+**Next time:** Add a dedicated hook activation verifier so operators can prove config, trust review, installed cache, and live hook execution separately.
 
 ---
 

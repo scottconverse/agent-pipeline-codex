@@ -855,6 +855,27 @@ concrete safety violations. The existing directive contract, judge layer,
 policy scripts, and human gates remain authoritative; hooks strengthen those
 protections but do not replace them.
 
+### Technical activation and data flow
+
+The plugin declares `hooks/hooks.json` in `.codex-plugin/plugin.json`. When
+Codex has `plugin_hooks = true` and the operator has trusted the hook bundle,
+Codex sends each lifecycle event as JSON on stdin to `hooks/hook_runner.py`.
+The runner uses `hooks/hook_utils.py` to read on-disk project/run artifacts and
+prints Codex hook JSON only when it has context, a denial, or a continuation
+instruction.
+
+```text
+Codex lifecycle event
+  -> hooks/hook_runner.py
+  -> hooks/hook_utils.py
+  -> .agent-runs/<run-id>/active-control-state.md + manifest/scope/directive artifacts
+  -> Codex hook response: additionalContext, deny, or continue
+```
+
+The hooks are plugin-layer runtime guardrails. They do not get copied into
+project `scripts/policy/` by `pipeline-init`, and they do not replace any
+project-scaffolded policy script.
+
 ### Hook audit log
 
 When a hook can identify an active run, it appends a small JSONL receipt at:

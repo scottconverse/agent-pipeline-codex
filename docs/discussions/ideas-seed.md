@@ -1,4 +1,4 @@
-# Ideas - what should v0.6 (and beyond) look like?
+# Ideas - what should v0.8 (and beyond) look like?
 
 This thread collects proposals for future versions. Anything from a single new policy check to a whole new layer is fair game. The bar for "this should ship" is: a specific failure mode the existing layers don't catch, plus a sketch of what catches it.
 
@@ -23,6 +23,12 @@ These are ideas under active consideration. None are committed. Some have been d
 - Control-loop enforcement: `final_response_gate.py`, `agent_decision_gate.py`, `decision-ledger.ndjson`, and `pipeline_continue.py`.
 - Status polish: `show-run-status`, malformed `run.log` line visibility, production ledger writer-to-validator coverage, and git action-classification regression tests.
 - Canonical rung authority: `scope-lock.yaml`, release-plan matching, future-rung path/docs/commit blockers, and start-rung prompt conflict detection.
+- Directive contracts: hash-bound manifest/scope/plan/manager auto-approval with human fallback.
+- Hooked pipeline autonomy: optional Codex lifecycle hooks for run context, tool guardrails, approval denial, post-tool corrective context, and invalid-stop continuation.
+
+### Hook activation verifier
+
+A focused diagnostic for v0.7 installs. It should answer: is `plugin_hooks` enabled, are hook files present in the installed cache, have the hooks been trusted in Codex, and did a live hook event fire? This became a candidate while dogfooding v0.7 because source tests and live plugin visibility can pass before the app has completed the hook trust step.
 
 ### Project memory layer
 

@@ -54,6 +54,21 @@ Almost always: stale local venv. The executor role file requires verification ag
 
 The presence of `.pipelines/action-classification.yaml` in your project at run start. If it exists, the orchestrator uses Handler 3a (classify -> judge -> execute) for the executor stage, and the run directory will contain `judge-log.yaml` and `judge-metrics.yaml` at the end. If the file doesn't exist, the executor stage runs unchanged from v0.3, and no judge artifacts are produced.
 
+### Q: How do I enable the v0.7 hooks?
+
+Add this to your Codex config, restart the whole Codex app, then review/trust the hooks through `/hooks` if Codex prompts you:
+
+```toml
+[features]
+plugin_hooks = true
+```
+
+The hooks are optional. They work with a normal signed-in local Codex session and do not require Codex access tokens. Tokens are only documented by OpenAI for ChatGPT Business and Enterprise workspace automation.
+
+### Q: Do hooks replace the judge layer or policy stage?
+
+No. Hooks run at Codex lifecycle boundaries; the judge and policy stage still own the pipeline's durable evidence. `PreToolUse` can catch obvious unsafe actions early, but `run_all.py`, verifier, drift-detector, critic, auto-promote, directive checks, and manager evidence still decide whether the run promotes.
+
 ## Customization
 
 ### Q: How do I add a project-specific policy check?
