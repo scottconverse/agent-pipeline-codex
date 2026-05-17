@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 """Policy: product work must match the canonical release-plan rung."""
 
@@ -105,7 +105,7 @@ def evaluate_scope_lock(run_id: str, run_dir: Path = RUN_DIR, root: Path = REPO_
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.7.0")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.8.0")
     parser.add_argument("--run", help="Pipeline run id under .agent-runs/.")
     args = parser.parse_args()
 

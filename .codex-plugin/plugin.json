@@ -1,7 +1,7 @@
 {
   "name": "agent-pipeline-codex",
-  "version": "0.7.0",
-  "description": "Multi-stage agentic pipeline runner for Codex Desktop App projects. Orchestrates manifest -> research -> plan -> test-write -> execute -> policy -> verify -> drift-detect -> critique -> auto-promote -> manager. v0.7 adds optional Codex lifecycle hooks that load run context, guard risky tool calls, and continue invalid pipeline stops while preserving directive, judge, and human fallback protections.",
+  "version": "0.8.0",
+  "description": "Multi-stage agentic pipeline runner for Codex Desktop App projects. Orchestrates manifest -> research -> plan -> test-write -> execute -> policy -> verify -> drift-detect -> critique -> auto-promote -> manager. v0.8 adds a separate intake skill that drafts starting artifacts from a plain-English product, repo, design, task, bug, or feature description without starting work.",
   "author": {
     "name": "Scott Converse",
     "email": "sconverse@gmail.com",
@@ -22,7 +22,7 @@
   "interface": {
     "displayName": "Agent Pipeline for Codex",
     "shortDescription": "Manifest-driven multi-stage agent workflow for Codex.",
-    "longDescription": "Agent Pipeline for Codex brings the agentic-pipeline discipline to Codex Desktop App: explicit manifests, human gates, role-scoped subagents, policy checks, drift detection, critique, auto-promote, module-release rehearsal, and dual-AI audit handoff scaffolding.",
+    "longDescription": "Agent Pipeline for Codex brings the agentic-pipeline discipline to Codex Desktop App: intake drafting, explicit manifests, human gates, role-scoped subagents, policy checks, drift detection, critique, auto-promote, module-release rehearsal, and dual-AI audit handoff scaffolding.",
     "developerName": "Scott Converse",
     "category": "Productivity",
     "capabilities": [
@@ -34,7 +34,7 @@
     "termsOfServiceURL": "https://github.com/scottconverse/agent-pipeline-codex/blob/main/LICENSE",
     "defaultPrompt": [
       "Initialize this repo for agent-pipeline.",
-      "Validate my pipeline manifest.",
+      "Draft a pipeline run from my task.",
       "Resume my current pipeline run."
     ],
     "brandColor": "#1A3A8F"

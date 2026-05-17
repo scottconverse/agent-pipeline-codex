@@ -36,7 +36,7 @@ flowchart TB
     subgraph PluginLayer["Plugin layer (one install per machine)"]
         direction LR
         A1[".codex-plugin/plugin.json"]
-        A2["skills + commands/<br/>pipeline-init<br/>new-run<br/>run-pipeline"]
+        A2["skills + commands/<br/>pipeline-init<br/>intake<br/>new-run<br/>run-pipeline"]
         A3["pipelines/<br/>feature.yaml<br/>bugfix.yaml<br/>roles/*.md"]
         A4["scripts/<br/>check_*.py<br/>final_response_gate.py<br/>agent_decision_gate.py<br/>pipeline_continue.py<br/>run_all.py"]
         A5["hooks/<br/>hooks.json<br/>hook_runner.py"]
@@ -56,7 +56,7 @@ flowchart TB
     end
 
     PluginLayer -- "pipeline-init copies into" --> ProjectLayer
-ProjectLayer -- "new-run + run-pipeline produce" --> RunLayer
+ProjectLayer -- "intake/new-run + run-pipeline produce" --> RunLayer
 ```
 
 The strict separation matters: when an agent stage runs, it only sees the
@@ -670,11 +670,12 @@ agent-pipeline-codex/                        # the plugin
 |   `-- index.html                       # GitHub Pages landing page
 |-- commands/
 |   |-- pipeline-init.md                 # pipeline-init logic
+|   |-- intake.md                       # draft intake artifact logic
 |   |-- new-run.md                       # new-run logic
 |   `-- run-pipeline.md                  # run-pipeline logic (orchestrator)
 |-- pipelines/
-|   |-- feature.yaml                     # 8-stage feature flow
-|   |-- bugfix.yaml                      # 7-stage bugfix flow
+|   |-- feature.yaml                     # 11-stage feature flow
+|   |-- bugfix.yaml                      # 10-stage bugfix flow
 |   |-- manifest-template.yaml           # blank skeleton
 |   |-- action-classification.yaml       # v0.4 - opt-in judge layer rules
 |   `-- roles/
@@ -810,6 +811,11 @@ sequenceDiagram
     U->>CC: provide project source
     CC->>Proj: scaffold pipeline files
     CC->>U: summarize orientation
+
+    U->>CC: intake plain-English task
+    CC->>Plugin: read intake command
+    CC->>Runs: draft intake.md, manifest.yaml, scope-lock.yaml
+    CC->>U: ask user to complete TODOs and validate
 
     U->>CC: new-run feature my-task
     CC->>Plugin: read new-run command

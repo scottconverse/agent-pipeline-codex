@@ -2,7 +2,7 @@
 
 A Codex Desktop App plugin that orchestrates multi-stage agentic work with three human-approval gates. Built from real lessons across multi-week agent projects where autonomous runs go wrong silently and "manager-PROMOTE" failures slip past CI.
 
-**Version:** 0.7.0
+**Version:** 0.8.0
 **License:** Apache 2.0
 
 ---
@@ -13,15 +13,16 @@ A Codex Desktop App plugin that orchestrates multi-stage agentic work with three
 2. [What you get](#what-you-get)
 3. [Installation](#installation)
 4. [Onboarding a project - `pipeline-init`](#onboarding-a-project)
-5. [Running a pipeline](#running-a-pipeline)
-6. [The three human gates](#the-three-human-gates)
-7. [Customizing for your project](#customizing-for-your-project)
-8. [Resuming a halted run](#resuming-a-halted-run)
-9. [The judge layer (v0.4)](#the-judge-layer-v04)
-10. [Single-AI hardening (v0.5)](#single-ai-hardening-v05)
-11. [Hooked pipeline autonomy (v0.7)](#hooked-pipeline-autonomy-v07)
-12. [Troubleshooting](#troubleshooting)
-13. [Glossary](#glossary)
+5. [Intake drafting - `intake`](#intake-drafting)
+6. [Running a pipeline](#running-a-pipeline)
+7. [The three human gates](#the-three-human-gates)
+8. [Customizing for your project](#customizing-for-your-project)
+9. [Resuming a halted run](#resuming-a-halted-run)
+10. [The judge layer (v0.4)](#the-judge-layer-v04)
+11. [Single-AI hardening (v0.5)](#single-ai-hardening-v05)
+12. [Hooked pipeline autonomy (v0.7)](#hooked-pipeline-autonomy-v07)
+13. [Troubleshooting](#troubleshooting)
+14. [Glossary](#glossary)
 
 ---
 
@@ -46,12 +47,13 @@ If you don't have those yet, `pipeline-init` helps you scaffold them.
 
 ## What you get
 
-Seven Codex skills: one overview/router plus six concrete workflow skills.
+Eight Codex skills: one overview/router plus seven concrete workflow skills.
 
 | Skill | Purpose |
 | :--- | :--- |
 | `agent-pipeline` | Overview and routing. Explains the plugin and points to the specific workflow skill. |
 | `pipeline-init` | Onboard a project. Accepts a PRD path, a repo URL, or a description paragraph. Scaffolds `.pipelines/`, `scripts/policy/`, and `AGENTS.md` if missing. |
+| `intake` | Draft starting run artifacts from a plain-English product, repo, design, task, bug, or feature description. Does not start the pipeline. |
 | `new-run <type> <slug>` | Initialize a new pipeline run. Creates `.agent-runs/<run-id>/manifest.yaml` and `scope-lock.yaml` from templates and asks you to fill them in. |
 | `validate-manifest` | Preflight a run manifest against the same schema used by the policy stage. |
 | `run-pipeline <type> <run-id>` | Orchestrate a pipeline run end-to-end. Stops at human gates and on failure. Resumable. |
@@ -140,6 +142,7 @@ explicitly:
 
 ```text
 agent-pipeline-codex:agent-pipeline
+agent-pipeline-codex:intake
 agent-pipeline-codex:pipeline-init
 agent-pipeline-codex:new-run
 agent-pipeline-codex:run-pipeline
@@ -217,6 +220,39 @@ You have an idea - a paragraph or two describing what you want to build. The plu
 
 - **New project to scaffold from scratch?** It synthesizes a minimal PRD from the description and treats it as Path 1.
 - **Context for an existing repo?** It asks for the repo URL/path and treats it as Path 2 (your description goes into the orientation summary as user-provided context).
+
+## Intake drafting
+
+Use `agent-pipeline-codex:intake` when you have a plain-English description but
+not yet enough structure for a manifest.
+
+Example:
+
+```text
+Use agent-pipeline-codex:intake for Add account deletion to settings. Include
+tests, docs, copy review, and a rollback path. Do not change billing.
+```
+
+The skill creates a draft run directory with:
+
+- `intake.md` - source description and conservative interpretation
+- `manifest.yaml` - draft fields filled only where the request supports them
+- `scope-lock.yaml` - conservative TODO placeholders for canonical scope facts
+- `intake-questions.md` - missing answers required before validation
+
+This is intentionally not executable authority. `intake` does not validate the
+manifest, approve the manifest, create a directive, run agents, or start
+implementation. The next step is to complete the TODOs, then run:
+
+```text
+Use agent-pipeline-codex:validate-manifest for <run-id>.
+```
+
+Only after validation passes should you run:
+
+```text
+Use agent-pipeline-codex:run-pipeline for <run-id>.
+```
 
 ## Running a pipeline
 

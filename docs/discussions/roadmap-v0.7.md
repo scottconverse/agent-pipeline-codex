@@ -1,4 +1,4 @@
-# Roadmap - v0.7 shipped set and v0.8 carry-forward
+# Roadmap - v0.7 shipped set, v0.8 intake, and v0.9 carry-forward
 
 This is a living roadmap for the post-hook era. v0.7 shipped optional Codex lifecycle hooks because Codex gained a first-class hook surface that maps directly to the pipeline's existing control-loop and action-safety receipts.
 
@@ -13,7 +13,15 @@ This is a living roadmap for the post-hook era. v0.7 shipped optional Codex life
 - Stop-hook continuation through the existing final-response gate.
 - Hook audit receipts at `.agent-runs/<run-id>/hook-events.jsonl` when an active run is detectable.
 
-## What's plausible for v0.8
+## Shipped in v0.8.0
+
+- Separate `agent-pipeline-codex:intake` skill for plain-English run onboarding.
+- Draft `.agent-runs/<run-id>/intake.md`, `manifest.yaml`, `scope-lock.yaml`, and `intake-questions.md` when needed.
+- Install acceptance checks for the new namespaced skill and command/reference files.
+- Public docs, architecture diagrams, manual guidance, landing page copy, and discussion seed text for the intake layer.
+- Safety boundary that stops before validation, directives, subagents, tests, policy, or pipeline execution.
+
+## What's plausible for v0.9
 
 ### Candidate 1 - Hook trust and install diagnostics
 
@@ -43,7 +51,7 @@ v0.7 defaults to warn/context mode with narrow hard blocks. Some teams may want 
 
 - Project memory layer.
 - Per-stage budgets and timeouts.
-- Better PRD-to-manifest auto-fill.
+- Source-aware intake from PRDs, issues, or design docs.
 - Cross-run artifact diff.
 - Richer run-status views.
 - Multi-repo orchestration after enough cross-repo receipts accumulate.

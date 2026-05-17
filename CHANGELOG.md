@@ -10,6 +10,33 @@ release; the `CHANGELOG` will call them out.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-05-17
+
+### Added
+
+- **Intake skill.** Added `agent-pipeline-codex:intake`, a separate
+  plain-English onboarding skill for cases where the operator has a product,
+  repo, design, task, bug, or feature description but no manifest yet. It drafts
+  `.agent-runs/<run-id>/intake.md`, `manifest.yaml`, `scope-lock.yaml`, and
+  `intake-questions.md` when required.
+
+### Changed
+
+- **Plugin metadata and install verification.** Bumped the plugin to `0.8.0`
+  and expanded install acceptance to require the new namespaced `intake` skill
+  plus its bundled command/reference files.
+
+### Security / Safety
+
+- **Failure mode closed.** Operators no longer have to choose between a blank
+  `new-run` skeleton and asking the model to improvise work without a manifest.
+  `intake` provides a friendly drafting step while preserving the rule that
+  execution starts only after manifest review and validation.
+- **Honest limit.** Intake drafts are not approval, not directive contracts, and
+  not executable authority. They intentionally leave uncertain scope as TODOs
+  or intake questions instead of inventing allowed paths, release-plan facts, or
+  completion criteria.
+
 ## [0.7.0] - 2026-05-16
 
 ### Added

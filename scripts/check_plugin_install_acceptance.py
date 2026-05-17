@@ -34,6 +34,7 @@ EXPECTED_MARKETPLACE = "agent-pipeline-local"
 EXPECTED_SKILLS = [
     "agent-pipeline",
     "audit-init",
+    "intake",
     "new-run",
     "pipeline-init",
     "run-pipeline",
@@ -42,6 +43,7 @@ EXPECTED_SKILLS = [
 ]
 EXPECTED_INSTALLED_FILES = [
     ".codex-plugin/plugin.json",
+    "commands/intake.md",
     "commands/run-pipeline.md",
     "hooks/__init__.py",
     "hooks/hook_runner.py",
@@ -63,6 +65,7 @@ EXPECTED_INSTALLED_FILES = [
     "skills/pipeline-init/references/pipeline-payload/scripts/check_plan_against_directive.py",
     "skills/pipeline-init/references/pipeline-payload/scripts/directive_utils.py",
     "skills/pipeline-init/references/pipeline-payload/scripts/run_all.py",
+    "skills/intake/references/intake.md",
     "skills/run-pipeline/references/run-pipeline.md",
 ]
 

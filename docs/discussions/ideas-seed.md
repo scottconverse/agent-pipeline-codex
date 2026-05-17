@@ -1,4 +1,4 @@
-# Ideas - what should v0.8 (and beyond) look like?
+# Ideas - what should v0.9 (and beyond) look like?
 
 This thread collects proposals for future versions. Anything from a single new policy check to a whole new layer is fair game. The bar for "this should ship" is: a specific failure mode the existing layers don't catch, plus a sketch of what catches it.
 
@@ -25,6 +25,7 @@ These are ideas under active consideration. None are committed. Some have been d
 - Canonical rung authority: `scope-lock.yaml`, release-plan matching, future-rung path/docs/commit blockers, and start-rung prompt conflict detection.
 - Directive contracts: hash-bound manifest/scope/plan/manager auto-approval with human fallback.
 - Hooked pipeline autonomy: optional Codex lifecycle hooks for run context, tool guardrails, approval denial, post-tool corrective context, and invalid-stop continuation.
+- Intake drafting: `agent-pipeline-codex:intake` converts a plain-English task into draft `.agent-runs/<run-id>/intake.md`, `manifest.yaml`, `scope-lock.yaml`, and missing-question notes without starting the pipeline.
 
 ### Hook activation verifier
 
@@ -64,7 +65,7 @@ The pipeline today operates on one repo. Multi-module projects (CivicSuite has ~
 
 ### Better PRD-to-manifest auto-fill
 
-`pipeline-init` today asks for a PRD and scaffolds AGENTS.md. The next step is the manifest - currently the operator fills it by hand. Sketch: a `/manifest-from-prd` command that reads the PRD, the recently-touched code, and proposes a draft manifest for the operator to edit. Reduces the manifest authoring time from 10 minutes to 2.
+`intake` now drafts a starter manifest from a plain-English task, but it intentionally stays conservative and stops before validation. A future version could add richer source-aware drafting from a PRD, existing issue, or design doc. Sketch: a source-aware intake mode that reads the PRD and recently touched code, proposes a draft manifest, and still requires operator review before validation.
 
 ## How to propose a new idea
 

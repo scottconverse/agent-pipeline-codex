@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 """Check manifest/scope-lock conformance against an optional directive contract."""
 
@@ -37,7 +37,7 @@ def _timestamp() -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.7.0")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.8.0")
     parser.add_argument("--run", required=True)
     parser.add_argument(
         "--bind",

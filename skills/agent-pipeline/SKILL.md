@@ -5,13 +5,14 @@ description: "Use when the user asks to understand, install, initialize, run, or
 
 # Agent Pipeline for Codex
 
-This plugin is the Codex Desktop App variant of `agent-pipeline-claude` v0.5.2 with v0.6.0 directive contracts, v0.5.10 central stop validation, v0.5.9 canonical rung/scope authority, run-status transparency, tighter regression coverage, and namespaced plugin install proof. It keeps the same pipeline definitions, policy scripts, role files, run-state convention, landing page structure, and release history, but exposes the workflow through Codex skills instead of Claude Code commands.
+This plugin is the Codex Desktop App variant of `agent-pipeline-claude` v0.5.2 with v0.8.0 intake drafting, v0.7.0 lifecycle hooks, v0.6.0 directive contracts, v0.5.10 central stop validation, v0.5.9 canonical rung/scope authority, run-status transparency, tighter regression coverage, and namespaced plugin install proof. It keeps the same pipeline definitions, policy scripts, role files, run-state convention, landing page structure, and release history, but exposes the workflow through Codex skills instead of Claude Code commands.
 
-When proving the plugin is active in a fresh Codex session, verify the namespaced plugin skills (`agent-pipeline-codex:agent-pipeline`, `agent-pipeline-codex:pipeline-init`, `agent-pipeline-codex:new-run`, `agent-pipeline-codex:run-pipeline`, `agent-pipeline-codex:audit-init`, `agent-pipeline-codex:show-run-status`, `agent-pipeline-codex:validate-manifest`). Standalone skills under `$CODEX_HOME/skills` are compatibility copies and are not proof that the current plugin cache loaded.
+When proving the plugin is active in a fresh Codex session, verify the namespaced plugin skills (`agent-pipeline-codex:agent-pipeline`, `agent-pipeline-codex:intake`, `agent-pipeline-codex:pipeline-init`, `agent-pipeline-codex:new-run`, `agent-pipeline-codex:run-pipeline`, `agent-pipeline-codex:audit-init`, `agent-pipeline-codex:show-run-status`, `agent-pipeline-codex:validate-manifest`). Standalone skills under `$CODEX_HOME/skills` are compatibility copies and are not proof that the current plugin cache loaded.
 
 Use this skill to orient the user and route to a specific workflow:
 
 - Project onboarding: invoke the `pipeline-init` skill
+- Plain-English run drafting: invoke the `intake` skill
 - New run scaffolding: invoke the `new-run` skill
 - Run orchestration / resume: invoke the `run-pipeline` skill
 - Dual-AI audit handoff setup: invoke the `audit-init` skill

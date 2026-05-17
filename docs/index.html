@@ -282,7 +282,7 @@
 <header class="masthead">
   <div class="mark">agent-pipeline-codex</div>
   <div class="meta">
-    <span>v0.7.0+hooked-autonomy</span>
+    <span>v0.8.0+intake-drafting</span>
     <span>Apache-2.0</span>
     <span>Codex Desktop App plugin</span>
   </div>
@@ -317,7 +317,7 @@
     </div>
 
     <aside class="hero-meta">
-      <div class="row"><span>Release</span><strong class="rust">0.7.0</strong></div>
+      <div class="row"><span>Release</span><strong class="rust">0.8.0</strong></div>
       <div class="row"><span>Stages</span><strong>11</strong></div>
       <div class="row"><span>Human gates</span><strong>3</strong></div>
       <div class="row"><span>Role files</span><strong>13</strong></div>
@@ -332,7 +332,7 @@
 
 <section class="diagram-wrap frame">
   <span class="frame-mark">Fig. 01 | Pipeline schematic</span>
-  <span class="frame-mark-right">v0.7.0 | feature.yaml</span>
+  <span class="frame-mark-right">v0.8.0 | feature.yaml</span>
 
   <div class="figcap">
     <span class="label">Eleven stages | four phases | three human gates | shared stop validator | optional lifecycle hooks</span>
@@ -563,6 +563,7 @@
 
 <span class="comment"># Then in any project root</span>
 <span class="prompt">></span> Use pipeline-init for this project.
+<span class="prompt">></span> Use intake for <span style="color:#8e8a80;">&lt;plain-English task&gt;</span>.
 <span class="prompt">></span> Use new-run for feature <span style="color:#8e8a80;">&lt;task-slug&gt;</span>.
 <span class="comment">>  ... fill in the manifest the plugin scaffolds ...</span>
 <span class="prompt">></span> Use validate-manifest for <span style="color:#8e8a80;">&lt;run-id&gt;</span>.
@@ -572,7 +573,7 @@
       <div class="runtimes">
         <div>
           <h4>Codex skills</h4>
-          <p>Seven Codex skills cover the full surface: <code>agent-pipeline</code> orients and routes; <code>pipeline-init</code> onboards a project, <code>new-run</code> initializes a run manifest, <code>validate-manifest</code> preflights the manifest schema, <code>run-pipeline</code> orchestrates the eleven stages with resume-from-log, <code>show-run-status</code> gives read-only run orientation, and <code>audit-init</code> scaffolds the v0.3 dual-AI audit-handoff discipline.</p>
+          <p>Eight Codex skills cover the full surface: <code>agent-pipeline</code> orients and routes; <code>pipeline-init</code> onboards a project, <code>intake</code> drafts starting artifacts from a plain-English task, <code>new-run</code> initializes a blank run manifest, <code>validate-manifest</code> preflights the manifest schema, <code>run-pipeline</code> orchestrates the eleven stages with resume-from-log, <code>show-run-status</code> gives read-only run orientation, and <code>audit-init</code> scaffolds the v0.3 dual-AI audit-handoff discipline.</p>
         </div>
         <div>
           <h4>Subagent isolation</h4>
@@ -657,12 +658,21 @@
           </div>
         </div>
 
-        <div class="layer current">
-          <div class="v">v0.7.0<strong>Hooked autonomy</strong><span class="badge">Current</span></div>
+        <div class="layer">
+          <div class="v">v0.7.0<strong>Hooked autonomy</strong></div>
           <div>
             <div class="l-title">Pipeline discipline moves into Codex lifecycle events.</div>
             <p class="l-body">Optional plugin hooks add active-run context, warn on stale skill names, preflight risky tools, deny unsafe approval requests, add corrective context after failed tools, and continue invalid stops when <code>plugin_hooks</code> is enabled.</p>
             <div class="l-catches"><strong>Fixes</strong> Long sessions where the model remembers the plan but forgets the runtime stop and safety gates.</div>
+          </div>
+        </div>
+
+        <div class="layer current">
+          <div class="v">v0.8.0<strong>Intake drafting</strong><span class="badge">Current</span></div>
+          <div>
+            <div class="l-title">Plain-English work requests become draft run artifacts without starting execution.</div>
+            <p class="l-body">The new <code>intake</code> skill writes <code>intake.md</code>, draft <code>manifest.yaml</code>, draft <code>scope-lock.yaml</code>, and missing-question notes, then stops before validation or agent work.</p>
+            <div class="l-catches"><strong>Fixes</strong> The awkward gap between "I know what I want" and "I have a valid manifest" without weakening manifest approval.</div>
           </div>
         </div>
       </div>
@@ -741,7 +751,7 @@
 <footer class="foot page">
   <span>(c) Scott Converse | Apache-2.0</span>
   <span><a href="https://github.com/scottconverse/agent-pipeline-codex">github</a> | <a href="https://github.com/scottconverse/agent-pipeline-codex/discussions">discussions</a></span>
-  <span>v0.7.0+hooked-autonomy | 2026</span>
+  <span>v0.8.0+intake-drafting | 2026</span>
 </footer>
 
 </body>

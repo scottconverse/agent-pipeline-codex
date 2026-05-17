@@ -4,7 +4,7 @@
 
 A Codex Desktop App plugin that orchestrates multi-stage agentic work: **manifest -> research -> plan -> test-write -> execute -> policy -> verify -> drift-detect -> critique -> auto-promote -> manager**, with human-approval gates at manifest, plan, and manager-decision (the last auto-fires on clean runs at v0.5+). Built from real lessons across CivicCast, CivicSuite, AgentSuiteLocal and other projects where autonomous agent runs go wrong silently and "manager-PROMOTE" failures slip past CI.
 
-**Current release: v0.7.0** (optional Codex lifecycle hooks for run context, tool guardrails, and invalid-stop continuation). [CHANGELOG](CHANGELOG.md) | [User Manual](USER-MANUAL.md) | [Architecture](ARCHITECTURE.md) | [Landing page](https://scottconverse.github.io/agent-pipeline-codex/) | [Discussions](https://github.com/scottconverse/agent-pipeline-codex/discussions)
+**Current release: v0.8.0** (plain-English intake drafting before manifest validation). [CHANGELOG](CHANGELOG.md) | [User Manual](USER-MANUAL.md) | [Architecture](ARCHITECTURE.md) | [Landing page](https://scottconverse.github.io/agent-pipeline-codex/) | [Discussions](https://github.com/scottconverse/agent-pipeline-codex/discussions)
 
 ## Why this plugin exists
 
@@ -56,6 +56,7 @@ Fresh-session prompts must verify the namespaced plugin skills, not only the
 standalone skill names. The expected names are:
 
 - `agent-pipeline-codex:agent-pipeline`
+- `agent-pipeline-codex:intake`
 - `agent-pipeline-codex:pipeline-init`
 - `agent-pipeline-codex:new-run`
 - `agent-pipeline-codex:run-pipeline`
@@ -137,12 +138,35 @@ scripts/policy/
 hooks/                               # plugin-bundled v0.7 lifecycle hooks
 ```
 
+## v0.8.0: Intake drafting
+
+If you know the work in plain English but do not have a manifest yet, start
+with the separate intake skill:
+
+```
+Use intake for Add account deletion to settings, including tests, docs, and a clear rollback path.
+```
+
+`intake` creates draft run artifacts and stops. It does not validate the
+manifest, approve scope, run agents, or start implementation. It writes:
+
+- `intake.md` - the verbatim source description plus conservative interpretation
+- `manifest.yaml` - a draft manifest with uncertain scope left as TODOs
+- `scope-lock.yaml` - a draft scope lock that refuses to invent release-plan authority
+- `intake-questions.md` - missing answers that must be resolved before validation
+
+The hard boundary is unchanged: draft intake is not approval. The next step is
+to complete the TODOs and run `agent-pipeline-codex:validate-manifest`; only
+then should `agent-pipeline-codex:run-pipeline` start.
+
 ## Running a pipeline
 
 Once a project is initialized:
 
 ```
-Use new-run for feature my-task-slug.      # initialize manifest + scope-lock skeletons
+Use intake for Add account deletion to settings with tests and docs.
+                                           # draft intake.md + manifest/scope-lock
+Use new-run for feature my-task-slug.      # initialize blank manifest + scope-lock skeletons
                                            # (you fill in both, then:)
 Use validate-manifest for 2026-05-09-my-task-slug.
                                            # fix schema issues before agent work starts
