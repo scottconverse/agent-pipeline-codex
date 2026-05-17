@@ -10,6 +10,21 @@ release; the `CHANGELOG` will call them out.
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-05-17
+
+### Added
+
+- **Persistent run memory foundation.** Lifecycle hooks now write compact,
+  file-backed memory under `.agent-runs/<run-id>/memory/`: `events.jsonl`,
+  `turns.jsonl`, `decisions.jsonl`, `open_loops.jsonl`,
+  `memory_probe.log`, and a regenerated `handoff_current.md` that
+  `SessionStart` injects into the next session.
+
+### Fixed
+
+- **Hook risk false positive.** Narrowed the secret-assignment detector so
+  normal Python keyword arguments containing `key` do not look like secrets.
+
 ## [0.8.0] - 2026-05-17
 
 ### Added

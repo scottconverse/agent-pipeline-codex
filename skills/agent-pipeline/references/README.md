@@ -4,7 +4,7 @@
 
 A Codex Desktop App plugin that orchestrates multi-stage agentic work: **manifest -> research -> plan -> test-write -> execute -> policy -> verify -> drift-detect -> critique -> auto-promote -> manager**, with human-approval gates at manifest, plan, and manager-decision (the last auto-fires on clean runs at v0.5+). Built from real lessons across CivicCast, CivicSuite, AgentSuiteLocal and other projects where autonomous agent runs go wrong silently and "manager-PROMOTE" failures slip past CI.
 
-**Current release: v0.8.0** (plain-English intake drafting before manifest validation). [CHANGELOG](CHANGELOG.md) | [User Manual](USER-MANUAL.md) | [Architecture](ARCHITECTURE.md) | [Landing page](https://scottconverse.github.io/agent-pipeline-codex/) | [Discussions](https://github.com/scottconverse/agent-pipeline-codex/discussions)
+**Current release: v0.9.0** (persistent run memory through trusted lifecycle hooks). [CHANGELOG](CHANGELOG.md) | [User Manual](USER-MANUAL.md) | [Architecture](ARCHITECTURE.md) | [Landing page](https://scottconverse.github.io/agent-pipeline-codex/) | [Discussions](https://github.com/scottconverse/agent-pipeline-codex/discussions)
 
 ## Why this plugin exists
 
@@ -158,6 +158,34 @@ manifest, approve scope, run agents, or start implementation. It writes:
 The hard boundary is unchanged: draft intake is not approval. The next step is
 to complete the TODOs and run `agent-pipeline-codex:validate-manifest`; only
 then should `agent-pipeline-codex:run-pipeline` start.
+
+## v0.9.0: Persistent run memory
+
+The trusted hook layer now includes a file-backed memory foundation for active
+runs. When hooks can identify `.agent-runs/<run-id>/active-control-state.md`,
+they write compact receipts under:
+
+```text
+.agent-runs/<run-id>/memory/
+|-- events.jsonl          # all memory-worthy hook events
+|-- turns.jsonl           # user prompts submitted during the active run
+|-- decisions.jsonl       # tool warnings, denials, and approval decisions
+|-- open_loops.jsonl      # failed-tool guidance and invalid-stop continuations
+|-- memory_probe.log      # proof that hooks fired and saw the run
+`-- handoff_current.md    # compact wake-up summary regenerated from JSONL
+```
+
+`SessionStart` injects `handoff_current.md` alongside the active run context on
+the next startup/resume, so a new Codex session wakes up with the run state,
+recent warnings, open loops, and resume checklist without depending on chat
+memory. This is deliberately local and deterministic: no daemon, no vector
+database, and no external service are required.
+
+The JSONL files are memory receipts, not approval authority. Before relying on
+remembered state, re-run the relevant manifest, scope, directive, policy, or
+release checks. A future optional adapter can mirror these receipts into a
+localmem MCP server for semantic search and longer-term retention, but the
+built-in memory layer stands on its own.
 
 ## Running a pipeline
 

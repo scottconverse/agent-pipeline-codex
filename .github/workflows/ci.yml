@@ -5,11 +5,14 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/ci.yml"
+      - ".codex-plugin/**"
+      - "hooks/**"
       - "scripts/**"
       - "tests/**"
       - "skills/**"
       - "pipelines/**"
       - "commands/**"
+      - "docs/index.html"
       - "README.md"
       - "ARCHITECTURE.md"
       - "USER-MANUAL.md"
@@ -18,11 +21,14 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/ci.yml"
+      - ".codex-plugin/**"
+      - "hooks/**"
       - "scripts/**"
       - "tests/**"
       - "skills/**"
       - "pipelines/**"
       - "commands/**"
+      - "docs/index.html"
       - "README.md"
       - "ARCHITECTURE.md"
       - "USER-MANUAL.md"

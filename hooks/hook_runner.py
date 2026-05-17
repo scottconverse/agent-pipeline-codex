@@ -14,6 +14,7 @@ try:
         permission_decision,
         prompt_bypass_context,
         read_hook_input,
+        record_hook_memory,
         repo_root_from_event,
         session_context,
         stale_skill_context,
@@ -29,6 +30,7 @@ except ModuleNotFoundError:  # pragma: no cover - package import from tests
         permission_decision,
         prompt_bypass_context,
         read_hook_input,
+        record_hook_memory,
         repo_root_from_event,
         session_context,
         stale_skill_context,
@@ -55,6 +57,7 @@ def handle_session_start(event: dict) -> int:
     if not context:
         return 0
     append_hook_event(root, "SessionStart", "added active run context")
+    record_hook_memory(root, "SessionStart", "loaded active run context")
     return write_json(_context_payload("SessionStart", context))
 
 
@@ -66,11 +69,15 @@ def handle_user_prompt_submit(event: dict) -> int:
     blocked, bypass = prompt_bypass_context(prompt, runs)
     if blocked:
         append_hook_event(root, "UserPromptSubmit", "blocked pipeline bypass prompt")
+        record_hook_memory(root, "UserPromptSubmit", bypass, {"blocked": True})
         return write_json({"decision": "block", "reason": bypass})
     if not contexts:
+        if runs and prompt:
+            record_hook_memory(root, "UserPromptSubmit", prompt, {"blocked": False})
         return 0
     context = "\n".join(contexts)
     append_hook_event(root, "UserPromptSubmit", context)
+    record_hook_memory(root, "UserPromptSubmit", context, {"blocked": False})
     return write_json(_context_payload("UserPromptSubmit", context))
 
 
@@ -80,6 +87,7 @@ def handle_pre_tool_use(event: dict) -> int:
     if severity == "deny":
         reason = "Agent Pipeline hook denied tool call: " + "; ".join(reasons)
         append_hook_event(root, "PreToolUse", reason)
+        record_hook_memory(root, "PreToolUse", reason, {"severity": "deny"})
         return write_json(
             {
                 "hookSpecificOutput": {
@@ -92,6 +100,7 @@ def handle_pre_tool_use(event: dict) -> int:
     if severity == "warn":
         context = "Agent Pipeline hook warning: " + "; ".join(reasons) + ". Confirm manifest, scope-lock, directive, and judge policy before treating this action as authorized."
         append_hook_event(root, "PreToolUse", context)
+        record_hook_memory(root, "PreToolUse", context, {"severity": "warn"})
         return write_json(_context_payload("PreToolUse", context))
     return 0
 
@@ -102,6 +111,7 @@ def handle_permission_request(event: dict) -> int:
     if decision is None:
         return 0
     append_hook_event(root, "PermissionRequest", "returned approval decision")
+    record_hook_memory(root, "PermissionRequest", "returned approval decision", decision.get("hookSpecificOutput", {}))
     return write_json(decision)
 
 
@@ -111,6 +121,7 @@ def handle_post_tool_use(event: dict) -> int:
     if not context:
         return 0
     append_hook_event(root, "PostToolUse", context)
+    record_hook_memory(root, "PostToolUse", context, {"blocked": True})
     return write_json(
         {
             "decision": "block",
@@ -131,6 +142,7 @@ def handle_stop(event: dict) -> int:
     if not continuation:
         return 0
     append_hook_event(root, "Stop", "continued invalid pipeline stop")
+    record_hook_memory(root, "Stop", continuation, {"blocked": True})
     return write_json({"decision": "block", "reason": continuation})
 
 

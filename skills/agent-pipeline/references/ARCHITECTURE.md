@@ -75,11 +75,32 @@ flowchart LR
     H2 --> H3["Existing policy truth<br/>final_response_gate.py<br/>stop_validator.py<br/>manifest allowed_paths"]
     H3 --> H4["Codex hook JSON<br/>additionalContext / deny / continue"]
     H2 --> H5[".agent-runs/&lt;run-id&gt;/hook-events.jsonl<br/>audit receipt"]
+    H2 --> H6[".agent-runs/&lt;run-id&gt;/memory/<br/>JSONL receipts + handoff_current.md"]
+    H6 --> H4
 ```
 
 Hooks are runtime guardrails, not a replacement for pipeline evidence. The
 promotion contract still comes from `run.log`, verifier, drift-detector,
 critic, policy, judge, directive, and manager artifacts.
+
+### Persistent run memory
+
+The hook layer also owns a small file-backed memory substrate for each active
+run. It writes only when `active-control-state.md` marks a run active, and it
+keeps all memory inside `.agent-runs/<run-id>/memory/`:
+
+- `events.jsonl` for every memory-worthy lifecycle event.
+- `turns.jsonl` for user prompts submitted during the run.
+- `decisions.jsonl` for tool warnings, denials, and permission decisions.
+- `open_loops.jsonl` for failed-tool guidance and invalid-stop continuations.
+- `memory_probe.log` as a plain-text hook-fire diagnostic.
+- `handoff_current.md` as a compact generated wake-up summary.
+
+`SessionStart` reads `handoff_current.md` and adds it to the active-run context.
+This is the built-in memory floor: deterministic files, no service dependency,
+and no semantic search requirement. A future localmem adapter can mirror these
+same records into an MCP memory server, but the pipeline does not depend on that
+server to retain the current run's operational memory.
 
 ---
 

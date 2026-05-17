@@ -11,6 +11,7 @@ from hooks import hook_runner
 from hooks.hook_utils import (
     classify_tool_risk,
     discover_active_runs,
+    record_hook_memory,
     session_context,
     stale_skill_context,
 )
@@ -75,6 +76,41 @@ def test_session_start_adds_context_for_active_run_and_stays_quiet_without_one(t
     payload = _json_out(capsys)
     assert payload["hookSpecificOutput"]["hookEventName"] == "SessionStart"
     assert "run=hook-run" in payload["hookSpecificOutput"]["additionalContext"]
+
+
+def test_hook_memory_writes_handoff_and_session_context_loads_it(tmp_path: Path) -> None:
+    run = _write_active_run(tmp_path)
+
+    record_hook_memory(tmp_path, "UserPromptSubmit", "Remember that docs and tests ship with code.", {"blocked": False})
+
+    memory_dir = run / "memory"
+    assert (memory_dir / "turns.jsonl").exists()
+    assert (memory_dir / "events.jsonl").exists()
+    assert (memory_dir / "memory_probe.log").exists()
+    handoff = (memory_dir / "handoff_current.md").read_text(encoding="utf-8")
+    assert "Agent Pipeline memory - hook-run" in handoff
+    assert "Remember that docs and tests ship with code." in handoff
+
+    context = session_context(discover_active_runs(tmp_path))
+    assert "Agent Pipeline persistent memory:" in context
+    assert "Remember that docs and tests ship with code." in context
+
+
+def test_hook_memory_routes_decisions_and_open_loops(tmp_path: Path) -> None:
+    run = _write_active_run(tmp_path)
+
+    record_hook_memory(tmp_path, "PreToolUse", "warn before release action", {"severity": "warn"})
+    record_hook_memory(tmp_path, "PostToolUse", "tests failed; rerun verification", {"blocked": True})
+
+    memory_dir = run / "memory"
+    decisions = (memory_dir / "decisions.jsonl").read_text(encoding="utf-8")
+    open_loops = (memory_dir / "open_loops.jsonl").read_text(encoding="utf-8")
+    handoff = (memory_dir / "handoff_current.md").read_text(encoding="utf-8")
+
+    assert "warn before release action" in decisions
+    assert "tests failed; rerun verification" in open_loops
+    assert "Recent Decisions And Warnings" in handoff
+    assert "Open Loops" in handoff
 
 
 def test_user_prompt_submit_warns_on_stale_skill_and_blocks_bypass(tmp_path: Path, capsys) -> None:

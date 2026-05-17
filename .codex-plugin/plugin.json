@@ -1,7 +1,7 @@
 {
   "name": "agent-pipeline-codex",
-  "version": "0.8.0",
-  "description": "Multi-stage agentic pipeline runner for Codex Desktop App projects. Orchestrates manifest -> research -> plan -> test-write -> execute -> policy -> verify -> drift-detect -> critique -> auto-promote -> manager. v0.8 adds a separate intake skill that drafts starting artifacts from a plain-English product, repo, design, task, bug, or feature description without starting work.",
+  "version": "0.9.0",
+  "description": "Multi-stage agentic pipeline runner for Codex Desktop App projects. Orchestrates manifest -> research -> plan -> test-write -> execute -> policy -> verify -> drift-detect -> critique -> auto-promote -> manager. v0.9 adds persistent run memory through trusted lifecycle hooks.",
   "author": {
     "name": "Scott Converse",
     "email": "sconverse@gmail.com",
@@ -22,7 +22,7 @@
   "interface": {
     "displayName": "Agent Pipeline for Codex",
     "shortDescription": "Manifest-driven multi-stage agent workflow for Codex.",
-    "longDescription": "Agent Pipeline for Codex brings the agentic-pipeline discipline to Codex Desktop App: intake drafting, explicit manifests, human gates, role-scoped subagents, policy checks, drift detection, critique, auto-promote, module-release rehearsal, and dual-AI audit handoff scaffolding.",
+    "longDescription": "Agent Pipeline for Codex brings the agentic-pipeline discipline to Codex Desktop App: intake drafting, persistent run memory, explicit manifests, human gates, role-scoped subagents, policy checks, drift detection, critique, auto-promote, module-release rehearsal, and dual-AI audit handoff scaffolding.",
     "developerName": "Scott Converse",
     "category": "Productivity",
     "capabilities": [

@@ -2,7 +2,7 @@
 
 A Codex Desktop App plugin that orchestrates multi-stage agentic work with three human-approval gates. Built from real lessons across multi-week agent projects where autonomous runs go wrong silently and "manager-PROMOTE" failures slip past CI.
 
-**Version:** 0.8.0
+**Version:** 0.9.0
 **License:** Apache 2.0
 
 ---
@@ -923,6 +923,35 @@ When a hook can identify an active run, it appends a small JSONL receipt at:
 This file is an audit trail, not a gate artifact. The pipeline still uses
 `run.log`, policy reports, verifier/critic/drift reports, and
 `manager-decision.md` as the authoritative promotion evidence.
+
+### Persistent run memory
+
+Trusted hooks also maintain a compact local memory folder for the active run:
+
+```text
+.agent-runs/<run-id>/memory/
+|-- events.jsonl
+|-- turns.jsonl
+|-- decisions.jsonl
+|-- open_loops.jsonl
+|-- memory_probe.log
+`-- handoff_current.md
+```
+
+The JSONL files are append-only memory receipts. `handoff_current.md` is a
+small generated summary of the current run state, recent hook memory, warnings,
+and open loops. On the next `SessionStart`, Codex receives that handoff as
+additional context together with the active run context.
+
+This memory layer is intentionally file-backed and local. It does not require
+localmem, Qdrant, SQLite, embeddings, or a background service. A later optional
+adapter can mirror the same receipts into a localmem MCP server for semantic
+search and longer retention, but the built-in handoff remains the fallback and
+source of truth for wake-up context.
+
+Memory is not approval. If a handoff says a warning, failure, or decision
+happened, re-run the matching policy or verification command before treating it
+as current authority.
 
 ---
 

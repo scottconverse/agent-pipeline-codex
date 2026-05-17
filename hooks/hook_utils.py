@@ -24,6 +24,8 @@ STALE_STANDALONE_SKILLS = {
     "validate-manifest",
 }
 NAMESPACED_PREFIX = "agent-pipeline-codex:"
+MAX_MEMORY_TEXT = 1200
+MAX_HANDOFF_RECORDS = 8
 
 DESTRUCTIVE_PATTERNS = (
     r"\brm\s+-[^\n;|&]*r[^\n;|&]*f\b",
@@ -49,7 +51,7 @@ DEPENDENCY_PATTERNS = (
     r"\bpoetry\s+add\b",
 )
 SECRET_PATTERNS = (
-    r"\b[A-Z0-9_]*(TOKEN|SECRET|KEY|PASSWORD)[A-Z0-9_]*\s*=",
+    r"(?<![\w])(?-i:[A-Z][A-Z0-9_]*(?:TOKEN|SECRET|KEY|PASSWORD)[A-Z0-9_]*)\s*=",
     r"\b(cat|type|Get-Content)\b[^\n;|&]*(id_rsa|\.env|credentials|secrets?)\b",
 )
 
@@ -146,8 +148,22 @@ def session_context(runs: list[ActiveRun]) -> str:
             f"directive_bound={str(run.directive_bound).lower()}; "
             f"judge_active={str(run.judge_active).lower()}."
         )
+        handoff = read_memory_handoff(run)
+        if handoff:
+            lines.append("")
+            lines.append(handoff)
     lines.append("Respect run.log, manifest.yaml, scope-lock.yaml, directive.yaml, and active-control-state.md before stopping or changing scope.")
     return "\n".join(lines)
+
+
+def read_memory_handoff(run: ActiveRun) -> str:
+    path = run.run_dir / "memory" / "handoff_current.md"
+    if not path.exists():
+        return ""
+    text = path.read_text(encoding="utf-8-sig", errors="replace").strip()
+    if not text:
+        return ""
+    return "Agent Pipeline persistent memory:\n" + _truncate(text, 2400)
 
 
 def stale_skill_context(prompt: str) -> str:
@@ -308,6 +324,122 @@ def append_hook_event(repo_root: Path, event_name: str, message: str) -> None:
     }
     with path.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(record, sort_keys=True) + "\n")
+
+
+def record_hook_memory(repo_root: Path, event_name: str, message: str, metadata: dict[str, Any] | None = None) -> None:
+    runs = discover_active_runs(repo_root)
+    if not runs:
+        return
+    run = runs[0]
+    memory_dir = run.run_dir / "memory"
+    memory_dir.mkdir(parents=True, exist_ok=True)
+    record = {
+        "timestamp": _utc_now(),
+        "event": event_name,
+        "run_id": run.run_id,
+        "stage": run.fields.get("current_stage", ""),
+        "message": _truncate(message, MAX_MEMORY_TEXT),
+        "metadata": metadata or {},
+    }
+    target_file = memory_dir / _memory_file_for_event(event_name)
+    append_jsonl(target_file, record)
+    if target_file.name != "events.jsonl":
+        append_jsonl(memory_dir / "events.jsonl", record)
+    _write_memory_probe(memory_dir, repo_root, event_name, run)
+    _write_handoff(run, memory_dir)
+
+
+def append_jsonl(path: Path, record: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(record) + "\n")
+
+
+def _write_handoff(run: ActiveRun, memory_dir: Path) -> None:
+    event_rows = _read_jsonl_tail(memory_dir / "events.jsonl", MAX_HANDOFF_RECORDS)
+    open_loop_rows = _read_jsonl_tail(memory_dir / "open_loops.jsonl", MAX_HANDOFF_RECORDS)
+    decision_rows = _read_jsonl_tail(memory_dir / "decisions.jsonl", MAX_HANDOFF_RECORDS)
+    lines = [
+        f"# Agent Pipeline memory - {run.run_id}",
+        "",
+        f"Generated: {_utc_now()}",
+        "",
+        "## Run State",
+        "",
+        f"- stage: {run.fields.get('current_stage', '(unknown)')}",
+        f"- next_required_action: {run.fields.get('next_required_action', '(unspecified)')}",
+        f"- continuing_to: {run.fields.get('continuing_to', '(unspecified)')}",
+        f"- stop_condition: {run.fields.get('stop_condition', '(unset)')}",
+        f"- directive_bound: {str(run.directive_bound).lower()}",
+        f"- judge_active: {str(run.judge_active).lower()}",
+        "",
+    ]
+    if open_loop_rows:
+        lines.extend(["## Open Loops", ""])
+        for row in open_loop_rows:
+            lines.append(f"- [{row.get('event', 'event')}] {row.get('message', '')}")
+        lines.append("")
+    if decision_rows:
+        lines.extend(["## Recent Decisions And Warnings", ""])
+        for row in decision_rows:
+            lines.append(f"- [{row.get('event', 'event')}] {row.get('message', '')}")
+        lines.append("")
+    if event_rows:
+        lines.extend(["## Recent Hook Memory", ""])
+        for row in event_rows:
+            lines.append(f"- {row.get('timestamp', '')} [{row.get('event', 'event')}] {row.get('message', '')}")
+        lines.append("")
+    lines.extend(
+        [
+            "## Resume Checklist",
+            "",
+            "- Read the run contract files and memory/*.jsonl before changing scope.",
+            "- Re-run relevant policy checks before relying on any remembered approval, warning, or failure state.",
+        ]
+    )
+    (memory_dir / "handoff_current.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _write_memory_probe(memory_dir: Path, repo_root: Path, event_name: str, run: ActiveRun) -> None:
+    with (memory_dir / "memory_probe.log").open("a", encoding="utf-8") as handle:
+        handle.write(f"[{_utc_now()}] event={event_name} repo={repo_root} run={run.run_id} stage={run.fields.get('current_stage', '')}\n")
+
+
+def _read_jsonl_tail(path: Path, limit: int) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    rows: list[dict[str, Any]] = []
+    for raw in path.read_text(encoding="utf-8-sig", errors="replace").splitlines():
+        if not raw.strip():
+            continue
+        try:
+            loaded = json.loads(raw)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(loaded, dict):
+            rows.append(loaded)
+    return rows[-limit:]
+
+
+def _memory_file_for_event(event_name: str) -> str:
+    if event_name == "UserPromptSubmit":
+        return "turns.jsonl"
+    if event_name in {"PreToolUse", "PermissionRequest"}:
+        return "decisions.jsonl"
+    if event_name in {"PostToolUse", "Stop"}:
+        return "open_loops.jsonl"
+    return "events.jsonl"
+
+
+def _truncate(value: str, limit: int) -> str:
+    text = value.strip()
+    if len(text) <= limit:
+        return text
+    return text[: limit - 15].rstrip() + " ...[truncated]"
+
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def _directive_bound(run_dir: Path) -> bool:
