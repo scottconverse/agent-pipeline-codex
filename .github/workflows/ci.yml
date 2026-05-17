@@ -43,8 +43,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install test dependency
-        run: python -m pip install pytest
+      - name: Install test dependencies
+        run: python -m pip install pytest PyYAML
 
       - name: Run source-only release verification
         run: python scripts/verify_plugin_release.py --source-only

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 """Machine-checkable promote decision for the agentic pipeline (v0.5).
 
@@ -460,7 +460,7 @@ def _write_report(run_dir: Path, conditions: list[ConditionResult]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.6.0")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.7.0")
     parser.add_argument(
         "--run",
         required=True,

@@ -16,10 +16,12 @@ These are source-controlled because:
 | [`announcements-v0.5-control-loop.md`](announcements-v0.5-control-loop.md) | Announcements | Pinned post announcing v0.5 control-loop enforcement |
 | [`announcements-v0.5.8-status-polish.md`](announcements-v0.5.8-status-polish.md) | Announcements | Pinned post announcing v0.5.8 status polish |
 | [`announcements-v0.5.9-scope-lock.md`](announcements-v0.5.9-scope-lock.md) | Announcements | Pinned post announcing v0.5.9 canonical rung lock |
+| [`announcements-v0.7-hooked-autonomy.md`](announcements-v0.7-hooked-autonomy.md) | Announcements | Pinned post announcing v0.7 hooked pipeline autonomy |
 | [`q-and-a-seed.md`](q-and-a-seed.md) | Q&A | Seed FAQ thread |
 | [`show-and-tell-seed.md`](show-and-tell-seed.md) | Show and tell | Seed post inviting case studies |
-| [`ideas-seed.md`](ideas-seed.md) | Ideas | Seed post for v0.5+ proposals |
+| [`ideas-seed.md`](ideas-seed.md) | Ideas | Seed post for v0.8+ proposals |
 | [`roadmap-v0.5.md`](roadmap-v0.5.md) | Ideas | Roadmap post describing the v0.5 shipped set and v0.6 carry-forward |
+| [`roadmap-v0.7.md`](roadmap-v0.7.md) | Ideas | Roadmap post describing the v0.7 shipped set and v0.8 carry-forward |
 
 ## When to update
 

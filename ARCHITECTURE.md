@@ -22,7 +22,8 @@ The plugin orchestrates work across **three layers**:
 
 1. **Plugin layer** (`agent-pipeline-codex/`) - the Codex skills, workflow specs, the
    stage definitions, the role files, and the policy scripts. Versioned,
-   shared across all your projects.
+    shared across all your projects. Optional plugin hooks also live here and
+   run in Codex's lifecycle when `[features].plugin_hooks = true`.
 2. **Project layer** (`<your-project>/`) - copies of the pipeline
    definitions, role files, and policy scripts that `pipeline-init`
    scaffolded into your project. Yours to customize.
@@ -38,6 +39,7 @@ flowchart TB
         A2["skills + commands/<br/>pipeline-init<br/>new-run<br/>run-pipeline"]
         A3["pipelines/<br/>feature.yaml<br/>bugfix.yaml<br/>roles/*.md"]
         A4["scripts/<br/>check_*.py<br/>final_response_gate.py<br/>agent_decision_gate.py<br/>pipeline_continue.py<br/>run_all.py"]
+        A5["hooks/<br/>hooks.json<br/>hook_runner.py"]
     end
 
     subgraph ProjectLayer["Project layer (per repo, after pipeline-init)"]
@@ -54,21 +56,39 @@ flowchart TB
     end
 
     PluginLayer -- "pipeline-init copies into" --> ProjectLayer
-    ProjectLayer -- "new-run + run-pipeline produce" --> RunLayer
+ProjectLayer -- "new-run + run-pipeline produce" --> RunLayer
 ```
 
 The strict separation matters: when an agent stage runs, it only sees the
 project layer and the run layer. The plugin layer is read-only template
 material; once scaffolded, your project's behavior is yours.
 
+Optional v0.7 hooks do not scaffold into the project. They stay in the plugin
+layer, read the project/run artifacts, and return Codex hook JSON responses.
+
+### Hook data flow (v0.7)
+
+```mermaid
+flowchart LR
+    H0["Codex lifecycle event<br/>SessionStart / PreToolUse / Stop"] --> H1["hooks/hook_runner.py"]
+    H1 --> H2["hook_utils.py<br/>active run + scope + directive discovery"]
+    H2 --> H3["Existing policy truth<br/>final_response_gate.py<br/>stop_validator.py<br/>manifest allowed_paths"]
+    H3 --> H4["Codex hook JSON<br/>additionalContext / deny / continue"]
+    H2 --> H5[".agent-runs/&lt;run-id&gt;/hook-events.jsonl<br/>audit receipt"]
+```
+
+Hooks are runtime guardrails, not a replacement for pipeline evidence. The
+promotion contract still comes from `run.log`, verifier, drift-detector,
+critic, policy, judge, directive, and manager artifacts.
+
 ---
 
 ## 2. Stage flow - feature pipeline
 
-The default `feature` pipeline runs eight stages in order. Three of them
+The default `feature` pipeline runs eleven stages in order. Three of them
 are **human-approval gates** (orange). One is an **automated policy
-gate** (yellow). The rest are agent stages (blue) that delegate to a
-fresh subagent per stage.
+gate** (yellow), and auto-promote is a machine decision stage. The rest are
+agent stages (blue) that delegate to a fresh subagent per stage.
 
 ```mermaid
 flowchart TB
@@ -79,7 +99,10 @@ flowchart TB
     TW --> E[execute<br/>role: executor<br/>artifact: implementation-report.md]
     E --> POL[policy<br/>role: pipeline<br/>command: scripts/policy/run_all.py<br/>artifact: policy-report.md]
     POL -- exit 0 --> V[verify<br/>role: verifier<br/>artifact: verifier-report.md]
-    V --> MGR[manager<br/>role: manager<br/>artifact: manager-decision.md]
+    V --> DD[drift-detect<br/>role: drift-detector<br/>artifact: drift-report.md]
+    DD --> C[critique<br/>role: critic<br/>artifact: critic-report.md]
+    C --> AP[auto-promote<br/>role: pipeline<br/>artifact: manager-decision.md or auto-promote-report.md]
+    AP --> MGR[manager<br/>role: manager<br/>artifact: manager-decision.md]
     MGR -- APPROVE --> Done([Pipeline complete])
 
     M -. BLOCKED .-> Stop1([Stop])
@@ -93,8 +116,8 @@ flowchart TB
     classDef stop fill:#ffb3b3,stroke:#cc0000,color:#000
 
     class M,P,MGR human
-    class R,TW,E,V agent
-    class POL policy
+    class R,TW,E,V,DD,C agent
+    class POL,AP policy
     class Stop1,Stop2,Stop3,Stop4 stop
 ```
 
@@ -139,8 +162,13 @@ flowchart LR
     TW --> V
     E --> V
     JL --> V
-    V --> MGR["manager-decision.md<br/>(manager)<br/>PROMOTE / BLOCK / REPLAN<br/>cites verifier verbatim"]
+    V --> DD["drift-report.md<br/>(drift-detector)<br/>manifest contract vs.<br/>assembled state"]
+    DD --> CR["critic-report.md<br/>(critic)<br/>adversarial cold read<br/>across six lenses"]
+    CR --> AP["manager-decision.md or<br/>auto-promote-report.md<br/>(auto_promote.py)<br/>six base + directive assertions"]
+    AP --> MGR["manager-decision.md<br/>(manager)<br/>PROMOTE / BLOCK / REPLAN<br/>cites verifier verbatim"]
     POL --> MGR
+    DD --> MGR
+    CR --> MGR
     JL --> MGR
     I0 --> MGR
     MGR --> ACS["active-control-state.md<br/>(orchestrator)<br/>stop condition + next action"]
@@ -151,8 +179,8 @@ flowchart LR
     classDef policy fill:#fff3b3,stroke:#999900,color:#000
     classDef judge fill:#ccf2cc,stroke:#339933,color:#000
     class I0 human
-    class R,P,TW,E,V,MGR agent
-    class SL,POL policy
+    class R,P,TW,E,V,DD,CR,MGR agent
+    class SL,POL,AP policy
     class JL judge
     class ACS,DG policy
 ```

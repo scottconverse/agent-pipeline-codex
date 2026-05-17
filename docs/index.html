@@ -282,7 +282,7 @@
 <header class="masthead">
   <div class="mark">agent-pipeline-codex</div>
   <div class="meta">
-    <span>v0.6.0+directive-contract</span>
+    <span>v0.7.0+hooked-autonomy</span>
     <span>Apache-2.0</span>
     <span>Codex Desktop App plugin</span>
   </div>
@@ -317,12 +317,13 @@
     </div>
 
     <aside class="hero-meta">
-      <div class="row"><span>Release</span><strong class="rust">0.6.0</strong></div>
+      <div class="row"><span>Release</span><strong class="rust">0.7.0</strong></div>
       <div class="row"><span>Stages</span><strong>11</strong></div>
       <div class="row"><span>Human gates</span><strong>3</strong></div>
       <div class="row"><span>Role files</span><strong>13</strong></div>
       <div class="row"><span>Policy checks</span><strong>8</strong></div>
       <div class="row"><span>Decision gates</span><strong>3</strong></div>
+      <div class="row"><span>Lifecycle hooks</span><strong>6</strong></div>
       <div class="row"><span>Pipelines</span><strong>3</strong></div>
       <div class="row"><span>Status</span><strong>beta</strong></div>
     </aside>
@@ -331,11 +332,11 @@
 
 <section class="diagram-wrap frame">
   <span class="frame-mark">Fig. 01 | Pipeline schematic</span>
-  <span class="frame-mark-right">v0.6.0 | feature.yaml</span>
+  <span class="frame-mark-right">v0.7.0 | feature.yaml</span>
 
   <div class="figcap">
-    <span class="label">Eleven stages | four phases | three human gates | shared stop validator</span>
-    <span class="title">A run, plus the evidence-bound stop-decision control plane.</span>
+    <span class="label">Eleven stages | four phases | three human gates | shared stop validator | optional lifecycle hooks</span>
+    <span class="title">A run, plus the evidence-bound stop-decision and hook guardrail control plane.</span>
   </div>
 
   <div class="diagram-scroll">
@@ -647,12 +648,21 @@
           </div>
         </div>
 
-        <div class="layer current">
-          <div class="v">v0.6.0<strong>Directive contracts</strong><span class="badge">Current</span></div>
+        <div class="layer">
+          <div class="v">v0.6.0<strong>Directive contracts</strong></div>
           <div>
             <div class="l-title">Directive-conformant gates can auto-fire without training reflexive approval.</div>
             <p class="l-body">A run-local directive binds exact manifest and scope-lock content, plan assertions, manager assertions, author provenance, and a SHA-256 hash into run.log; mismatch or tampering falls back to human review.</p>
             <div class="l-catches"><strong>Fixes</strong> Stale active-control-state files and plausible blocker text becoming escape hatches during authorized work.</div>
+          </div>
+        </div>
+
+        <div class="layer current">
+          <div class="v">v0.7.0<strong>Hooked autonomy</strong><span class="badge">Current</span></div>
+          <div>
+            <div class="l-title">Pipeline discipline moves into Codex lifecycle events.</div>
+            <p class="l-body">Optional plugin hooks add active-run context, warn on stale skill names, preflight risky tools, deny unsafe approval requests, add corrective context after failed tools, and continue invalid stops when <code>plugin_hooks</code> is enabled.</p>
+            <div class="l-catches"><strong>Fixes</strong> Long sessions where the model remembers the plan but forgets the runtime stop and safety gates.</div>
           </div>
         </div>
       </div>
@@ -731,7 +741,7 @@
 <footer class="foot page">
   <span>(c) Scott Converse | Apache-2.0</span>
   <span><a href="https://github.com/scottconverse/agent-pipeline-codex">github</a> | <a href="https://github.com/scottconverse/agent-pipeline-codex/discussions">discussions</a></span>
-  <span>v0.6.0+directive-contract | 2026</span>
+  <span>v0.7.0+hooked-autonomy | 2026</span>
 </footer>
 
 </body>

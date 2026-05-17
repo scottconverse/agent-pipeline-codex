@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 """Print a human-readable summary of an Agent Pipeline run."""
 
@@ -94,7 +94,7 @@ def summarize_run(run_dir: Path) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.10")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.7.0")
     parser.add_argument("--run", required=True, help="Pipeline run id under .agent-runs/.")
     args = parser.parse_args()
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 """Validate Agent Pipeline continuation control-state artifacts.
 
@@ -153,7 +153,7 @@ def _print_policy() -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.5.10")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.7.0")
     parser.add_argument("--run", help="Pipeline run id under .agent-runs/.")
     parser.add_argument(
         "--state-file",

@@ -4,7 +4,7 @@
 
 A Codex Desktop App plugin that orchestrates multi-stage agentic work: **manifest -> research -> plan -> test-write -> execute -> policy -> verify -> drift-detect -> critique -> auto-promote -> manager**, with human-approval gates at manifest, plan, and manager-decision (the last auto-fires on clean runs at v0.5+). Built from real lessons across CivicCast, CivicSuite, AgentSuiteLocal and other projects where autonomous agent runs go wrong silently and "manager-PROMOTE" failures slip past CI.
 
-**Current release: v0.6.0** (directive contracts for deterministic auto-approval with hash-bound fallback). [CHANGELOG](CHANGELOG.md) | [User Manual](USER-MANUAL.md) | [Architecture](ARCHITECTURE.md) | [Landing page](https://scottconverse.github.io/agent-pipeline-codex/) | [Discussions](https://github.com/scottconverse/agent-pipeline-codex/discussions)
+**Current release: v0.7.0** (optional Codex lifecycle hooks for run context, tool guardrails, and invalid-stop continuation). [CHANGELOG](CHANGELOG.md) | [User Manual](USER-MANUAL.md) | [Architecture](ARCHITECTURE.md) | [Landing page](https://scottconverse.github.io/agent-pipeline-codex/) | [Discussions](https://github.com/scottconverse/agent-pipeline-codex/discussions)
 
 ## Why this plugin exists
 
@@ -134,6 +134,7 @@ scripts/policy/
 |-- auto_promote.py                 # v0.5 - six-condition machine-checkable promote
 `-- run_all.py                      # runner
 .agent-runs/                        # gitignored - pipeline run artifacts
+hooks/                               # plugin-bundled v0.7 lifecycle hooks
 ```
 
 ## Running a pipeline
@@ -258,7 +259,26 @@ If `.pipelines/action-classification.yaml` does not exist in your project, the e
 
 **Operator reference:** USER-MANUAL.md Section "The judge layer (v0.4)".
 
-## v0.5: Single-AI hardened (current)
+## v0.7.0: Hooked pipeline autonomy
+
+v0.7.0 adds optional Codex lifecycle hooks. When Codex is configured with
+`[features].plugin_hooks = true`, the plugin can add active-run context at
+session start, warn on stale standalone skill names, preflight risky tool
+calls, deny clearly unsafe approval requests, add corrective context after
+failed tools, and continue instead of stopping when `active-control-state.md`
+says the run is not at a valid stop condition.
+
+Hooks do not replace the directive contract, judge layer, policy scripts, or
+human fallback gates. They move existing pipeline discipline closer to Codex's
+runtime lifecycle. The default mode is warn/context; hard blocks are limited to
+concrete safety violations such as destructive commands, force pushes, secret
+exposure, out-of-scope active-run writes, and invalid pipeline stops.
+
+Local hooks work with a normal signed-in Codex session. Codex access tokens are
+documented only for ChatGPT Business and Enterprise workspaces, so they are
+optional for CI automation and not required for local Max/Pro-style operation.
+
+## v0.5: Single-AI hardened
 
 Six structural changes that make the pipeline run with **one AI** while still blocking drift and rogue-agent failures. Built from the design question: "can the pipeline do both action-level judge AND post-hoc audit with one AI?" Answer is yes - at the cost of accepting some correlated single-model-family blind spots, with explicit mitigations.
 
@@ -342,7 +362,7 @@ not infer that the release ladder changed.
 
 ## What this plugin will NOT do
 
-- It will not propose autonomous mode. Every gate is explicit.
+- It will not propose broad autonomous mode. Hooks add guardrails around explicit pipeline authority; every gate remains explicit or mechanically directive-bound.
 - It will not silently expand scope. The policy stage blocks any change outside `allowed_paths`.
 - It will not silently change rungs. The scope-lock gates block prompt, path, docs, and commit-message conflicts with the canonical release plan.
 - It will not skip tests. AGENTS.md hard-rule "never skip tests" is enforced as a project default.

@@ -1,0 +1,80 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${PLUGIN_ROOT}/hooks/hook_runner.py\" SessionStart",
+            "timeout": 30,
+            "statusMessage": "Loading Agent Pipeline run context"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${PLUGIN_ROOT}/hooks/hook_runner.py\" UserPromptSubmit",
+            "timeout": 30,
+            "statusMessage": "Checking Agent Pipeline prompt context"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|apply_patch|Edit|Write|mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${PLUGIN_ROOT}/hooks/hook_runner.py\" PreToolUse",
+            "timeout": 30,
+            "statusMessage": "Checking Agent Pipeline tool policy"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "Bash|apply_patch|Edit|Write|mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${PLUGIN_ROOT}/hooks/hook_runner.py\" PermissionRequest",
+            "timeout": 30,
+            "statusMessage": "Checking Agent Pipeline approval policy"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash|apply_patch|Edit|Write|mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${PLUGIN_ROOT}/hooks/hook_runner.py\" PostToolUse",
+            "timeout": 30,
+            "statusMessage": "Reviewing Agent Pipeline tool result"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${PLUGIN_ROOT}/hooks/hook_runner.py\" Stop",
+            "timeout": 30,
+            "statusMessage": "Checking Agent Pipeline stop condition"
+          }
+        ]
+      }
+    ]
+  }
+}

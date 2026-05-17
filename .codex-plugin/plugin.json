@@ -1,7 +1,7 @@
 {
   "name": "agent-pipeline-codex",
-  "version": "0.6.0",
-  "description": "Multi-stage agentic pipeline runner for Codex Desktop App projects. Orchestrates manifest -> research -> plan -> test-write -> execute -> policy -> verify -> drift-detect -> critique -> auto-promote -> manager. v0.6 adds directive contracts for deterministic auto-approval of directive-conformant manifest, plan, and manager gates while preserving human fallback and judge protections.",
+  "version": "0.7.0",
+  "description": "Multi-stage agentic pipeline runner for Codex Desktop App projects. Orchestrates manifest -> research -> plan -> test-write -> execute -> policy -> verify -> drift-detect -> critique -> auto-promote -> manager. v0.7 adds optional Codex lifecycle hooks that load run context, guard risky tool calls, and continue invalid pipeline stops while preserving directive, judge, and human fallback protections.",
   "author": {
     "name": "Scott Converse",
     "email": "sconverse@gmail.com",
@@ -18,6 +18,7 @@
     "human-in-the-loop"
   ],
   "skills": "./skills/",
+  "hooks": "./hooks/hooks.json",
   "interface": {
     "displayName": "Agent Pipeline for Codex",
     "shortDescription": "Manifest-driven multi-stage agent workflow for Codex.",
