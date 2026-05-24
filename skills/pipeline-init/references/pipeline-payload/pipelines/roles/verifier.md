@@ -28,7 +28,7 @@ Write **`.agent-runs/<run-id>/verifier-report.md`** with these sections:
    The numbers must add up. The auto-promote script reads this line directly; a missing or malformed line treats this stage as failed.
 
 1. **Manifest exit criteria** - every item from `manifest.expected_outputs` and `manifest.definition_of_done`, each with one of: **MET** / **PARTIAL** / **NOT MET** / **NOT APPLICABLE**. For every non-MET, an evidence line citing the file, the test, or the missing artifact. Use the literal markdown headers `- **MET**:`, `- **PARTIAL**:`, `- **NOT MET**:`, `- **NOT APPLICABLE**:` so the count line in Section 0 can be cross-checked by simple parsing.
-2. **Tests** - count of new tests in failing-tests-report.md and the count now passing per implementation-report.md. They must match. If implementation-report.md claims tests pass, run them yourself and confirm.
+2. **Tests** - count of new tests in failing-tests-report.md and the count now passing per implementation-report.md. They must match. If implementation-report.md claims tests pass, run them yourself and confirm. If your test run fails or hangs in a way `implementation-report.md` did not show, baseline against the merge-base (per `local-rehearsal.md` Step 2.5) before treating it as a new failure.
 3. **Lint, format, types** - run the project's lint, format-check, and type-check commands. Paste the head and tail of each output. All must be clean.
 4. **Policy gate** - run `python scripts/policy/run_all.py --run <run-id>`. Confirm `POLICY: ALL CHECKS PASSED`. If not, name the failing check and quote the violation lines.
 5. **AGENTS.md non-negotiables** - for each non-negotiable in the project's AGENTS.md that the manifest.goal touches: state explicitly whether this work honored it.
