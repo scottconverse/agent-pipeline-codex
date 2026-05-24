@@ -10,6 +10,15 @@ release; the `CHANGELOG` will call them out.
 
 ## [Unreleased]
 
+### Added
+
+- Local-rehearsal role: new Step 2.5 mandates regression-vs-baseline
+  isolation on any `verify-release.sh` failure or hang. Catches the
+  pre-existing-flake-mistaken-for-regression class of bug in 30
+  seconds instead of 40 minutes.
+- Verifier role: cross-reference to local-rehearsal Step 2.5 when
+  test runs diverge from `implementation-report.md`.
+
 ## [0.9.0] - 2026-05-17
 
 ### Added

@@ -46,6 +46,50 @@ If this fails:
 - Re-run from Step 1 (fresh state again)
 - DO NOT push the tag
 
+### Step 2.5 - Regression-vs-baseline isolation on failure or hang
+
+Before debugging Step 2's failure, run the 30-second isolation move.
+This catches the class of bug that wastes 40+ minutes: a pre-existing
+flake on main that surfaces during your branch's pre-push run.
+
+1. Note the failing test name, hang point, or error signature.
+2. Stash branch changes:
+   ```bash
+   git stash push -u -m "rehearsal-isolation"
+   ```
+3. Check out the merge-base (or main):
+   ```bash
+   BASE=$(git merge-base HEAD origin/main)
+   git checkout "$BASE"
+   ```
+4. Re-run the exact same Step 2 command in the same environment:
+   ```bash
+   bash scripts/verify-release.sh
+   ```
+5. Restore your branch:
+   ```bash
+   git checkout -
+   git stash pop
+   ```
+
+Three outcomes, three responses:
+
+- **PASSES on baseline** -> regression introduced by your branch.
+  Debug your diff. Continue with Step 2's "Fix in the source repo"
+  path.
+- **FAILS THE SAME WAY on baseline** -> pre-existing flake or bug,
+  NOT introduced by your branch. Document the baseline-SHA failure
+  in your push report; push your branch with a verification-block
+  note citing the baseline reproduction; surface the pre-existing
+  failure as a separate issue. Do NOT block your push on a flake
+  that exists on main.
+- **FAILS DIFFERENTLY on baseline** -> both real. Debug the worse
+  one first (usually your branch's, since it's the new contribution).
+
+This step is mandatory on any Step 2 failure or hang. It is the
+release equivalent of `git bisect HEAD~1` - a 30-second hygiene
+move that prevents a 40-minute deep dive in the wrong direction.
+
 ### Step 3 - Simulate the build steps that can run locally
 
 For Python wheel + sdist builds:
@@ -127,3 +171,5 @@ The Phase 3 stage MUST NOT execute until this report contains a PASS line for St
 Tag push is the single non-reversible step in the pipeline. The agent-pipeline-codex allows tag-moves (CivicSuite v1.5.0 moved 4 times) but each move costs ~30 minutes (PR, merge, tag move, CI cycle) and pollutes the audit trail. The civicrecords-ai sweep tag-moved 4 times because the release workflow was the discovery mechanism for the bugs. With local rehearsal, the workflow becomes the EXECUTION mechanism, not the discovery mechanism.
 
 Local rehearsal failing is good news (free fix). Remote rehearsal failing after a tag push is bad news (~30 minutes of plumbing per failure).
+
+Baseline isolation is even better news: it tells you in 30 seconds whether you're fixing your branch or fixing main.
