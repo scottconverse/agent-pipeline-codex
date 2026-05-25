@@ -2,7 +2,7 @@
 
 A Codex Desktop App plugin that orchestrates multi-stage agentic work with three human-approval gates. Built from real lessons across multi-week agent projects where autonomous runs go wrong silently and "manager-PROMOTE" failures slip past CI.
 
-**Version:** 0.9.0
+**Version:** 0.9.1
 **License:** Apache 2.0
 
 ---
@@ -988,6 +988,17 @@ The researcher will write recommendations; you write the binding decisions; the 
 ### Cleanroom CI catches "works on my machine"
 
 If your project has CI but no Docker cleanroom, the executor's local pytest can pass while CI fails. This was the failure mode that surfaced multiple bugs in CivicCast. Recommended addition to your project: a `ci-cleanroom-e2e.yml` workflow that runs the full test suite inside a Docker container with all dependencies fresh-installed.
+
+### `verify-release.sh` fails or hangs during local rehearsal
+
+Do the v0.9.1 baseline-isolation check before deep debugging. Record the
+failure signature, stash branch changes, check out the merge-base, and rerun
+the exact same command in the same environment. If baseline passes, debug your
+branch. If baseline fails the same way, document the baseline SHA and treat the
+failure as pre-existing instead of blocking your branch on unrelated host or
+main-branch state. The durable role contract lives in
+`local-rehearsal.md` Step 2.5, with a verifier cross-reference for divergent
+test failures.
 
 ## Glossary
 

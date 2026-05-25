@@ -4,7 +4,7 @@
 
 A Codex Desktop App plugin that orchestrates multi-stage agentic work: **manifest -> research -> plan -> test-write -> execute -> policy -> verify -> drift-detect -> critique -> auto-promote -> manager**, with human-approval gates at manifest, plan, and manager-decision (the last auto-fires on clean runs at v0.5+). Built from real lessons across CivicCast, CivicSuite, AgentSuiteLocal and other projects where autonomous agent runs go wrong silently and "manager-PROMOTE" failures slip past CI.
 
-**Current release: v0.9.0** (persistent run memory through trusted lifecycle hooks). [CHANGELOG](CHANGELOG.md) | [User Manual](USER-MANUAL.md) | [Architecture](ARCHITECTURE.md) | [Landing page](https://scottconverse.github.io/agent-pipeline-codex/) | [Discussions](https://github.com/scottconverse/agent-pipeline-codex/discussions)
+**Current release: v0.9.1** (baseline isolation for release-rehearsal failures and hangs). [CHANGELOG](CHANGELOG.md) | [User Manual](USER-MANUAL.md) | [Architecture](ARCHITECTURE.md) | [Landing page](https://scottconverse.github.io/agent-pipeline-codex/) | [Discussions](https://github.com/scottconverse/agent-pipeline-codex/discussions)
 
 ## Why this plugin exists
 
@@ -186,6 +186,17 @@ remembered state, re-run the relevant manifest, scope, directive, policy, or
 release checks. A future optional adapter can mirror these receipts into a
 localmem MCP server for semantic search and longer-term retention, but the
 built-in memory layer stands on its own.
+
+## v0.9.1: Baseline isolation for release rehearsal
+
+`local-rehearsal.md` now inserts Step 2.5 after the local `verify-release.sh`
+run. On any failure or hang, the role requires a quick branch-vs-merge-base
+check before deeper debugging so the agent can tell whether it is fixing its
+branch or chasing a pre-existing main-branch flake.
+
+`verifier.md` cross-references the same rule when a verifier test run fails or
+hangs in a way the implementation report did not show. The durable behavior is
+role text, not a chat-side reminder.
 
 ## Running a pipeline
 

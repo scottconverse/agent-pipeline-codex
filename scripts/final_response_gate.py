@@ -44,7 +44,7 @@ def evaluate_final_response_gate(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--version", action="version", version="agent-pipeline-codex 0.8.0"
+        "--version", action="version", version="agent-pipeline-codex 0.9.1"
     )
     parser.add_argument(
         "--run-dir",

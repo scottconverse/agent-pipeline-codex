@@ -18,11 +18,12 @@ These are source-controlled because:
 | [`announcements-v0.5.9-scope-lock.md`](announcements-v0.5.9-scope-lock.md) | Announcements | Pinned post announcing v0.5.9 canonical rung lock |
 | [`announcements-v0.7-hooked-autonomy.md`](announcements-v0.7-hooked-autonomy.md) | Announcements | Pinned post announcing v0.7 hooked pipeline autonomy |
 | [`announcements-v0.8-intake.md`](announcements-v0.8-intake.md) | Announcements | Pinned post announcing v0.8 intake drafting |
+| [`announcements-v0.9.1-baseline-isolation.md`](announcements-v0.9.1-baseline-isolation.md) | Announcements | Pinned post announcing v0.9.1 baseline isolation |
 | [`q-and-a-seed.md`](q-and-a-seed.md) | Q&A | Seed FAQ thread |
 | [`show-and-tell-seed.md`](show-and-tell-seed.md) | Show and tell | Seed post inviting case studies |
-| [`ideas-seed.md`](ideas-seed.md) | Ideas | Seed post for v0.9+ proposals |
+| [`ideas-seed.md`](ideas-seed.md) | Ideas | Seed post for v0.10+ proposals |
 | [`roadmap-v0.5.md`](roadmap-v0.5.md) | Ideas | Roadmap post describing the v0.5 shipped set and v0.6 carry-forward |
-| [`roadmap-v0.7.md`](roadmap-v0.7.md) | Ideas | Roadmap post describing the v0.7 shipped set and v0.8 carry-forward |
+| [`roadmap-v0.7.md`](roadmap-v0.7.md) | Ideas | Roadmap post describing the v0.7 through v0.9 shipped set and v0.10 carry-forward |
 
 ## When to update
 

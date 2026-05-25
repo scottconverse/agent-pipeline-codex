@@ -1,4 +1,4 @@
-# Roadmap - v0.7 shipped set, v0.8 intake, and v0.9 carry-forward
+# Roadmap - v0.7 shipped set through v0.9.1, and v0.10 carry-forward
 
 This is a living roadmap for the post-hook era. v0.7 shipped optional Codex lifecycle hooks because Codex gained a first-class hook surface that maps directly to the pipeline's existing control-loop and action-safety receipts.
 
@@ -21,7 +21,26 @@ This is a living roadmap for the post-hook era. v0.7 shipped optional Codex life
 - Public docs, architecture diagrams, manual guidance, landing page copy, and discussion seed text for the intake layer.
 - Safety boundary that stops before validation, directives, subagents, tests, policy, or pipeline execution.
 
-## What's plausible for v0.9
+## Shipped in v0.9.0
+
+- Trusted hook memory receipts under `.agent-runs/<run-id>/memory/`.
+- `events.jsonl`, `turns.jsonl`, `decisions.jsonl`, `open_loops.jsonl`,
+  `memory_probe.log`, and regenerated `handoff_current.md`.
+- `SessionStart` handoff injection so resumed sessions get recent run state
+  without depending on chat memory.
+- Local, deterministic memory with no daemon, vector database, or external
+  service required.
+
+## Shipped in v0.9.1
+
+- `local-rehearsal.md` Step 2.5 for regression-vs-baseline isolation on any
+  `verify-release.sh` failure or hang.
+- `verifier.md` cross-reference to Step 2.5 when verifier test runs diverge
+  from `implementation-report.md`.
+- Current-version docs, landing page, discussion seed posts, plugin metadata,
+  bundled references, and script `--version` outputs synchronized to `0.9.1`.
+
+## What's plausible for v0.10
 
 ### Candidate 1 - Hook trust and install diagnostics
 

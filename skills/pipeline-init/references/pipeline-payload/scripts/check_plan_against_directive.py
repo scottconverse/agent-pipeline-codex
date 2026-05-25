@@ -56,7 +56,7 @@ def mentions_manifest_expected_outputs(ctx, args):
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.8.0")
+    parser.add_argument("--version", action="version", version="agent-pipeline-codex 0.9.1")
     parser.add_argument("--run", required=True)
     args = parser.parse_args()
 

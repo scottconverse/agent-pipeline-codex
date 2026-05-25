@@ -10,6 +10,23 @@ release; the `CHANGELOG` will call them out.
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-05-25
+
+### Added
+
+- Local-rehearsal role: new Step 2.5 mandates regression-vs-baseline
+  isolation on any `verify-release.sh` failure or hang. Catches the
+  pre-existing-flake-mistaken-for-regression class of bug in 30
+  seconds instead of 40 minutes.
+- Verifier role: cross-reference to local-rehearsal Step 2.5 when
+  test runs diverge from `implementation-report.md`.
+
+### Changed
+
+- Current-version surfaces now identify `v0.9.1` across plugin metadata,
+  README/manual references, landing page copy, discussion seed docs, bundled
+  `agent-pipeline` reference docs, and script `--version` outputs.
+
 ## [0.9.0] - 2026-05-17
 
 ### Added

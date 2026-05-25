@@ -1,7 +1,7 @@
 {
   "name": "agent-pipeline-codex",
-  "version": "0.9.0",
-  "description": "Multi-stage agentic pipeline runner for Codex Desktop App projects. Orchestrates manifest -> research -> plan -> test-write -> execute -> policy -> verify -> drift-detect -> critique -> auto-promote -> manager. v0.9 adds persistent run memory through trusted lifecycle hooks.",
+  "version": "0.9.1",
+  "description": "Multi-stage agentic pipeline runner for Codex Desktop App projects. Orchestrates manifest -> research -> plan -> test-write -> execute -> policy -> verify -> drift-detect -> critique -> auto-promote -> manager. v0.9.1 adds regression-vs-baseline isolation to release rehearsal failures and hangs.",
   "author": {
     "name": "Scott Converse",
     "email": "sconverse@gmail.com",

@@ -282,7 +282,7 @@
 <header class="masthead">
   <div class="mark">agent-pipeline-codex</div>
   <div class="meta">
-    <span>v0.9.0+persistent-memory</span>
+    <span>v0.9.1+baseline-isolation</span>
     <span>Apache-2.0</span>
     <span>Codex Desktop App plugin</span>
   </div>
@@ -317,7 +317,7 @@
     </div>
 
     <aside class="hero-meta">
-      <div class="row"><span>Release</span><strong class="rust">0.9.0</strong></div>
+      <div class="row"><span>Release</span><strong class="rust">0.9.1</strong></div>
       <div class="row"><span>Stages</span><strong>11</strong></div>
       <div class="row"><span>Human gates</span><strong>3</strong></div>
       <div class="row"><span>Role files</span><strong>13</strong></div>
@@ -332,7 +332,7 @@
 
 <section class="diagram-wrap frame">
   <span class="frame-mark">Fig. 01 | Pipeline schematic</span>
-  <span class="frame-mark-right">v0.9.0 | feature.yaml</span>
+  <span class="frame-mark-right">v0.9.1 | feature.yaml</span>
 
   <div class="figcap">
     <span class="label">Eleven stages | four phases | three human gates | shared stop validator | optional lifecycle hooks</span>
@@ -676,12 +676,21 @@
           </div>
         </div>
 
-        <div class="layer current">
-          <div class="v">v0.9.0<strong>Persistent memory</strong><span class="badge">Current</span></div>
+        <div class="layer">
+          <div class="v">v0.9.0<strong>Persistent memory</strong></div>
           <div>
             <div class="l-title">Trusted hooks write a local handoff that the next session can wake up with.</div>
             <p class="l-body">Active runs now keep <code>memory/events.jsonl</code>, <code>turns.jsonl</code>, <code>decisions.jsonl</code>, <code>open_loops.jsonl</code>, <code>memory_probe.log</code>, and <code>handoff_current.md</code>. <code>SessionStart</code> injects the compact handoff beside active-run context.</p>
             <div class="l-catches"><strong>Fixes</strong> Session restarts and compaction losing recent warnings, open loops, and resume intent.</div>
+          </div>
+        </div>
+
+        <div class="layer current">
+          <div class="v">v0.9.1<strong>Baseline isolation</strong><span class="badge">Current</span></div>
+          <div>
+            <div class="l-title">Release rehearsal failures get checked against baseline before deep debugging.</div>
+            <p class="l-body"><code>local-rehearsal.md</code> Step 2.5 requires a branch-vs-merge-base rerun when <code>verify-release.sh</code> fails or hangs. <code>verifier.md</code> points to the same rule when verifier tests diverge from the implementation report.</p>
+            <div class="l-catches"><strong>Fixes</strong> Pre-existing main-branch flakes being mistaken for branch regressions and sending agents into the wrong debugging path.</div>
           </div>
         </div>
       </div>
@@ -760,7 +769,7 @@
 <footer class="foot page">
   <span>(c) Scott Converse | Apache-2.0</span>
   <span><a href="https://github.com/scottconverse/agent-pipeline-codex">github</a> | <a href="https://github.com/scottconverse/agent-pipeline-codex/discussions">discussions</a></span>
-  <span>v0.9.0+persistent-memory | 2026</span>
+  <span>v0.9.1+baseline-isolation | 2026</span>
 </footer>
 
 </body>

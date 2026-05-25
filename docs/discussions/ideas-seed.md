@@ -1,4 +1,4 @@
-# Ideas - what should v0.9 (and beyond) look like?
+# Ideas - what should v0.10 (and beyond) look like?
 
 This thread collects proposals for future versions. Anything from a single new policy check to a whole new layer is fair game. The bar for "this should ship" is: a specific failure mode the existing layers don't catch, plus a sketch of what catches it.
 
@@ -26,6 +26,8 @@ These are ideas under active consideration. None are committed. Some have been d
 - Directive contracts: hash-bound manifest/scope/plan/manager auto-approval with human fallback.
 - Hooked pipeline autonomy: optional Codex lifecycle hooks for run context, tool guardrails, approval denial, post-tool corrective context, and invalid-stop continuation.
 - Intake drafting: `agent-pipeline-codex:intake` converts a plain-English task into draft `.agent-runs/<run-id>/intake.md`, `manifest.yaml`, `scope-lock.yaml`, and missing-question notes without starting the pipeline.
+- Persistent run memory: trusted hooks write local JSONL receipts and regenerate `handoff_current.md` so a resumed session wakes up with recent warnings, open loops, and next-run context.
+- Baseline isolation: release rehearsal and verifier roles now require branch-vs-merge-base isolation before treating a failure or hang as a branch regression.
 
 ### Hook activation verifier
 
