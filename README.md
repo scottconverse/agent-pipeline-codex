@@ -1,3 +1,5 @@
+> **Archived October 17, 2026.** Superseded by [codex-hook-kit](https://github.com/scottconverse/codex-hook-kit) and [dev-rigor-stack-lite](https://github.com/scottconverse/dev-rigor-stack-lite). Two files were recorded for later rather than ported: `scripts/check_plugin_install_acceptance.py` (the `--live` mode) is item 6 in codex-hook-kit's `docs/HANDOFF-CODEX.md` (Codex's job: the Desktop-activation proof); `scripts/check_actions_budget.py` with its test is [cowork-autonomy-kit issue #8](https://github.com/scottconverse/cowork-autonomy-kit/issues/8) (the CI-standard checker). Nothing else was ported. Everything remains readable here. This repository is read-only; history and issues are preserved.
+
 # agent-pipeline-codex
 
 [![CI](https://github.com/scottconverse/agent-pipeline-codex/actions/workflows/ci.yml/badge.svg)](https://github.com/scottconverse/agent-pipeline-codex/actions/workflows/ci.yml)
